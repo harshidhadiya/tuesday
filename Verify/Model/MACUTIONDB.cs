@@ -3,11 +3,11 @@ using VERIFY.Model.Constrains_on_table;
 
 namespace VERIFY.Model
 {
-    public class MACUTIONDB : DbContext
+    public class VerifyDbContext : DbContext
     {
         public DbSet<VerifyProductTable> VERIFY_PRODUCTS { get; set; } = null!;
 
-        public MACUTIONDB(DbContextOptions<MACUTIONDB> options) : base(options)
+        public VerifyDbContext(DbContextOptions<VerifyDbContext> options) : base(options)
         {
         }
 

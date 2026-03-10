@@ -43,7 +43,7 @@ public class ProductVerifyConsumer : BackgroundService
         try
         {
 
-            var dbContext = scope.ServiceProvider.GetRequiredService<MACUTIONDB>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<VerifyDbContext>();
             var body = args.Body.ToArray();
             var json = Encoding.UTF8.GetString(body);
             Console.WriteLine(json);

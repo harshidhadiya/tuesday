@@ -74,7 +74,7 @@ public class ProductUnverifyConsumer: BackgroundService
             }
            
             using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<MACUTIONDB>();
+            var db = scope.ServiceProvider.GetRequiredService<VerifyDbContext>();
 
             var record = await db.VERIFY_PRODUCTS.FirstOrDefaultAsync(v => v.ProductId == message.productId);
             if (record == null)

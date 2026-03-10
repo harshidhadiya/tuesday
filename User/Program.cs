@@ -12,6 +12,9 @@ using USER.Data.Interfaces;
 using USER.MAPPER;
 using USER.Messaging;
 using USER.Model;
+using USER.Repository;
+using USER.Services;
+using USER.Validation;
 using USER.Validation;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,10 +57,11 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddControllers().AddJsonOptions((option=>option.JsonSerializerOptions.UnmappedMemberHandling= System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow));
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserAdminService, UserAdminService>();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ItokenGeneration,Tokenget>();
-
-
 builder.Services.AddAutoMapper(typeof(Mapper));
 var app = builder.Build();
 app.UseCors("MyPolicy");

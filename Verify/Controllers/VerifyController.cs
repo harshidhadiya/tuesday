@@ -1,536 +1,114 @@
 using ADMIN.Data.Dto;
-using VERIFY.Data.Dto;
-using Microsoft.AspNetCore.Mvc;
+using VERIFY.DTOs.Requests;
+using VERIFY.DTOs.Responses;
+using VERIFY.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using VERIFY.Messaging;
-using VERIFY.Messaging.Events;
-using VERIFY.Model;
-
-// task : create the verify product in the admin pannel and the veriy by admin but there is data has to send like seller id as well as the  flow user -> product -> verify 
-// create schema message  for notifying them okay 
-
-// task in product : when you delete the product you have to also unveriy product 
-
-// task : unverify product right so flow from  user ->  unverify 
-
-
+using Microsoft.AspNetCore.Mvc;
 
 namespace VERIFY.Controllers
 {
+   
     [ApiController]
     [Route("api/[controller]")]
     public class VerifyController : ControllerBase
     {
-        private readonly MACUTIONDB _db;
-        private readonly ILogger<VerifyController> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IRabbitMqPublisher _publisher;
+        private readonly IVerifyService _verifyService;
 
-        public VerifyController(
-            MACUTIONDB db,
-            ILogger<VerifyController> logger,
-            IHttpClientFactory httpClientFactory,
-            IRabbitMqPublisher publisher)
+        public VerifyController(IVerifyService verifyService)
         {
-            _db = db;
-            _logger = logger;
-            _httpClientFactory = httpClientFactory;
-            _publisher = publisher;
+            _verifyService = verifyService;
         }
 
-        public class VerifyProductRequest
+        private int? GetCurrentUserId()
         {
-            public int ProductId { get; set; }
-            public int SellerId { get; set; }
-            public string ProductName { get; set; } = string.Empty;
+            var id = HttpContext.Items["id"];
+            if (int.TryParse(id?.ToString(), out var userId))
+                return userId;
+            return null;
         }
 
-        public class VerifyStatusResponse
-        {
-            public int ProductId { get; set; }
-            public bool IsVerified { get; set; }
-            public int? VerifierId { get; set; }
-            public DateTime? VerifiedTime { get; set; }
-            public string? Description { get; set; }
-        }
-
-        // Simple DTOs for reading data from Product and User microservices
-        private class ProductSummary
-        {
-            public int id { get; set; }
-            public int? userId { get; set; }
-            public string productName { get; set; } = string.Empty;
-            public string? description { get; set; }
-            public DateTime buyDate { get; set; }
-            public DateTime createdDate { get; set; }
-        }
-
-        private class ProductListEnvelope
-        {
-            public bool Success { get; set; }
-            public string Message { get; set; } = string.Empty;
-            public int StatusCode { get; set; }
-            public List<ProductSummary>? Data { get; set; }
-        }
-
-        private class UserSummary
-        {
-            public int id { get; set; }
-            public string? name { get; set; }
-            public string? email { get; set; }
-            public string? role { get; set; }
-        }
-
-        private async Task<bool> AdminHasVerifyPermissionAsync(int adminId)
-        {
-            var client = _httpClientFactory.CreateClient("DefaultClient");
-
-            try
-            {
-                var response = await client.GetAsync($"/api/request/details/{adminId}");
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning("Admin rights check failed with status {StatusCode} for admin {AdminId}",
-                        response.StatusCode, adminId);
-                    return false;
-                }
-
-                var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<RequestDetailDto>>();
-                if (envelope?.Data == null)
-                {
-                    _logger.LogWarning("Admin rights check returned no data for admin {AdminId}", adminId);
-                    return false;
-                }
-
-                // Admin is allowed to verify products only if they were verified by another admin
-                return envelope.Data.VerifiedByAdmin;
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "Error calling ADMIN service to check rights for admin {AdminId}", adminId);
-                return false;
-            }
-        }
-
-        private async Task<List<ProductSummary>> GetAllProductsFromProductServiceAsync()
-        {
-            var client = _httpClientFactory.CreateClient("ProductService");
-            var result = new List<ProductSummary>();
-
-            try
-            {
-                // 1. Create a specific Request object instead of just a URL string
-                var request = new HttpRequestMessage(HttpMethod.Get, "/api/product/all");
-
-                // 2. Add the header to the REQUEST, not the client
-                if (Request.Headers.TryGetValue("Authorization", out var authHeader))
-                {
-                    // Use TryAddWithoutValidation to be safe with token formats
-                    request.Headers.TryAddWithoutValidation("Authorization", authHeader.ToString());
-                }
-
-                // 3. Send the specific request object
-                var response = await client.SendAsync(request);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning("Failed to fetch products. Status: {StatusCode}", response.StatusCode);
-                    return result;
-                }
-
-                var envelope = await response.Content.ReadFromJsonAsync<ProductListEnvelope>();
-                if (envelope?.Data != null)
-                {
-                    result = envelope.Data;
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "Error calling Product service");
-            }
-
-            return result;
-        }
-
-        private async Task<UserSummary?> GetUserFromUserServiceAsync(int? userId)
-        {
-            if (userId == null || userId <= 0)
-            {
-                return null;
-            }
-
-            var client = _httpClientFactory.CreateClient("UserService");
-
-            try
-            {
-                var response = await client.GetAsync($"/api/user/{userId.Value}");
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning("Failed to fetch user {UserId} from user service. Status: {StatusCode}", userId, response.StatusCode);
-                    return null;
-                }
-
-                var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<UserSummary>>();
-                return envelope?.Data;
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "Error calling User service for user {UserId}", userId);
-                return null;
-            }
-        }
 
         [HttpPost("product")]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> VerifyProduct([FromBody] VerifyProductRequest request)
         {
-            if (request == null || request.ProductId <= 0 || request.SellerId <= 0)
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    "Invalid request. ProductId and SellerId are required and must be greater than 0.",
-                    400
-                ));
-            }
+            var adminId = GetCurrentUserId();
+            if (adminId == null)
+                return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
 
-            var id = HttpContext.Items["id"];
-            if (!int.TryParse(id?.ToString(), out var adminId))
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    "Invalid admin id in context.",
-                    400
-                ));
-            }
-
-            // Check that this admin really has authority to verify products
-            var hasRights = await AdminHasVerifyPermissionAsync(adminId);
-            if (!hasRights)
-            {
-                return Forbid();
-            }
-
-            var existing = await _db.VERIFY_PRODUCTS
-                .FirstOrDefaultAsync(v => v.ProductId == request.ProductId);
-
-            if (existing != null && existing.SellerId != request.SellerId)
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    "Product is already verified by another seller.",
-                    400
-                ));
-            }
-            else if (existing != null){
-                existing.VerifierId = adminId;
-                existing.VerifiedTime = DateTime.UtcNow;
-                existing.ProductName = request.ProductName;
-                existing.isProductVerified = true;
-
-                if (string.IsNullOrWhiteSpace(existing.Description))
-                {
-                    existing.Description = "Product verified by admin.";
-                }
-
-                _db.VERIFY_PRODUCTS.Update(existing);
-            }
-            else
-            {
-                var entity = new VerifyProductTable
-                {
-                    ProductId = request.ProductId,
-                    SellerId = request.SellerId,
-                    VerifierId = adminId,
-                    VerifiedTime = DateTime.UtcNow,
-                    ProductName = request.ProductName,
-                    isProductVerified = true,
-                    Description = "Product verified by admin."
-                };
-
-                await _db.VERIFY_PRODUCTS.AddAsync(entity);
-            }
-
-            await _db.SaveChangesAsync();
-            _publisher.Publish("product.verified", new 
-            {
-                ProductId = request.ProductId,
-                SellerId = request.SellerId,
-                VerifierId = adminId
-            });
-            _logger.LogInformation("Product {ProductId} verified by admin {AdminId}", request.ProductId, adminId);
-
-            return Ok(ApiResponse<object>.SuccessResponse(
-                new { request.ProductId, request.SellerId, VerifierId = adminId },
-                "Product verified successfully"
-            ));
+            var result = await _verifyService.VerifyProductAsync(adminId.Value, request);
+            return ToActionResult(result);
         }
+
 
         [HttpDelete("product/{productId:int}")]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> UnverifyProduct(int productId, [FromBody] string? description = null)
         {
-            if (productId <= 0)
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    "Invalid product id.",
-                    400
-                ));
-            }
+            var adminId = GetCurrentUserId();
+            if (adminId == null)
+                return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
 
-            var id = HttpContext.Items["id"];
-            if (!int.TryParse(id?.ToString(), out var adminId))
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    "Invalid admin id in context.",
-                    400
-                ));
-            }
-
-            var hasRights = await AdminHasVerifyPermissionAsync(adminId);
-            if (!hasRights)
-            {
-                return Forbid();
-            }
-
-            var record = await _db.VERIFY_PRODUCTS
-                .FirstOrDefaultAsync(v => v.ProductId == productId);
-
-            if (record == null)
-            {
-                return NotFound(ApiResponse<object>.ErrorResponse(
-                    "Verification record not found for this product",
-                    404
-                ));
-            }
-
-            if (record.VerifierId != adminId)
-            {
-                _logger.LogWarning("Admin {AdminId} attempted to unverify product {ProductId} verified by another admin {VerifierId}",
-                    adminId, productId, record.VerifierId);
-                return Forbid();
-            }
-
-            record.isProductVerified = false;
-            record.VerifiedTime = DateTime.UtcNow;
-            record.Description = !string.IsNullOrWhiteSpace(description)
-                ? description
-                : "Product unverification requested by admin.";
-
-            _db.VERIFY_PRODUCTS.Update(record);
-            await _db.SaveChangesAsync();
-
-            _publisher.Publish("product.unverified", new ProductUnverifiedEvent
-            {
-                ProductId = productId,
-            });
-
-            return Ok(ApiResponse<object>.SuccessResponse(
-                new { ProductId = productId },
-                "Product unverification completed and auction cleared if scheduled"
-            ));
+            var result = await _verifyService.UnverifyProductAsync(adminId.Value, productId, description);
+            return ToActionResult(result);
         }
+
 
         [HttpGet("status/{productId:int}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetVerifyStatus(int productId)
         {
-            if (productId <= 0)
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    "Invalid product id.",
-                    400
-                ));
-            }
-
-            var record = await _db.VERIFY_PRODUCTS
-                .AsNoTracking()
-                .FirstOrDefaultAsync(v => v.ProductId == productId);
-
-            if (record == null)
-            {
-                var notVerified = new VerifyStatusResponse
-                {
-                    ProductId = productId,
-                    IsVerified = false,
-                    Description = null
-                };
-
-                return Ok(ApiResponse<VerifyStatusResponse>.SuccessResponse(
-                    notVerified,
-                    "Product is not verified"
-                ));
-            }
-
-            var response = new VerifyStatusResponse
-            {
-                ProductId = productId,
-                IsVerified = record.isProductVerified,
-                VerifierId = record.VerifierId,
-                VerifiedTime = record.VerifiedTime,
-                Description = record.Description
-            };
-
-            return Ok(ApiResponse<VerifyStatusResponse>.SuccessResponse(
-                response,
-                "Product verification status retrieved successfully"
-            ));
+            var result = await _verifyService.GetVerifyStatusAsync(productId);
+            return ToActionResult(result);
         }
+
 
         [HttpGet("my-products")]
         [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> GetProductsVerifiedByMe(
-            [FromQuery] string? searchName = null)
+        public async Task<IActionResult> GetProductsVerifiedByMe([FromQuery] string? searchName = null,[FromQuery] int page=1,[FromQuery] int size=10)
         {
-            var id = HttpContext.Items["id"];
-            if (!int.TryParse(id?.ToString(), out var adminId))
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    "Invalid admin id in context.",
-                    400
-                ));
-            }
+            var adminId = GetCurrentUserId();
+            if (adminId == null)
+                return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
 
-            var hasRights = await AdminHasVerifyPermissionAsync(adminId);
-            if (!hasRights)
-            {
-                return Forbid();
-            }
+            string? authHeader = Request.Headers.TryGetValue("Authorization", out var headerValue)
+                ? headerValue.ToString()
+                : null;
 
-            var query = _db.VERIFY_PRODUCTS
-                .AsNoTracking()
-                .Where(v => v.VerifierId == adminId && v.isProductVerified);
-
-            if (!string.IsNullOrWhiteSpace(searchName))
-            {
-                query = query.Where(v => EF.Functions.Like(v.ProductName, $"%{searchName}%"));
-            }
-
-            var verifyRecords = await query
-                .OrderByDescending(v => v.VerifiedTime)
-                .ToListAsync();
-
-            if (verifyRecords.Count == 0)
-            {
-                return Ok(ApiResponse<object>.SuccessResponse(
-                    new List<object>(),
-                    "No verified products found for this admin"
-                ));
-            }
-
-            var allProducts = await GetAllProductsFromProductServiceAsync();
-            if (allProducts.Count == 0)
-            {
-                return Ok(ApiResponse<object>.SuccessResponse(
-                    new List<object>(),
-                    "No products found in product service"
-                ));
-            }
-
-            var productsById = allProducts.ToDictionary(p => p.id, p => p);
-
-            var results = new List<object>();
-
-            foreach (var v in verifyRecords)
-            {
-                if (productsById.TryGetValue(v.ProductId, out var p))
-                {
-                    var owner = await GetUserFromUserServiceAsync(p.userId);
-
-                    results.Add(new
-                    {
-                        productId = p.id,
-                        productName = p.productName,
-                        description = p.description,
-                        buyDate = p.buyDate,
-                        createdDate = p.createdDate,
-                        ownerId = p.userId,
-                        owner = owner == null
-                            ? null
-                            : new
-                            {
-                                id = owner.id,
-                                name = owner.name,
-                                email = owner.email,
-                                role = owner.role
-                            },
-                        verifierId = v.VerifierId,
-                        verifiedTime = v.VerifiedTime,
-                        isVerified = v.isProductVerified,
-                        verifyDescription = v.Description
-                    });
-                }
-            }
-
-            return Ok(ApiResponse<object>.SuccessResponse(
-                results,
-                "Verified products with details retrieved successfully"
-            ));
+            var result = await _verifyService.GetProductsVerifiedByMeAsync(adminId.Value, searchName, authHeader,page,size);
+            return ToActionResult(result);
         }
+
 
         [HttpGet("unverified-products")]
         [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> GetUnverifiedProducts(
-            [FromQuery] string? searchName = null)
+        public async Task<IActionResult> GetUnverifiedProducts([FromQuery] string? searchName = null,[FromQuery] int page=1,[FromQuery] int size=10)
         {
-            var id = HttpContext.Items["id"];
-            if (!int.TryParse(id?.ToString(), out var adminId))
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    "Invalid admin id in context.",
-                    400
-                ));
-            }
+            var adminId = GetCurrentUserId();
+            if (adminId == null)
+                return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
 
-            var hasRights = await AdminHasVerifyPermissionAsync(adminId);
-            if (!hasRights)
-            {
-                return Forbid();
-            }
+            string? authHeader = Request.Headers.TryGetValue("Authorization", out var headerValue)
+                ? headerValue.ToString()
+                : null;
 
-            var allProducts = await GetAllProductsFromProductServiceAsync();
-            if (allProducts.Count == 0)
-            {
-                return Ok(ApiResponse<object>.SuccessResponse(
-                    new List<object>(),
-                    "No products found in product service"
-                ));
-            }
-
-            var verifiedIds = await _db.VERIFY_PRODUCTS
-                .AsNoTracking()
-                .Where(v => v.isProductVerified)
-                .Select(v => v.ProductId)
-                .ToListAsync();
-
-            var verifiedSet = new HashSet<int>(verifiedIds);
-
-            IEnumerable<ProductSummary> unverified = allProducts
-                .Where(p => !verifiedSet.Contains(p.id));
-
-            if (!string.IsNullOrWhiteSpace(searchName))
-            {
-                unverified = unverified.Where(p =>
-                    !string.IsNullOrEmpty(p.productName) &&
-                    p.productName.Contains(searchName, StringComparison.OrdinalIgnoreCase));
-            }
-
-            var result = unverified
-                .Select(p => new
-                {
-                    productId = p.id,
-                    productName = p.productName,
-                    description = p.description,
-                    buyDate = p.buyDate,
-                    createdDate = p.createdDate,
-                    ownerId = p.userId,
-                    isVerified = false
-                })
-                .ToList();
-
-            return Ok(ApiResponse<object>.SuccessResponse(
-                result,
-                "Unverified products with details retrieved successfully"
-            ));
+            var result = await _verifyService.GetUnverifiedProductsAsync(adminId.Value, searchName, authHeader,page,size);
+            return ToActionResult(result);
         }
 
-     
+        private IActionResult ToActionResult<T>(ServiceResult<T> result)
+        {
+            if (result.Success)
+            {
+                return Ok(ApiResponse<T>.SuccessResponse(result.Data!, result.Message));
+            }
+
+            return result.StatusCode switch
+            {
+                403 => Forbid(),
+                404 => NotFound(ApiResponse<object>.ErrorResponse(result.Message, 404)),
+                _ => BadRequest(ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode))
+            };
+        }
     }
 }

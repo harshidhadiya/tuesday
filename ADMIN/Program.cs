@@ -9,6 +9,8 @@ using Name;
 using USER.MAPPER;
 using ADMIN.Messaging;
 using ADMIN.Model;
+using ADMIN.Repository;
+using ADMIN.Services;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,6 +48,9 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ItokenGeneration,Tokenget>();
+builder.Services.AddScoped<IRequestRepository, RequestRepository>();
+builder.Services.AddScoped<IRequestService, RequestService>();
+builder.Services.AddScoped<IAdminProductService, AdminProductService>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 var app = builder.Build();
 app.UseCors("MyPolicy");

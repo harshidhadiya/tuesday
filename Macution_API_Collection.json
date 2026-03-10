@@ -1,0 +1,607 @@
+{
+	"info": {
+		"_postman_id": "0ced812e-1b77-44f2-9856-2dbb8ea836d5",
+		"name": "Macution API Collection (User & ADMIN)",
+		"description": "Postman Collection to test all endpoints from the refactored User and ADMIN microservices",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. User Microservice",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"Name\": \"Test User\",\r\n  \"Email\": \"user@example.com\",\r\n  \"Password\": \"Password123!\",\r\n  \"Role\": \"SELLER\",\r\n  \"Phone\": \"1234567890\",\r\n  \"Address\": \"123 Test Street\",\r\n  \"ProfilePicture\": \"\"\r\n}"
+						},
+						"url": {
+							"raw": "{{userUrl}}/api/User/createUser",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"User",
+								"createUser"
+							]
+						}
+					}
+				},
+				{
+					"name": "Login User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"Email\": \"user@example.com\",\r\n  \"Password\": \"Password123!\",\r\n  \"Role\": \"SELLER\"\r\n}"
+						},
+						"url": {
+							"raw": "{{userUrl}}/api/User/login",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"User",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"Password\": \"NewPassword123!\",\r\n  \"ConfirmPassword\": \"NewPassword123!\"\r\n}"
+						},
+						"url": {
+							"raw": "{{userUrl}}/api/User/changepassword",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"User",
+								"changepassword"
+							]
+						}
+					}
+				},
+				{
+					"name": "Change Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"Name\": \"Updated User Name\",\r\n  \"Phone\": \"0987654321\",\r\n  \"Address\": \"New Address\",\r\n  \"ProfilePicture\": \"new_pic_url\",\r\n  \"Email\": \"user@example.com\"\r\n}"
+						},
+						"url": {
+							"raw": "{{userUrl}}/api/User/changeprofile",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"User",
+								"changeprofile"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{userUrl}}/api/User/getprofile",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"User",
+								"getprofile"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{userUrl}}/api/User/1",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"User",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{userUrl}}/api/User/dashboard",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"User",
+								"dashboard"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. User - Admin Controller",
+			"item": [
+				{
+					"name": "Request Signup (ADMIN)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"Name\": \"Admin User\",\r\n  \"Email\": \"admin@example.com\",\r\n  \"Password\": \"Admin123!\",\r\n  \"Role\": \"ADMIN\",\r\n  \"Phone\": \"1112223333\",\r\n  \"Address\": \"Admin Office\",\r\n  \"ProfilePicture\": \"\"\r\n}"
+						},
+						"url": {
+							"raw": "{{userUrl}}/api/Admin/request/signup",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"Admin",
+								"request",
+								"signup"
+							]
+						}
+					}
+				},
+				{
+					"name": "Login Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"Email\": \"admin@example.com\",\r\n  \"Password\": \"Admin123!\",\r\n  \"Role\": \"ADMIN\"\r\n}"
+						},
+						"url": {
+							"raw": "{{userUrl}}/api/Admin/Login",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"Admin",
+								"Login"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Verified Requests",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{userUrl}}/api/Admin/getallverifiedrequests",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"Admin",
+								"getallverifiedrequests"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Pending Requests",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{userUrl}}/api/Admin/pendingrequests",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"Admin",
+								"pendingrequests"
+							]
+						}
+					}
+				},
+				{
+					"name": "Admin Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{userUrl}}/api/Admin/dashboard",
+							"host": [
+								"{{userUrl}}"
+							],
+							"path": [
+								"api",
+								"Admin",
+								"dashboard"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. ADMIN Microservice - Request Controller",
+			"item": [
+				{
+					"name": "Verify Request",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{adminUrl}}/api/Request/verify/1",
+							"host": [
+								"{{adminUrl}}"
+							],
+							"path": [
+								"api",
+								"Request",
+								"verify",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Grant User Rights",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{adminUrl}}/api/Request/grant-rights/1",
+							"host": [
+								"{{adminUrl}}"
+							],
+							"path": [
+								"api",
+								"Request",
+								"grant-rights",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Revoke User Rights",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{adminUrl}}/api/Request/revoke-rights/1",
+							"host": [
+								"{{adminUrl}}"
+							],
+							"path": [
+								"api",
+								"Request",
+								"revoke-rights",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Revoke Verification",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{adminUrl}}/api/Request/revoke-verification/1",
+							"host": [
+								"{{adminUrl}}"
+							],
+							"path": [
+								"api",
+								"Request",
+								"revoke-verification",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Request Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{adminUrl}}/api/Request/details/1",
+							"host": [
+								"{{adminUrl}}"
+							],
+							"path": [
+								"api",
+								"Request",
+								"details",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Requests",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{adminUrl}}/api/Request/user/1",
+							"host": [
+								"{{adminUrl}}"
+							],
+							"path": [
+								"api",
+								"Request",
+								"user",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Pending Requests",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{adminUrl}}/api/Request/pending",
+							"host": [
+								"{{adminUrl}}"
+							],
+							"path": [
+								"api",
+								"Request",
+								"pending"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Verified Requests",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{adminUrl}}/api/Request/verified",
+							"host": [
+								"{{adminUrl}}"
+							],
+							"path": [
+								"api",
+								"Request",
+								"verified"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{adminUrl}}/api/Request/dashboard",
+							"host": [
+								"{{adminUrl}}"
+							],
+							"path": [
+								"api",
+								"Request",
+								"dashboard"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. ADMIN Microservice - Admin Product Controller",
+			"item": [
+				{
+					"name": "Verify Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"ProductId\": 1,\r\n  \"Description\": \"Product verified by admin admin@example.com\"\r\n}"
+						},
+						"url": {
+							"raw": "{{adminUrl}}/api/Request/AdminProduct/verify",
+							"host": [
+								"{{adminUrl}}"
+							],
+							"path": [
+								"api",
+								"Request",
+								"AdminProduct",
+								"verify"
+							]
+						}
+					}
+				},
+				{
+					"name": "Unverify Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{adminUrl}}/api/Request/AdminProduct/unverify/1?description=Reason%20here",
+							"host": [
+								"{{adminUrl}}"
+							],
+							"path": [
+								"api",
+								"Request",
+								"AdminProduct",
+								"unverify",
+								"1"
+							],
+							"query": [
+								{
+									"key": "description",
+									"value": "Reason here"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "userUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "adminUrl",
+			"value": "http://localhost:5087",
+			"type": "string"
+		},
+		{
+			"key": "userToken",
+			"value": "your_user_token_here",
+			"type": "string"
+		},
+		{
+			"key": "adminToken",
+			"value": "your_admin_token_here",
+			"type": "string"
+		}
+	]
+}

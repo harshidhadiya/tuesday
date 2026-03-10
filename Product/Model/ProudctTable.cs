@@ -12,8 +12,6 @@ namespace PRODUCT.Model
         public DateTime creation_date { get; set; }
         public bool isVerified{get;set;}=false;
         public ICollection<ImageTable>? images { get; set; } = new List<ImageTable>();
-
-        // Optional auction window for this product
         public DateTime? AuctionStartTime { get; set; }
         public DateTime? AuctionEndTime { get; set; }
     }

@@ -1,325 +1,123 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PRODUCT.Data.Dto;
-using PRODUCT.Messaging;
-using PRODUCT.Messaging.Events;
-using PRODUCT.Model;
+using PRODUCT.Data.Dto.Request;
 using PRODUCT.Services;
+
+using PRODUCT.Data.Dto.Response;
+using RabbitMQ.Client;
 
 namespace PRODUCT.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/Product")]
     public class ProductController : ControllerBase
     {
-        // below section used for the create the product 
-        private readonly ILogger<ProductController> _logger;
-        private readonly MACUTIONDB _context;
-        private readonly IVerificationService _verificationService;
-        private readonly IRabbitMqPublisher _publisher;
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        private class UserSummary
+        IproductService service;
+        public ProductController(IproductService service)
         {
-            public int id { get; set; }
-            public string? name { get; set; }
-            public string? email { get; set; }
-            public string? role { get; set; }
+            this.service = service;
         }
-
-        public ProductController(
-            ILogger<ProductController> logger,
-            MACUTIONDB context,
-            IVerificationService verificationService,
-            IRabbitMqPublisher publisher,
-            IHttpClientFactory httpClientFactory)
+        public int? getId(HttpContext context)
         {
-            _logger = logger;
-            _context = context;
-            _verificationService = verificationService;
-            _publisher = publisher;
-            _httpClientFactory = httpClientFactory;
-        }
-        [HttpPost("Create")]
-        [Authorize(Roles ="SELLER,USER")]
-        public async Task<IActionResult> CreateProduct(createProduct request)
-        {
-            var userId = HttpContext.Items["id"]?.ToString();
-            if (!int.TryParse(userId, out int parsedUserId))
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse("Invalid User Id", 403));
-            }
-            var newProduct = new ProductTable
-            {
-                product_name = request.product_name,
-                Buy_Date = request.Buy_Date,
-                product_description = request.product_description,
-                user_id = parsedUserId,
-                creation_date = DateTime.UtcNow
-            };
-            _context.PRODUCTS.Add(newProduct);
-            await _context.SaveChangesAsync();
-            _publisher.Publish<RequestVerifyEvent>("product.create", new RequestVerifyEvent
-            {
-                ProductId = newProduct.Id,
-                SellerId = parsedUserId,
-                ProductName = newProduct.product_name
-            });
-            return Ok(ApiResponse<object>.SuccessResponse(new { id = newProduct.Id, Productname = newProduct.product_name, Description = newProduct.product_description, buyDate = newProduct.Buy_Date, }, "Product created successfully"));
+            if (int.TryParse(HttpContext.Items["id"]?.ToString(), out int userId))
+                return userId;
+            return null;
 
         }
-
-
-
-        // keep in mind that you have to here add microservices of the verified here you have to write code of the for in the responce you have to show product is verified or not that all detail okay 
-        [HttpGet("GetById/{id:int}")]
-        public async Task<IActionResult> GetProductById(int id)
-        {
-            var product = await _context.PRODUCTS.FindAsync(id);
-            if (product == null)
-            {
-                return NotFound(ApiResponse<object>.ErrorResponse("Product not found", 404));
-            }
-            var verifyStatus = await _verificationService.GetProductVerificationStatusAsync(id);
-
-            return Ok(ApiResponse<object>.SuccessResponse(new
-            {
-                id = product.Id,
-                Productname = product.product_name,
-                Description = product.product_description,
-                buyDate = product.Buy_Date,
-                createdDate = product.creation_date,
-                isVerified = verifyStatus.IsVerified,
-                verifyDescription = verifyStatus.Description,
-                auctionStartTime = product.AuctionStartTime,
-                auctionEndTime = product.AuctionEndTime
-            }, "Product retrieved successfully"));
-        }
-
-        //  here also you have to add functionaliy for the deleting okay 
-        [HttpDelete("delete/{id:int}")]
+        [HttpPost("")]
         [Authorize(Roles = "SELLER,USER")]
-        public async Task<IActionResult> DeleteProduct(int id)
+        public async Task<IActionResult> createProduct(ProductCreate product)
         {
-            if (!int.TryParse(HttpContext.Items["id"].ToString(), out int userId))
+
+
+            int? id = getId(HttpContext);
+            if (id == null)
+                return BadRequest(ApiResponse<Object>.ErrorResponse("Your Id is not valid in the token", 400));
+            product.id = id;
+            var data = await service.createProduct(product);
+
+            if (!data.Success)
             {
-                return Unauthorized(ApiResponse<object>.ErrorResponse("You Haven't any right to delete this product", 401));
+                switch (data.StatusCode)
+                {
+                    case 400: return BadRequest(ApiResponse<object>.ErrorResponse(data.Message, data.StatusCode));
+
+                }
             }
-            var product = await _context.PRODUCTS.FindAsync(id);
 
-            if (product == null)
-                return NotFound(ApiResponse<object>.ErrorResponse("Product not found", 404));
-
-            if (product.user_id != userId)
-                return Unauthorized(ApiResponse<object>.ErrorResponse("You Haven't any right to delete this product", 401));
-
-            _context.PRODUCTS.Remove(product);
-            await _context.SaveChangesAsync();
-
-            _publisher.Publish("product.deleted", new ProductDeletedEvent
-            {
-                ProductId = id,
-                DeletedByUserId = userId
-            });
-
-            return Ok(ApiResponse<object>.SuccessResponse($"succssefully delete product Id = >  {id}"));
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(data.Data!, data.Message));
         }
 
-        // this endpoint below also may be used by another person
-        // also here maybe verified detail you get here also here only for the detail of the particular user
 
+        [HttpDelete("{productId:int}")]
+        [Authorize(Roles = "SELLER,USER")]
+        public async Task<IActionResult> deleteproduct(int productId)
+        {
+            int? id = getId(HttpContext);
+            if (id == null)
+                return BadRequest(ApiResponse<Object>.ErrorResponse("Your Id is not valid in the token", 400));
+
+
+            var data = await service.deleteProduct(productId, (int)id);
+            if (!data.Success)
+            {
+                switch (data.StatusCode)
+                {
+
+                    case 404: return NotFound(ApiResponse<object>.ErrorResponse(data.Message, 404));
+                    case 403: return Forbid(data.Message);
+                    default: return BadRequest();
+                }
+            }
+
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(data.Data!, data.Message));
+        }
+        // all the things you can update here like schedule the auction or another thing you have to update all the things you can do this one api points okay
+        [HttpPatch("{productId:int}")]
+        [Authorize(Roles = "SELLER,USER")]
+        public async Task<IActionResult> updateproduct(int productId, [FromBody] ProductUpdate product)
+        {
+            int? id = getId(HttpContext);
+            if (id == null)
+                return BadRequest(ApiResponse<Object>.ErrorResponse("Your Id is not valid in the token", 400));
+
+            product.id = productId;
+            var updatedProduct = await service.updateProduct(product, (int)id);
+
+            if (!updatedProduct.Success)
+            {
+                switch (updatedProduct.StatusCode)
+                {
+
+                    case 404: return NotFound(ApiResponse<object>.ErrorResponse(updatedProduct.Message, 404));
+                    case 403: return Forbid(updatedProduct.Message);
+                    default: return BadRequest();
+                }
+            }
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(updatedProduct.Data!, updatedProduct.Message, 200));
+        }
         [HttpGet("all")]
         [Authorize(Roles = "SELLER,USER,ADMIN")]
-        public async Task<IActionResult> getAllProduts(
-            [FromQuery] string? searchName = null,
-            [FromQuery] int? productId = null,
-            [FromQuery] DateTime? createdFrom = null,
-            [FromQuery] DateTime? createdTo = null,
-            [FromQuery] DateTime? buyFrom = null,
-            [FromQuery] DateTime? buyTo = null, [FromQuery] bool? isVerified = null,[FromBody] bool mine=false)
+        public async Task<IActionResult> getallProducts([FromQuery] ProductAll query)
         {
-            if (!int.TryParse(HttpContext.Items["id"].ToString(), out int userId))
-                return Unauthorized(ApiResponse<object>.ErrorResponse("You Haven't any right to access this product", 401));
-            IQueryable<ProductTable> query = null;
-            if (HttpContext.User.IsInRole("USER") || HttpContext.User.IsInRole("SELLER") || mine)
-                query = _context.PRODUCTS.AsNoTracking().Where(x => x.user_id == userId);
-            else
-                query = _context.PRODUCTS.AsNoTracking().Where(x => x.user_id == userId);
+            int? id = getId(HttpContext);
+            if (id == null)
+                return BadRequest(ApiResponse<Object>.ErrorResponse("Your Id is not valid in the token", 400));
 
-            if (productId.HasValue)
-                query = query.Where(x => x.Id == productId.Value);
-
-            if (!string.IsNullOrEmpty(searchName))
-                query = query.Where(x => EF.Functions.Like(x.product_name, $"%{searchName}%"));
-
-            if (createdFrom.HasValue)
-                query = query.Where(x => x.creation_date >= createdFrom.Value);
-
-            if (createdTo.HasValue)
-                query = query.Where(x => x.creation_date <= createdTo.Value);
-
-            if (buyFrom.HasValue)
-                query = query.Where(x => x.Buy_Date >= buyFrom.Value);
-
-            if (buyTo.HasValue)
-                query = query.Where(x => x.Buy_Date <= buyTo.Value);
-            if(isVerified!=null)
+            query.id = id;
+            var products = await service.getAllProducts(query);
+            if (!products.Success)
+                return NotFound(ApiResponse<object>.ErrorResponse(products.Message,products.StatusCode));
+            if (products.Data.Count == 0)
             {
-              
-                query = query.Where(x => x.isVerified == isVerified);
+                return NotFound(ApiResponse<object>.SuccessResponse(null, "0 product found", 404));
             }
-            var productEntities = await query.ToListAsync();
+            return Ok(ApiResponse<List<ProductDto>>.SuccessResponse(products.Data, products.Message));
 
-
-
-            if (productEntities == null || productEntities.Count == 0)
-                return NoContent();
-
-            return Ok(ApiResponse<object>.SuccessResponse(productEntities, "Products retrieved successfully"));
         }
 
-        
-        [HttpPut("update/{id:int}")]
-        [Authorize(Roles = "SELLER,USER")]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] updateProduct request)
-        {
-            if (!int.TryParse(HttpContext.Items["id"].ToString(), out int userId))
-                return Unauthorized(ApiResponse<object>.ErrorResponse("You haven't any right to update this product", 401));
 
-            var product = await _context.PRODUCTS.FindAsync(id);
-
-            if (product == null)
-                return NotFound(ApiResponse<object>.ErrorResponse("Product not found", 404));
-
-            if (product.user_id != userId)
-                return Unauthorized(ApiResponse<object>.ErrorResponse("You haven't any right to update this product", 401));
-
-            // Update only provided fields
-            if (!string.IsNullOrEmpty(request.product_name))
-                product.product_name = request.product_name;
-
-            if (!string.IsNullOrEmpty(request.product_description))
-                product.product_description = request.product_description;
-
-            if (request.Buy_Date.HasValue)
-                product.Buy_Date = request.Buy_Date.Value;
-
-            _context.PRODUCTS.Update(product);
-            await _context.SaveChangesAsync();
-
-            return Ok(ApiResponse<object>.SuccessResponse(new
-            {
-                id = product.Id,
-                productName = product.product_name,
-                description = product.product_description,
-                buyDate = product.Buy_Date,
-                createdDate = product.creation_date,
-                auctionStartTime = product.AuctionStartTime,
-                auctionEndTime = product.AuctionEndTime
-            }, "Product updated successfully"));
-        }
-
-        [HttpPost("{id:int}/schedule-auction")]
-        [Authorize(Roles = "SELLER,USER")]
-        public async Task<IActionResult> ScheduleAuction(int id, [FromBody] ScheduleAuctionRequest request)
-        {
-            if (!int.TryParse(HttpContext.Items["id"]?.ToString(), out int userId))
-            {
-                return Unauthorized(ApiResponse<object>.ErrorResponse("You haven't any right to schedule auction for this product", 401));
-            }
-
-            if (request.AuctionStartTime >= request.AuctionEndTime)
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse("AuctionEndTime must be greater than AuctionStartTime", 400));
-            }
-
-            if (request.AuctionStartTime <= DateTime.UtcNow)
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse("AuctionStartTime must be in the future", 400));
-            }
-
-            var product = await _context.PRODUCTS.FindAsync(id);
-
-            if (product == null)
-            {
-                return NotFound(ApiResponse<object>.ErrorResponse("Product not found", 404));
-            }
-
-            if (product.user_id != userId)
-            {
-                return Unauthorized(ApiResponse<object>.ErrorResponse("You haven't any right to schedule auction for this product", 401));
-            }
-
-            var isVerified = await _verificationService.IsProductVerifiedAsync(id);
-            if (!isVerified)
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse("Product must be verified by admin before scheduling auction", 400));
-            }
-
-            product.AuctionStartTime = request.AuctionStartTime;
-            product.AuctionEndTime = request.AuctionEndTime;
-
-            _context.PRODUCTS.Update(product);
-            await _context.SaveChangesAsync();
-
-            return Ok(ApiResponse<object>.SuccessResponse(new
-            {
-                id = product.Id,
-                productName = product.product_name,
-                description = product.product_description,
-                buyDate = product.Buy_Date,
-                createdDate = product.creation_date,
-                auctionStartTime = product.AuctionStartTime,
-                auctionEndTime = product.AuctionEndTime
-            }, "Auction scheduled successfully"));
-        }
-
-        [HttpPost("{id:int}/clear-auction")]
-        [Authorize(Roles = "ADMIN,USER,SELLER")]
-        public async Task<IActionResult> ClearAuction(int id)
-        {
-            var product = await _context.PRODUCTS.FindAsync(id);
-
-            if (product == null)
-            {
-                return NotFound(ApiResponse<object>.ErrorResponse("Product not found", 404));
-            }
-
-            if(HttpContext.User.IsInRole("USER") || HttpContext.User.IsInRole("SELLER"))
-            {
-                if (!int.TryParse(HttpContext.Items["id"]?.ToString(), out int userId))
-                {
-                    return Unauthorized(ApiResponse<object>.ErrorResponse("You haven't any right to clear auction for this product", 401));
-                }
-
-                if (product.user_id != userId)
-                {
-                    return Unauthorized(ApiResponse<object>.ErrorResponse("You haven't any right to clear auction for this product", 401));
-                }
-            }
-
-            product.AuctionStartTime = null;
-            product.AuctionEndTime = null;
-
-            _context.PRODUCTS.Update(product);
-            await _context.SaveChangesAsync();
-
-            return Ok(ApiResponse<object>.SuccessResponse(new
-            {
-                id = product.Id,
-                productName = product.product_name,
-                description = product.product_description,
-                buyDate = product.Buy_Date,
-                createdDate = product.creation_date,
-                auctionStartTime = product.AuctionStartTime,
-                auctionEndTime = product.AuctionEndTime
-            }, "Auction cleared successfully"));
-        }
-
-       
     }
 }
-
-
-

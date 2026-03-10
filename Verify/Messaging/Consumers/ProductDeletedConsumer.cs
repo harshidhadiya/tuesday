@@ -72,7 +72,7 @@ public sealed class ProductDeletedConsumer : BackgroundService
             Console.WriteLine(json + "listening ++ ++ ++ ++ ++ ++ +");
 
             using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<MACUTIONDB>();
+            var db = scope.ServiceProvider.GetRequiredService<VerifyDbContext>();
 
             var record = await db.VERIFY_PRODUCTS.Where(v => v.ProductId == message.productId).FirstOrDefaultAsync();
             if (record == null)

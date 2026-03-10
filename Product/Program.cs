@@ -13,6 +13,8 @@ using PRODUCT.GlobalErrorHandler;
 using PRODUCT.Model;
 using PRODUCT.Validation;
 using PRODUCT.Services;
+using PRODUCT.Mapper;
+using PRODUCT.Repository;
 
 
 
@@ -20,6 +22,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<PasswordHasher<object>>();
 builder.Services.AddDbContext<MACUTIONDB>(options=>options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddValidatorsFromAssemblyContaining<productCreateValidation>();
+builder.Services.AddSingleton<Irepository,Repository>();
+builder.Services.AddValidatorsFromAssemblyContaining<ProductRequestValidation>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddCors(options =>
 {
@@ -55,6 +59,7 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };  
 });
+builder.Services.AddScoped<IproductService,ProductService>();
 builder.Services.AddExceptionHandler<GlobalErrorHandler>();
 builder.Services.AddAuthorization();
 builder.Services.AddControllers().AddJsonOptions((option=>option.JsonSerializerOptions.UnmappedMemberHandling= System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow));
@@ -63,9 +68,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddProblemDetails();
 builder.Services.AddAutoMapper(typeof(Mapper));
 builder.Services.AddScoped<IVerificationService, HttpVerificationService>();
-
+builder.Services.AddAutoMapper(typeof(Mapping));
 builder.Services.AddRabbitMqMessaging(builder.Configuration);
 var app = builder.Build();
+
 app.UseCors("MyPolicy");
 app.UseExceptionHandler();
 app.UseAuthentication();
