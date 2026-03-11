@@ -1,13 +1,10 @@
-using System.Net.Mail;
 using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
 using PRODUCT.Data.Dto.Request;
 using PRODUCT.Messaging;
 using PRODUCT.Messaging.Events;
 using PRODUCT.Model;
 using PRODUCT.Repository;
 using PRODUCT.Data.Dto.Response;
-using RabbitMQ.Client;
 using VERIFY.Services;
 
 namespace PRODUCT.Services
@@ -80,6 +77,8 @@ namespace PRODUCT.Services
                 {
                     return ServiceResult<ProductDto>.Fail("Sorry But Your Product is not verified");
                 }
+                Console.WriteLine("Auction Start Time: " + product.AuctionStartTime);
+                Console.WriteLine("Auction End Time: " + product.AuctionEndTime);
                 data.AuctionStartTime = product.AuctionStartTime;
                 data.AuctionEndTime = product.AuctionEndTime;
             }

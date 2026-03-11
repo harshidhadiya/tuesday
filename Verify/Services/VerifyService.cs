@@ -83,9 +83,7 @@ namespace VERIFY.Services
 
             _publisher.Publish("product.verified", new
             {
-                request.ProductId,
-                request.SellerId,
-                VerifierId = adminId
+                request.ProductId
             });
 
             _logger.LogInformation("Product {ProductId} verified by admin {AdminId}", request.ProductId, adminId);
@@ -180,6 +178,7 @@ namespace VERIFY.Services
         public async Task<ServiceResult<List<VerifiedProductDetail>>> GetProductsVerifiedByMeAsync(
             int adminId, string? searchName, string? authorizationHeader,int page=1,int size=10)
         {
+            Console.WriteLine("Admin ID: " + adminId);
             var hasRights = await AdminHasVerifyPermissionAsync(adminId);
             if (!hasRights)
             {
@@ -210,7 +209,7 @@ namespace VERIFY.Services
             {
                 if (productsById.TryGetValue(v.ProductId, out var p))
                 {
-                    var owner = await GetUserFromUserServiceAsync(p.userId);
+               
 
                     results.Add(new VerifiedProductDetail
                     {
@@ -219,14 +218,6 @@ namespace VERIFY.Services
                         Description = p.description,
                         BuyDate = p.buyDate,
                         CreatedDate = p.createdDate,
-                        OwnerId = p.userId,
-                        Owner = owner == null ? null : new OwnerInfo
-                        {
-                            Id = owner.id,
-                            Name = owner.name,
-                            Email = owner.email,
-                            Role = owner.role
-                        },
                         VerifierId = v.VerifierId,
                         VerifiedTime = v.VerifiedTime,
                         IsVerified = v.isProductVerified,
@@ -298,7 +289,7 @@ namespace VERIFY.Services
 
             try
             {
-                var response = await client.GetAsync($"/api/request/details/{adminId}");
+                var response = await client.GetAsync($"/api/admin-request/details/{adminId}");
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("Admin rights check failed with status {StatusCode} for admin {AdminId}",
@@ -306,7 +297,7 @@ namespace VERIFY.Services
                     return false;
                 }
 
-                var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<RequestDetailDto>>();
+                var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<RequestDetailResponse>>();
                 if (envelope?.Data == null)
                 {
                     _logger.LogWarning("Admin rights check returned no data for admin {AdminId}", adminId);

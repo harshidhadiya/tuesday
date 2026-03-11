@@ -14,9 +14,11 @@ public class ProductVerifyConsumer : BackgroundService
     readonly ILogger<ProductVerifyConsumer> logger;
     readonly IServiceScopeFactory serviceScope;
     IModel _channel;
+    IRabbitMqPublisher _publisher;
 
-    public ProductVerifyConsumer(IRabbitMqConnection connection, ILogger<ProductVerifyConsumer> logger, IServiceScopeFactory serviceScope)
+    public ProductVerifyConsumer(IRabbitMqConnection connection, ILogger<ProductVerifyConsumer> logger, IServiceScopeFactory serviceScope,IRabbitMqPublisher _publisher)
     {
+        this._publisher = _publisher;
         this.connection = connection;
         this.logger = logger;
         this.serviceScope = serviceScope;
@@ -61,8 +63,13 @@ public class ProductVerifyConsumer : BackgroundService
                 containProduct.Description = product.description;
                 containProduct.VerifierId = product.verifierId;
                 containProduct.VerifiedTime = DateTime.Now;
-
+                
                 await dbContext.SaveChangesAsync();
+                _publisher.Publish("product.verified", new
+                {
+                    product.productId
+                });
+                 logger.LogInformation("Product {ProductId} verified successfully by verifier {VerifierId}", product.productId, product.verifierId);
             }
             _channel.BasicAck(args.DeliveryTag, false);
 

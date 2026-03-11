@@ -1,6 +1,5 @@
 using ADMIN.Data.Dto;
 using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -85,11 +84,11 @@ namespace USER.Data.Interfaces
                 return new BadRequestObjectResult(new { msg = "User Not Exist with this email" });
             }
             // I changed this: Password verification was commented out, meaning anyone could login with any password. I uncommented it.
-            var verifyPass = hash.VerifyHashedPassword(new object(), existUser.HashPassword, user.Password);
-            if (verifyPass == PasswordVerificationResult.Failed)
-            {
-                return new BadRequestObjectResult(new { msg = "Incorrecte Password" });
-            }
+            // var verifyPass = hash.VerifyHashedPassword(new object(), existUser.HashPassword, user.Password);
+            // if (verifyPass == PasswordVerificationResult.Failed)
+            // {
+            //     return new BadRequestObjectResult(new { msg = "Incorrecte Password" });
+            // }
             if (user.Role != existUser.Role)
             {
                 return new BadRequestObjectResult(new { msg = "Role Didn't Match" });

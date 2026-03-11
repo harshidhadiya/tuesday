@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using PRODUCT.Messaging.Consumers;
 
 namespace PRODUCT.Messaging;
@@ -15,6 +14,7 @@ public static class MessagingServiceCollectionExtensions
         services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
 
         services.AddHostedService<ProductUnverifiedConsumer>();
+        services.AddHostedService<ProductVerifiedConsumer>();
 
         return services;
     }

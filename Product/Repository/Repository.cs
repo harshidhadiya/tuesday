@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PRODUCT.Data.Dto.Request;
 using PRODUCT.Model;
-using PRODUCT.Data.Dto.Response;
-
 namespace PRODUCT.Repository
 {
 
@@ -51,7 +49,7 @@ namespace PRODUCT.Repository
 
            
 
-            if (query.productId != null)
+            if (query.productId != null && query.mine)
                 products = products.Where(x => x.Id == query.productId);
 
             if (!string.IsNullOrEmpty(query.searchName))
@@ -72,10 +70,7 @@ namespace PRODUCT.Repository
             if (query.verified)
                 products = products.Where(x => x.isVerified == true);
 
-            if (query.mine)
-            {
-                products = products.Where(x => x.user_id == query.id);
-            }
+          
 
             products = products
                 .Skip((query.page - 1) * query.size)

@@ -17,7 +17,6 @@ public static class MessagingServiceCollectionExtensions
         services.AddHostedService<ProductVerifyConsumer>();
         services.AddHostedService<createVerifyObjConsumer>();
         services.AddHostedService<ProductUnverifyConsumer>();
-
         return services;
     }
 }

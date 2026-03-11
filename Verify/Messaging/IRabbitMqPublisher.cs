@@ -27,6 +27,9 @@ public sealed class RabbitMqPublisher : IRabbitMqPublisher
         using var channel = _connection.Connection.CreateModel();
 
         channel.ExchangeDeclare(exchange: _options.ExchangeName, type: ExchangeType.Direct, durable: true, autoDelete: false);
+        channel.QueueDeclare(queue:routingKey,durable:true,exclusive:false,autoDelete:false);
+        channel.QueueBind(queue: routingKey, exchange: _options.ExchangeName, routingKey: routingKey);
+        
 
         var json = JsonSerializer.Serialize(message, JsonOptions);
         var body = Encoding.UTF8.GetBytes(json);

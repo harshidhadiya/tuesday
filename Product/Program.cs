@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Name;
 using PRODUCT.Messaging;
 using PRODUCT.GlobalErrorHandler;
 using PRODUCT.Model;
@@ -24,6 +23,7 @@ builder.Services.AddDbContext<MACUTIONDB>(options=>options.UseSqlServer(builder.
 builder.Services.AddValidatorsFromAssemblyContaining<productCreateValidation>();
 builder.Services.AddScoped<Irepository,Repository>();
 builder.Services.AddValidatorsFromAssemblyContaining<ProductRequestValidation>();
+builder.Services.AddValidatorsFromAssemblyContaining<ProductUpdateValidation>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddCors(options =>
 {
@@ -71,7 +71,7 @@ builder.Services.AddScoped<IVerificationService, HttpVerificationService>();
 builder.Services.AddAutoMapper(typeof(Mapping));
 builder.Services.AddRabbitMqMessaging(builder.Configuration);
 var app = builder.Build();
-
+Console.WriteLine(DateTime.Now);
 app.UseCors("MyPolicy");
 app.UseExceptionHandler();
 app.UseAuthentication();

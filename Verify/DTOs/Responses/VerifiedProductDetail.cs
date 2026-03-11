@@ -11,8 +11,6 @@ namespace VERIFY.DTOs.Responses
         public string? Description { get; set; }
         public DateTime BuyDate { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int? OwnerId { get; set; }
-        public OwnerInfo? Owner { get; set; }
         public int? VerifierId { get; set; }
         public DateTime? VerifiedTime { get; set; }
         public bool IsVerified { get; set; }

@@ -1,12 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PRODUCT.Data.Dto;
 using PRODUCT.Data.Dto.Request;
 using PRODUCT.Services;
 
 using PRODUCT.Data.Dto.Response;
-using RabbitMQ.Client;
 
 namespace PRODUCT.Controllers
 {
@@ -15,9 +13,11 @@ namespace PRODUCT.Controllers
     public class ProductController : ControllerBase
     {
         IproductService service;
-        public ProductController(IproductService service)
+        ILogger<ProductController> logger;
+        public ProductController(IproductService service,ILogger<ProductController> logger)
         {
             this.service = service;
+            this.logger = logger;
         }
         [NonAction]
         public int? getId(HttpContext context)
@@ -86,7 +86,7 @@ namespace PRODUCT.Controllers
 
             product.id = productId;
             var updatedProduct = await service.updateProduct(product, (int)id);
-
+            logger.LogError("UPDATED TIME"+product.AuctionStartTime);
             if (!updatedProduct.Success)
             {
                 switch (updatedProduct.StatusCode)
