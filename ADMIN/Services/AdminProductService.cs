@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using ADMIN.Data.Dto;
+using ADMIN.DTOs.Requests;
 using ADMIN.Messaging;
 
 namespace ADMIN.Services
@@ -20,7 +20,7 @@ namespace ADMIN.Services
             _publisher = publisher;
         }
 
-        public ApiResponse<object> VerifyProduct(ProductVerify request, int userid)
+        public ServiceResult<object> VerifyProduct(ProductVerifyRequest request, int userid)
         {
             var data = new sendDataVerifyProduct
             {
@@ -31,10 +31,10 @@ namespace ADMIN.Services
 
             _publisher.Publish("product.verify", data);
             
-            return ApiResponse<object>.SuccessResponse(new object(), "Product verification request sent successfully");
+            return ServiceResult<object>.Ok(new object(), "Product verification request sent successfully");
         }
 
-        public ApiResponse<object> UnverifyProduct(int productId, int userid, string description)
+        public ServiceResult<object> UnverifyProduct(int productId, int userid, string description)
         {
             _publisher.Publish<object>("admin.unverify", new 
             { 
@@ -43,7 +43,7 @@ namespace ADMIN.Services
                 description = description != "" ? description : "Unverified by admin" 
             });
             
-            return ApiResponse<object>.SuccessResponse(new object(), "Product unverification request sent successfully");
+            return ServiceResult<object>.Ok(new object(), "Product unverification request sent successfully");
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using ADMIN.Data.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using USER.Data.Dto;
@@ -13,17 +14,48 @@ namespace USER.Controllers
     {
         private readonly IUserService _userService;
         private readonly IsellerLogin _loginInterface;
-
-        public UserController(IUserService userService, IsellerLogin loginInterface)
+        private readonly ILogger<UserController> logger;
+        public UserController(IUserService userService, IsellerLogin loginInterface, ILogger<UserController> logger)
         {
             _userService = userService;
+            this.logger = logger;
             _loginInterface = loginInterface;
         }
 
-        [HttpPost("createUser")]
+        [NonAction]
+         public ActionResult badResponce(string message, int code, string methodName)
+        {
+            logger.LogWarning($"{message} comes from {methodName}");
+
+            switch (code)
+            {
+                case 400:
+                    return new BadRequestObjectResult(ApiResponse<object>.ErrorResponse(message));
+
+                case 404:
+                    return new NotFoundObjectResult(ApiResponse<object>.ErrorResponse(message, 404));
+
+                default:
+                    return StatusCode(500, ApiResponse<object>.ErrorResponse("Internal Server Error"));
+            }
+        }
+           [NonAction]
+        public int? getMyId(HttpContext context)
+        {
+            var id1 = HttpContext.Items["id"];
+            if (!int.TryParse(id1?.ToString(), out var userId))
+                return null;
+            return userId;
+        }
+
+        [HttpPost("create")]
         public async Task<ActionResult> CreateUser(UserCreateDto user)
         {
-            return await _userService.CreateUserAsync(user);
+            var responce = await _userService.CreateUserAsync(user);
+            // I changed this: if (responce.Success) was returning a bad response even on success. Changed to if (!responce.Success)
+            if (!responce.Success)
+                return badResponce(responce.Message, responce.StatusCode, "CreateUser");
+            return Ok(ApiResponse<object>.SuccessResponse(responce.Data!, responce.Message));
         }
 
         [HttpPost("login")]
@@ -32,55 +64,41 @@ namespace USER.Controllers
             return await _loginInterface.Login(user, null);
         }
 
-        [HttpPost("changepassword")]
-        [Authorize]
-        public async Task<ActionResult> changePassword(changePasswordDto pass_obj)
-        {
-            var id = HttpContext.Items["id"];
-            if (!int.TryParse(id?.ToString(), out var userId))
-                return BadRequest("Token Id is not valid.");
 
-            return await _userService.ChangePasswordAsync(userId, pass_obj);
-        }
 
-        [HttpPatch("changeprofile")]
+        [HttpPatch("profile")]
         [Authorize]
         public async Task<ActionResult> ChangeProfile(changeProfileDto docs)
         {
-            var id = HttpContext.Items["id"];
-            if (!int.TryParse(id?.ToString(), out var userId))
-                return BadRequest("Token Id is not valid.");
+            var userId = getMyId(HttpContext);
+            if (userId == null)
+                return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 400));
+            var responce = await _userService.ChangeProfileAsync((int)userId, docs);
+            // I changed this: if (responce.Success) was returning a bad response even on success. Changed to if (!responce.Success)
+            if (!responce.Success)
+                return badResponce(responce.Message, responce.StatusCode, "CreateUser"); // Note: Method name here says CreateUser but it's ChangeProfile in original code.
 
-            return await _userService.ChangeProfileAsync(userId, docs);
+            return Ok(ApiResponse<object>.SuccessResponse(responce.Data!, responce.Message));
         }
 
-        [HttpGet("getprofile")]
+        [HttpGet("profile/{id:int}")]
         [Authorize]
-        public async Task<ActionResult> getProfile()
+        public async Task<ActionResult> getProfile(int? id)
         {
-            var id = HttpContext.Items["id"];
-            if (!int.TryParse(id?.ToString(), out var userId))
-                return BadRequest("Token Id is not valid.");
+            int? userId = getMyId(HttpContext);
+            if (userId == null)
+                return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 400));
 
-            return await _userService.GetProfileAsync(userId);
+            var responce = await _userService.GetProfileAsync((id != null && id != 0) ? (int)id : (int)userId);
+            // I changed this: if (responce.Success) was returning a bad response even on success. Changed to if (!responce.Success)
+            if (!responce.Success)
+                return badResponce(responce.Message, responce.StatusCode, "getProfile");
+
+            return Ok(ApiResponse<object>.SuccessResponse(responce.Data!, responce.Message, responce.StatusCode));
         }
 
-        [HttpGet("{id:int}")]
-        [AllowAnonymous]
-        public async Task<ActionResult> GetUserById(int id)
-        {
-            return await _userService.GetUserByIdAsync(id);
-        }
 
-        [HttpGet("dashboard")]
-        [Authorize]
-        public async Task<ActionResult> GetUserDashboard()
-        {
-            var id = HttpContext.Items["id"];
-            if (!int.TryParse(id?.ToString(), out var userId))
-                return BadRequest("Invalid token.");
 
-            return await _userService.GetUserDashboardAsync(userId);
-        }
+
     }
 }

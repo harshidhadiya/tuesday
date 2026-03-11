@@ -1,7 +1,8 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using ADMIN.Model;
-using ADMIN.Data.Dto;
+using ADMIN.DTOs.Requests;
+using ADMIN.DTOs.Responses;
 
 namespace USER.MAPPER
 {
@@ -12,7 +13,7 @@ namespace USER.MAPPER
             var hash = new PasswordHasher<object>();
 
             // RequestTable mappings
-            CreateMap<RequestTable, RequestDetailDto>()
+            CreateMap<RequestTable, RequestDetailResponse>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.RequestUserId, opt => opt.MapFrom(src => src.RequestUserId))
                 .ForMember(dest => dest.VerifierId, opt => opt.MapFrom(src => src.VerifierId))

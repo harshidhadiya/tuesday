@@ -19,6 +19,7 @@ namespace PRODUCT.Controllers
         {
             this.service = service;
         }
+        [NonAction]
         public int? getId(HttpContext context)
         {
             if (int.TryParse(HttpContext.Items["id"]?.ToString(), out int userId))
@@ -35,7 +36,7 @@ namespace PRODUCT.Controllers
             int? id = getId(HttpContext);
             if (id == null)
                 return BadRequest(ApiResponse<Object>.ErrorResponse("Your Id is not valid in the token", 400));
-            product.id = id;
+            product.user_id = id;
             var data = await service.createProduct(product);
 
             if (!data.Success)

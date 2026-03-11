@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj": {}
+    "D:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj": {}
   },
   "projects": {
-    "d:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj": {
+    "D:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj",
+        "projectUniqueName": "D:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj",
         "projectName": "ADMIN",
-        "projectPath": "d:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj",
+        "projectPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj",
         "packagesPath": "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\",
-        "outputPath": "d:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\obj\\",
+        "outputPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Harshid Hadiya\\AppData\\Roaming\\NuGet\\NuGet.Config"

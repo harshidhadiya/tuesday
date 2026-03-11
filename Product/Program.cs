@@ -22,7 +22,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<PasswordHasher<object>>();
 builder.Services.AddDbContext<MACUTIONDB>(options=>options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddValidatorsFromAssemblyContaining<productCreateValidation>();
-builder.Services.AddSingleton<Irepository,Repository>();
+builder.Services.AddScoped<Irepository,Repository>();
 builder.Services.AddValidatorsFromAssemblyContaining<ProductRequestValidation>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddCors(options =>

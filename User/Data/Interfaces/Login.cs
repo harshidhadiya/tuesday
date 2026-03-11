@@ -36,11 +36,12 @@ namespace USER.Data.Interfaces
             {
                 return new BadRequestObjectResult(new { msg = "User Not Exist with this email" });
             }
-            // var verifyPass = hash.VerifyHashedPassword(new object(), existUser.HashPassword, user.Password);
-            // if (verifyPass == PasswordVerificationResult.Failed)
-            // {
-            //     return new BadRequestObjectResult(new { msg = "Incorrecte Password" });
-            // }
+            // I changed this: Password verification was commented out, meaning anyone could login with any password. I uncommented it.
+            var verifyPass = hash.VerifyHashedPassword(new object(), existUser.HashPassword, user.Password);
+            if (verifyPass == PasswordVerificationResult.Failed)
+            {
+                return new BadRequestObjectResult(new { msg = "Incorrecte Password" });
+            }
             if (user.Role != existUser.Role)
             {
                 return new BadRequestObjectResult(new { msg = "Role Didn't Match" });
@@ -49,7 +50,12 @@ namespace USER.Data.Interfaces
             {
                 return new BadRequestObjectResult(new { msg = "Only SELLER or USER role is allowed to login" });
             }
-            return new OkObjectResult(new { token = token.getToken(existUser.Name, user.Role.ToUpperInvariant(), existUser.Id.ToString()), Name = existUser.Name, Id = existUser.Id });
+            return new OkObjectResult(ApiResponse<object>.SuccessResponse(new 
+                { 
+                    token = token.getToken(existUser.Name, user.Role.ToUpperInvariant(), existUser.Id.ToString()), 
+                    Name = existUser.Name, 
+                    Id = existUser.Id,  
+                },"User Loged In Success Fully"));
         }
     }
      public class AdminLogin : IadminLogin
@@ -78,11 +84,12 @@ namespace USER.Data.Interfaces
             {
                 return new BadRequestObjectResult(new { msg = "User Not Exist with this email" });
             }
-         //   var verifyPass = hash.VerifyHashedPassword(new object(), existUser.HashPassword, user.Password);
-          //  if (verifyPass == PasswordVerificationResult.Failed)
-          //  {
-           //     return new BadRequestObjectResult(new { msg = "Incorrecte Password" });
-          //  }
+            // I changed this: Password verification was commented out, meaning anyone could login with any password. I uncommented it.
+            var verifyPass = hash.VerifyHashedPassword(new object(), existUser.HashPassword, user.Password);
+            if (verifyPass == PasswordVerificationResult.Failed)
+            {
+                return new BadRequestObjectResult(new { msg = "Incorrecte Password" });
+            }
             if (user.Role != existUser.Role)
             {
                 return new BadRequestObjectResult(new { msg = "Role Didn't Match" });
@@ -93,25 +100,37 @@ namespace USER.Data.Interfaces
             }
             try
             {
-                var responce = await httpClient.GetAsync($"/api/request/details/{existUser.Id}");
+                var responce = await httpClient.GetAsync($"/api/admin-request/details/{existUser.Id}");
                 
                 // Read the response content once
-                var content = await responce.Content.ReadFromJsonAsync<ApiResponse<object>>();
+                // I changed this: Updated ApiResponse<object> to ApiResponse<RequestDetailDto> according to actual Admin endpoint response
+                var content = await responce.Content.ReadFromJsonAsync<ApiResponse<RequestDetailDto>>();
                 
                 // Check if response is successful
                 if (!responce.IsSuccessStatusCode)
                 {
-                 
-                        return new BadRequestObjectResult(new { message = content?.Message, errors = content?.Errors });
-                 
+                    return new ObjectResult(new { message = content?.Message ?? $"Request failed: {responce.StatusCode}", errors = content?.Errors })
+                    {
+                        StatusCode = content?.StatusCode > 0 ? content.StatusCode : (int)responce.StatusCode
+                    };
                 }
-                return new OkObjectResult(new 
+
+                if (content?.Data == null)
+                {
+                    return new BadRequestObjectResult(new { msg = content?.Message ?? "Verification details are missing from the response." });
+                }
+
+                if (!content.Data.VerifiedByAdmin)
+                {
+                    return new BadRequestObjectResult(new { msg = "Your admin account has not been verified yet. Please wait for verification." });
+                }
+                return new OkObjectResult(ApiResponse<object>.SuccessResponse(new 
                 { 
                     token = token.getToken(existUser.Name, user.Role.ToUpperInvariant(), existUser.Id.ToString()), 
                     Name = existUser.Name, 
                     Id = existUser.Id, 
                     RequestObj = content?.Data 
-                });
+                },"User Loged In Success Fully"));
             }
             catch (Exception ex)
             {

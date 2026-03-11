@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
-using ADMIN.Data.Dto;
+using ADMIN.DTOs.Requests;
 
 namespace ADMIN.Services
 {
     public interface IAdminProductService
     {
-        ApiResponse<object> VerifyProduct(ProductVerify request, int userid);
-        ApiResponse<object> UnverifyProduct(int productId, int userid, string description);
+        ServiceResult<object> VerifyProduct(ProductVerifyRequest request, int userid);
+        ServiceResult<object> UnverifyProduct(int productId, int userid, string description);
     }
 }

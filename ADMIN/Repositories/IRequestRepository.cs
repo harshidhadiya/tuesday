@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ADMIN.Model;
 
-namespace ADMIN.Repository
+namespace ADMIN.Repositories
 {
     public interface IRequestRepository
     {

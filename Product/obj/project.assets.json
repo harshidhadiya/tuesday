@@ -3961,11 +3961,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "d:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\Product.csproj",
+      "projectUniqueName": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\Product.csproj",
       "projectName": "Product",
-      "projectPath": "d:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\Product.csproj",
+      "projectPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\Product.csproj",
       "packagesPath": "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\",
-      "outputPath": "d:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\obj\\",
+      "outputPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Harshid Hadiya\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "z3ZeBP0wkZI=",
+  "dgSpecHash": "r2cbCFEdq3I=",
   "success": true,
-  "projectFilePath": "d:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj",
+  "projectFilePath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
@@ -75,9 +75,9 @@
       "code": "NU1510",
       "level": "Warning",
       "message": "PackageReference Microsoft.AspNetCore.Identity will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.",
-      "projectPath": "d:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj",
+      "projectPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj",
       "warningLevel": 1,
-      "filePath": "d:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj",
+      "filePath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\ADMIN\\ADMIN.csproj",
       "libraryId": "Microsoft.AspNetCore.Identity",
       "targetGraphs": [
         "net10.0"

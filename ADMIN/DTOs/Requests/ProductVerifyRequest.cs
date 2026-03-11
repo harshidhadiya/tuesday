@@ -1,6 +1,6 @@
-namespace ADMIN.Data.Dto
+namespace ADMIN.DTOs.Requests
 {
-    public class ProductVerify
+    public class ProductVerifyRequest
     {
         public int ProductId { get; set; }
         public string Description { get; set; } = string.Empty;

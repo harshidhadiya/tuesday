@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using ADMIN.Data.Dto;
+using ADMIN.DTOs.Responses;
 using ADMIN.Middleware.EndPointfilters;
 using ADMIN.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -8,13 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace ADMIN.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/admin-request")]
     [Authorize(Roles = "ADMIN")]
-    public class RequestController : ControllerBase
+    public class AdminRequestController : ControllerBase
     {
         private readonly IRequestService _requestService;
 
-        public RequestController(IRequestService requestService)
+        public AdminRequestController(IRequestService requestService)
         {
             _requestService = requestService;
         }
@@ -27,10 +28,7 @@ namespace ADMIN.Controllers
                 return BadRequest(ApiResponse<object>.ErrorResponse("Invalid user ID in context", 400));
 
             var response = await _requestService.VerifyRequestAsync(RequestId, userid);
-            if (response.StatusCode >= 400)
-                return StatusCode(response.StatusCode, response);
-
-            return Ok(response);
+            return ToActionResult(response);
         }
 
         [HttpGet("grant-rights/{requestId:int}")]
@@ -41,10 +39,7 @@ namespace ADMIN.Controllers
                 return BadRequest(ApiResponse<object>.ErrorResponse("Invalid user ID in context", 400));
 
             var response = await _requestService.GrantUserRightsAsync(requestId, userid);
-            if (response.StatusCode == 403) return Forbid();
-            if (response.StatusCode >= 400) return StatusCode(response.StatusCode, response);
-
-            return Ok(response);
+            return ToActionResult(response);
         }
 
         [HttpGet("revoke-rights/{requestId:int}")]
@@ -55,10 +50,7 @@ namespace ADMIN.Controllers
                 return BadRequest(ApiResponse<object>.ErrorResponse("Invalid user ID in context", 400));
 
             var response = await _requestService.RevokeUserRightsAsync(requestId, userid);
-            if (response.StatusCode == 403) return Forbid();
-            if (response.StatusCode >= 400) return StatusCode(response.StatusCode, response);
-
-            return Ok(response);
+            return ToActionResult(response);
         }
 
         [HttpGet("revoke-verification/{requestId:int}")]
@@ -69,10 +61,7 @@ namespace ADMIN.Controllers
                 return BadRequest(ApiResponse<object>.ErrorResponse("Invalid user ID in context", 400));
 
             var response = await _requestService.RevokeVerificationAsync(requestId, userid);
-            if (response.StatusCode == 403) return Forbid();
-            if (response.StatusCode >= 400) return StatusCode(response.StatusCode, response);
-
-            return Ok(response);
+            return ToActionResult(response);
         }
 
         [HttpGet("details/{id}")]
@@ -80,8 +69,7 @@ namespace ADMIN.Controllers
         public async Task<IActionResult> GetRequestDetails(int id)
         {
             var response = await _requestService.GetRequestDetailsAsync(id);
-            if (response.StatusCode >= 400) return StatusCode(response.StatusCode, response);
-            return Ok(response);
+            return ToActionResult(response);
         }
 
         [HttpGet("user/{userId}")]
@@ -89,8 +77,7 @@ namespace ADMIN.Controllers
         public async Task<IActionResult> GetUserRequests(int userId)
         {
             var response = await _requestService.GetUserRequestsAsync(userId);
-            if (response.StatusCode >= 400) return StatusCode(response.StatusCode, response);
-            return Ok(response);
+            return ToActionResult(response);
         }
 
         [HttpGet("pending")]
@@ -98,8 +85,7 @@ namespace ADMIN.Controllers
         public async Task<IActionResult> GetPendingRequests()
         {
             var response = await _requestService.GetPendingRequestsAsync();
-            if (response.StatusCode >= 400) return StatusCode(response.StatusCode, response);
-            return Ok(response);
+            return ToActionResult(response);
         }
 
         [HttpGet("verified")]
@@ -107,8 +93,7 @@ namespace ADMIN.Controllers
         public async Task<IActionResult> GetVerifiedRequests()
         {
             var response = await _requestService.GetVerifiedRequestsAsync();
-            if (response.StatusCode >= 400) return StatusCode(response.StatusCode, response);
-            return Ok(response);
+            return ToActionResult(response);
         }
 
         [HttpGet("dashboard")]
@@ -116,8 +101,22 @@ namespace ADMIN.Controllers
         public async Task<IActionResult> GetDashboard()
         {
             var response = await _requestService.GetDashboardAsync();
-            if (response.StatusCode >= 400) return StatusCode(response.StatusCode, response);
-            return Ok(response);
+            return ToActionResult(response);
+        }
+
+        private IActionResult ToActionResult<T>(ServiceResult<T> result)
+        {
+            if (result.Success)
+            {
+                return Ok(ApiResponse<T>.SuccessResponse(result.Data!, result.Message));
+            }
+
+            return result.StatusCode switch
+            {
+                403 => Forbid(),
+                404 => NotFound(ApiResponse<object>.ErrorResponse(result.Message, 404)),
+                _ => BadRequest(ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode))
+            };
         }
     }
 }

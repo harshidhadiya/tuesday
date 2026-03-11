@@ -22,10 +22,10 @@ namespace USER.Data.Dto
         public String Name { get; set; }
         public String Email { get; set; }
         public String Role { get; set; }
-        public String? ProfilePicture { get; set; }
+        public String? imageUrl { get; set; }
         public String Phone {get;set;}
         public String Address {get;set;}
-        public String Token { get; set; }
+        public String token { get; set; }
         
     }
     public class changePasswordDto
@@ -41,5 +41,7 @@ namespace USER.Data.Dto
         public String ?Address { get; set; }
         public String? ProfilePicture { get; set; }
         public String ?Email { get; set; }
+        public String ?Password{get;set;}
+        public String ?confirmPassword{get;set;}
     }
 }

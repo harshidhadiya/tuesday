@@ -9,6 +9,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Name;
 using USER.Data.Dto;
+using USER.Data.Dto.Response;
 using USER.Messaging;
 using USER.Model;
 using USER.Repository;
@@ -37,142 +38,82 @@ namespace USER.Services
             _publisher = publisher;
         }
 
-        public async Task<ActionResult> RequestSignupAsync(UserCreateDto request)
+
+
+        public async Task<ServiceResult<List<verifiedAdminResponse>>> GetAllVerifiedRequestsAsync(int userId, int page, int size)
         {
-            if (request.Role != "ADMIN")
-            {
-                return new BadRequestObjectResult(ApiResponse<object>.ErrorResponse("Cannot request signup for USER role", 400));
-            }
-
-            var existingUser = await _repository.GetByEmailAsync(request.Email);
-            if (existingUser != null)
-            {
-                return new BadRequestObjectResult("User already exists with this email");
-            }
-
-            var userData = _mapper.Map<UserTable>(request);
-            await _repository.AddAsync(userData);
-
-            var requestBody = new { RequestUserId = userData.Id, Name = userData.Name, Email = userData.Email };
-            try
-            {
-                _publisher.Publish<object>("request.created", requestBody);
-                return new OkObjectResult(ApiResponse<object>.SuccessResponse(new
-                {
-                    id = userData.Id,
-                    Name = userData.Name,
-                    Email = userData.Email,
-                    phone = userData.Phone,
-                    profilepic = userData.ProfilePicture,
-                    tokens = _token.getToken(userData.Name, "ADMIN", userData.Id.ToString())
-                }, "User created and request submitted successfully"));
-            }
-            catch (Exception)
-            {
-                var data = await _repository.GetByIdAsync(userData.Id);
-                if (data != null)
-                {
-                    await _repository.RemoveAsync(data);
-                }
-                return new BadRequestObjectResult(ApiResponse<object>.ErrorResponse("Request creation failed. User created but admin request could not be created.", 400));
-            }
-        }
-
-        public async Task<ActionResult> GetAllVerifiedRequestsAsync(int userId)
-        {
-            var requests = await _httpClient.GetAsync($"/api/Request/user/{userId}");
+            var requests = await _httpClient.GetAsync($"/api/admin-request/user/{userId}");
             if (!requests.IsSuccessStatusCode)
             {
                 var error = await requests.Content.ReadFromJsonAsync<ApiResponse<object>>();
-                return new BadRequestObjectResult(ApiResponse<object>.ErrorResponse($"Failed to retrieve verified requests: {error?.Message}", (int)requests.StatusCode));
+                int statusCode = error?.StatusCode > 0 ? error.StatusCode : (int)requests.StatusCode;
+                return ServiceResult<List<verifiedAdminResponse>>.Fail(error?.Message ?? $"Request failed with status {requests.StatusCode}", statusCode);
             }
 
             var response = await requests.Content.ReadFromJsonAsync<ApiResponse<List<Responce_of_verified_by_me>>>();
-            if (response == null)
+            
+            if (response?.Data == null || !response.Data.Any())
             {
-                return new NoContentResult();
+                return ServiceResult<List<verifiedAdminResponse>>.NotFound(response?.Message ?? "No Users Verified By You");
             }
 
             var datas = await _repository.GetAllUsersAsync();
-            if (response.Data == null || response.Data.Count == 0)
-            {
-                return new OkObjectResult(ApiResponse<object>.SuccessResponse(datas, "All verified requests retrieved successfully " + response?.Message));
-            }
 
             var joinedData = datas.Join(
                 response.Data,
                 c => c.Id,
                 p => p.RequestUserId,
-                (c, p) => new { Name = c.Name, Address = c.Address, Phone = c.Phone, imgurl = c.ProfilePicture, isVerified = p.VerifiedByAdmin, verifiedAt = p.VerifiedAt, email = c.Email }
-            );
+                (c, p) => new verifiedAdminResponse { Name = c.Name, Address = c.Address, Phone = c.Phone, imgurl = c.ProfilePicture, isVerified = p.VerifiedByAdmin, verifiedAt = p.VerifiedAt, email = c.Email }
+            ).Skip((page - 1) * size).Take(size).ToList();
 
-            return new OkObjectResult(ApiResponse<object>.SuccessResponse(joinedData, "All verified requests retrieved successfully " + response?.Message));
+            return ServiceResult<List<verifiedAdminResponse>>.Ok(joinedData, $"{joinedData.Count()} fetched successfully");
         }
 
-        public async Task<ActionResult> GetAllPendingRequestsAsync()
+        public async Task<ServiceResult<List<pendingVerificationResponse>>> GetAllPendingRequestsAsync(int page=1, int size=10)
         {
-            var requests = await _httpClient.GetAsync("/api/Request/pending");
+            var requests = await _httpClient.GetAsync("/api/admin-request/pending");
             if (!requests.IsSuccessStatusCode)
             {
                 var error = await requests.Content.ReadFromJsonAsync<ApiResponse<object>>();
-                return new BadRequestObjectResult(ApiResponse<object>.ErrorResponse($"Failed to retrieve pending requests: {error?.Message}", (int)requests.StatusCode));
+                int statusCode = error?.StatusCode > 0 ? error.StatusCode : (int)requests.StatusCode;
+                return ServiceResult<List<pendingVerificationResponse>>.Fail(error?.Message ?? $"Failed to retrieve pending requests: {requests.StatusCode}", statusCode);
             }
 
             var response = await requests.Content.ReadFromJsonAsync<ApiResponse<List<RequestDetailDto>>>();
 
-            var requestUserIds = response?.Data?.Select(r => r.RequestUserId).ToList() ?? new List<int>();
+            if (response?.Data == null || !response.Data.Any())
+            {
+                return ServiceResult<List<pendingVerificationResponse>>.NotFound(response?.Message ?? "No pending requests found");
+            }
 
-            var usersFromDb = await _repository.GetUsersByIdsAsync(requestUserIds);
+            var requestUserIds = response.Data.Select(r => r.RequestUserId).ToList();
+
+            var usersFromDb = await _repository.GetUsersByIdsAsync(requestUserIds,page,size);
 
             var users = usersFromDb.Join(
                 response!.Data!,
                 u => u.Id,
                 r => r.RequestUserId,
-                (u, r) => new
+                (u, r) => new pendingVerificationResponse
                 {
                     Id = u.Id,
                     Name = u.Name,
                     Email = u.Email,
                     Role = u.Role,
-                    RequestId = r.Id,
+                    RequestUserId = r.RequestUserId,
                     VerifiedByAdmin = r.VerifiedByAdmin,
                     HasRightToAdd = r.HasRightToAdd,
-                    CreatedAt = r.CreatedAt,
                     VerifiedAt = r.VerifiedAt,
                     RightsGrantedAt = r.RightsGrantedAt
                 })
                 .ToList();
+            if(users==null || users.Count()==0)
+            return ServiceResult<List<pendingVerificationResponse>>.NotFound("No any pending verifications");
 
-            return new OkObjectResult(ApiResponse<object>.SuccessResponse(users, "All pending requests retrieved successfully"));
+            
+            return ServiceResult<List<pendingVerificationResponse>>.Ok(users,"Successfully found users");
         }
 
-        public async Task<ActionResult> GetAdminDashboardAsync(int userId)
-        {
-            var pendingResponse = await _httpClient.GetAsync("/api/Request/pending");
-            var verifiedByMeResponse = await _httpClient.GetAsync($"/api/Request/user/{userId}");
-
-            var pendingCount = 0;
-            List<RequestDetailDto>? verifiedByMe = null;
-
-            if (pendingResponse.IsSuccessStatusCode)
-            {
-                var pendingData = await pendingResponse.Content.ReadFromJsonAsync<ApiResponse<List<RequestDetailDto>>>();
-                pendingCount = pendingData?.Data?.Count ?? 0;
-            }
-
-            if (verifiedByMeResponse.IsSuccessStatusCode)
-            {
-                var verifiedData = await verifiedByMeResponse.Content.ReadFromJsonAsync<ApiResponse<List<RequestDetailDto>>>();
-                verifiedByMe = verifiedData?.Data;
-            }
-
-            return new OkObjectResult(ApiResponse<object>.SuccessResponse(new
-            {
-                pendingRequestCount = pendingCount,
-                verifiedByMeCount = verifiedByMe?.Count ?? 0,
-                verifiedByMe,
-                message = "Admin dashboard data for showcase"
-            }, "Admin dashboard"));
-        }
+       
     }
 }

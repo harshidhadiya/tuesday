@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using ADMIN.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace ADMIN.Repository
+namespace ADMIN.Repositories
 {
     public class RequestRepository : IRequestRepository
     {

@@ -1,4 +1,5 @@
 using ADMIN.Data.Dto;
+using ADMIN.DTOs.Requests;
 using ADMIN.Middleware.EndPointfilters;
 using ADMIN.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ADMIN.Controllers
 {
     [ApiController]
-    [Route("api/Request/[controller]")]
+    [Route("api/admin-product")]
     public class AdminProductController : ControllerBase
     {
         private readonly IAdminProductService _adminProductService;
@@ -20,7 +21,7 @@ namespace ADMIN.Controllers
         [HttpPost("verify")]
         [Authorize(Roles = "ADMIN")]
         [TypeFilter(typeof(VerifyFilter))]
-        public IActionResult VerifyProduct(ProductVerify request)
+        public IActionResult VerifyProduct(ProductVerifyRequest request)
         {
             var id = HttpContext.Items["id"];
             if (!int.TryParse(id?.ToString(), out int userid))
@@ -34,7 +35,7 @@ namespace ADMIN.Controllers
             }
 
             var response = _adminProductService.VerifyProduct(request, userid);
-            return Ok(response);
+            return ToActionResult(response);
         }
 
         [HttpDelete("unverify/{id:int}")]
@@ -54,7 +55,22 @@ namespace ADMIN.Controllers
             }
 
             var response = _adminProductService.UnverifyProduct(id, userid, description);
-            return Ok(response);
+            return ToActionResult(response);
+        }
+
+        private IActionResult ToActionResult<T>(ServiceResult<T> result)
+        {
+            if (result.Success)
+            {
+                return Ok(ApiResponse<T>.SuccessResponse(result.Data!, result.Message));
+            }
+
+            return result.StatusCode switch
+            {
+                403 => Forbid(),
+                404 => NotFound(ApiResponse<object>.ErrorResponse(result.Message, 404)),
+                _ => BadRequest(ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode))
+            };
         }
     }
 }

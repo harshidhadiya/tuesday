@@ -49,8 +49,7 @@ namespace PRODUCT.Repository
         {
             IQueryable<ProductTable> products = db.PRODUCTS.AsQueryable();
 
-            if (query.id != null)
-                products = products.Where(x => x.Id == query.id);
+           
 
             if (query.productId != null)
                 products = products.Where(x => x.Id == query.productId);
