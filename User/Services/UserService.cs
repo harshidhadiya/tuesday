@@ -1,10 +1,6 @@
-using System;
-using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
 using Name;
-using ADMIN.Data.Dto;
 using USER.Data.Dto;
 using USER.Model;
 using USER.Repository;
@@ -54,7 +50,7 @@ namespace USER.Services
             {
                 var requestBody = new { RequestUserId = userData.Id, Name = userData.Name, Email = userData.Email };
 
-                _publisher.Publish<object>("request.created", requestBody);
+               await _publisher.Publish<object>("request.created", requestBody);
             }
             var data = _mapper.Map<UserDetail>(response);
             return ServiceResult<UserDetail>.Ok(data, "User created successfully");

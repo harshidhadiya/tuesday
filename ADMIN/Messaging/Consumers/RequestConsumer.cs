@@ -15,7 +15,7 @@ public class RequestConsumer : BackgroundService
 {
     ILogger<RequestConsumer> _logger;
     IRabbitMqConnection _connection;
-    IModel _channel;
+    IChannel ?_channel;
     private readonly IServiceScopeFactory scope;
     public RequestConsumer(ILogger<RequestConsumer> logger, IRabbitMqConnection connection, IServiceScopeFactory scope)
     {
@@ -25,29 +25,37 @@ public class RequestConsumer : BackgroundService
 
 
     }
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _channel = _connection.Connection.CreateModel();
-        _channel.ExchangeDeclare(exchange: "admin", type: ExchangeType.Direct, durable: true, autoDelete: false);
-        _channel.QueueDeclare(queue: "admin.request", durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBind(queue: "admin.request", exchange: "admin", routingKey: "request.created");
-        _channel.BasicQos(prefetchSize: 0, prefetchCount: 10, global: false);
+        _channel = await _connection.Connection.CreateChannelAsync();
+       await  _channel.ExchangeDeclareAsync(exchange: "admin", type: ExchangeType.Direct, durable: true, autoDelete: false);
+       await  _channel.QueueDeclareAsync(queue: "admin.request", durable: true, exclusive: false, autoDelete: false);
+       await  _channel.QueueBindAsync(queue: "admin.request", exchange: "admin", routingKey: "request.created");
+       await  _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 10, global: false);
         var consumer = new AsyncEventingBasicConsumer(_channel);
-        consumer.Received += CreateRequestAsync;
-        _channel.BasicConsume(queue: "admin.request", autoAck: false, consumer: consumer);
-        return Task.CompletedTask;
+        consumer.ReceivedAsync += CreateRequestAsync;
+        await _channel.BasicConsumeAsync(queue: "admin.request", autoAck: false, consumer: consumer);
+        
     }
 
-   public override void Dispose()
+   public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        _channel?.Close();
-        _connection?.Dispose();
+        if (_channel!= null && _channel.IsOpen )
+        {
+            await _channel.CloseAsync(cancellationToken);
+        }
+        if(_channel!=null)
+        await _channel.DisposeAsync();
         base.Dispose();
     }
 
 
     public async Task CreateRequestAsync(object sender, BasicDeliverEventArgs args)
 {
+    if (_channel == null)
+    {
+        return ;
+    }
     try
     {
         var json = Encoding.UTF8.GetString(args.Body.ToArray());
@@ -57,7 +65,7 @@ public class RequestConsumer : BackgroundService
 
         if (correctdata == null)
         {
-            _channel.BasicNack(args.DeliveryTag, false, false);
+            await _channel.BasicNackAsync(args.DeliveryTag, false, false);
             return;
         }
         Console.WriteLine(correctdata.requestUserId);
@@ -78,19 +86,19 @@ public class RequestConsumer : BackgroundService
         if(exist_user!=null)
         {
             _logger.LogWarning("Request already exists for user id: {UserId}", correctdata.requestUserId);
-            _channel.BasicAck(args.DeliveryTag, false);
+            await _channel.BasicAckAsync(args.DeliveryTag, false);
             return;
         }
 
         await db.REQUESTS.AddAsync(createRequest);
         await db.SaveChangesAsync();
 
-        _channel.BasicAck(args.DeliveryTag, false);
+        await _channel.BasicAckAsync(args.DeliveryTag, false);
     }
     catch (Exception ex)
     {
         _logger.LogError(ex, "Error processing request.created event");
-        _channel.BasicNack(args.DeliveryTag, false, true);
+        await _channel.BasicNackAsync(args.DeliveryTag, false, true);
     }
 }
 }

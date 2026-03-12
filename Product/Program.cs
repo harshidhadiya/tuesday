@@ -17,8 +17,6 @@ using PRODUCT.Mapper;
 using PRODUCT.Repository;
 using MassTransit;
 using PRODUCT.Messaging.Consumers;
-using MassTransit.Configuration;
-using System.Net.Sockets;
 
 
 

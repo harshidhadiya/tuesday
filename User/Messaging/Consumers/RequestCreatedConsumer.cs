@@ -7,10 +7,6 @@ using USER.Messaging.Events;
 
 namespace USER.Messaging.Consumers;
 
-/// <summary>
-/// Consumes request.created events published by ADMIN when a new admin request is created.
-/// User service uses this for audit/logging and to keep in sync (e.g. dashboard can show "request submitted").
-/// </summary>
 public sealed class RequestCreatedConsumer : BackgroundService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
@@ -18,7 +14,7 @@ public sealed class RequestCreatedConsumer : BackgroundService
     private readonly IRabbitMqConnection _rabbitConnection;
     private readonly RabbitMqOptions _options;
     private readonly ILogger<RequestCreatedConsumer> _logger;
-    private IModel? _channel;
+    private IChannel? _channel;
 
     public RequestCreatedConsumer(
         IRabbitMqConnection rabbitConnection,
@@ -30,24 +26,24 @@ public sealed class RequestCreatedConsumer : BackgroundService
         _logger = logger;
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _channel = _rabbitConnection.Connection.CreateModel();
-        _channel.ExchangeDeclare(exchange: _options.ExchangeName, type: ExchangeType.Direct, durable: true, autoDelete: false);
+        _channel = await _rabbitConnection.Connection.CreateChannelAsync();
+        await _channel.ExchangeDeclareAsync(exchange: _options.ExchangeName, type: ExchangeType.Direct, durable: true, autoDelete: false);
 
         const string queueName = "user.request-created";
         const string routingKey = "request.created";
 
-        _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBind(queue: queueName, exchange: _options.ExchangeName, routingKey: routingKey);
-        _channel.BasicQos(prefetchSize: 0, prefetchCount: 10, global: false);
+        await _channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false);
+        await _channel.QueueBindAsync(queue: queueName, exchange: _options.ExchangeName, routingKey: routingKey);
+        await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 10, global: false);
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
-        consumer.Received += OnMessageAsync;
-        _channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
+        consumer.ReceivedAsync += OnMessageAsync;
+        await _channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer);
 
         _logger.LogInformation("RequestCreatedConsumer started, listening for {RoutingKey}", routingKey);
-        return Task.CompletedTask;
+
     }
 
     private async Task OnMessageAsync(object sender, BasicDeliverEventArgs args)
@@ -62,7 +58,7 @@ public sealed class RequestCreatedConsumer : BackgroundService
             if (message == null || message.RequestId <= 0)
             {
                 _logger.LogWarning("Invalid request.created message received");
-                _channel.BasicAck(args.DeliveryTag, multiple: false);
+              await  _channel.BasicAckAsync(args.DeliveryTag, multiple: false);
                 return;
             }
 
@@ -71,23 +67,26 @@ public sealed class RequestCreatedConsumer : BackgroundService
                 message.RequestId,
                 message.RequestUserId);
 
-            _channel.BasicAck(args.DeliveryTag, multiple: false);
+           await _channel.BasicAckAsync(args.DeliveryTag, multiple: false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to process request.created");
-            _channel.BasicNack(args.DeliveryTag, multiple: false, requeue: true);
+           await _channel.BasicNackAsync(args.DeliveryTag, multiple: false, requeue: true);
         }
     }
 
-    public override void Dispose()
+    public override async Task StopAsync(CancellationToken cancellationToken)
     {
         try
         {
-            _channel?.Close();
-            _channel?.Dispose();
+            if (_channel != null)
+            {
+                await _channel.CloseAsync(cancellationToken);
+                _channel?.Dispose();
+            }
         }
         catch { /* ignore */ }
-        base.Dispose();
+       await base.StopAsync(cancellationToken);
     }
 }

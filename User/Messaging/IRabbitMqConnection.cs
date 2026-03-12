@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 
-namespace ADMIN.Messaging;
+namespace USER.Messaging;
 
 public interface IRabbitMqConnection
 {
@@ -27,16 +27,14 @@ public sealed class RabbitMqConnection : IRabbitMqConnection, IAsyncDisposable
     }
 
     public IConnection Connection => _connection;
-
+ 
    
-
     public async ValueTask DisposeAsync()
     {
         if (_connection.IsOpen)
         {
             await _connection.CloseAsync();
         }
-        _connection.Dispose();
-        
+        await _connection.DisposeAsync();
     }
 }

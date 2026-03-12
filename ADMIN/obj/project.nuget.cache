@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "N5GSQFsyKJc=",
+  "dgSpecHash": "HofRuZe6Mtg=",
   "success": true,
   "projectFilePath": "/home/harshid/Project_Practice/_net/Microservice_2/ADMIN/ADMIN.csproj",
   "expectedPackageFiles": [
@@ -50,7 +50,7 @@
     "/home/harshid/.nuget/packages/mono.texttemplating/3.0.0/mono.texttemplating.3.0.0.nupkg.sha512",
     "/home/harshid/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512",
     "/home/harshid/.nuget/packages/newtonsoft.json.bson/1.0.2/newtonsoft.json.bson.1.0.2.nupkg.sha512",
-    "/home/harshid/.nuget/packages/rabbitmq.client/6.8.1/rabbitmq.client.6.8.1.nupkg.sha512",
+    "/home/harshid/.nuget/packages/rabbitmq.client/7.1.2/rabbitmq.client.7.1.2.nupkg.sha512",
     "/home/harshid/.nuget/packages/serilog/4.3.1/serilog.4.3.1.nupkg.sha512",
     "/home/harshid/.nuget/packages/swashbuckle.aspnetcore/10.1.4/swashbuckle.aspnetcore.10.1.4.nupkg.sha512",
     "/home/harshid/.nuget/packages/swashbuckle.aspnetcore.swagger/10.1.4/swashbuckle.aspnetcore.swagger.10.1.4.nupkg.sha512",

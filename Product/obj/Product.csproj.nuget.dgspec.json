@@ -1,25 +1,26 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\Product.csproj": {}
+    "/home/harshid/Project_Practice/_net/Microservice_2/Product/Product.csproj": {}
   },
   "projects": {
-    "D:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\Product.csproj": {
+    "/home/harshid/Project_Practice/_net/Microservice_2/Product/Product.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\Product.csproj",
+        "projectUniqueName": "/home/harshid/Project_Practice/_net/Microservice_2/Product/Product.csproj",
         "projectName": "Product",
-        "projectPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\Product.csproj",
-        "packagesPath": "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\",
-        "outputPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\obj\\",
+        "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/Product/Product.csproj",
+        "packagesPath": "/home/harshid/.nuget/packages/",
+        "outputPath": "/home/harshid/Project_Practice/_net/Microservice_2/Product/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Harshid Hadiya\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/home/harshid/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
+          "/usr/lib/dotnet/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -142,7 +143,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
