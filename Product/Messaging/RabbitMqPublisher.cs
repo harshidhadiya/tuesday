@@ -7,7 +7,7 @@ namespace PRODUCT.Messaging;
 
 public interface IRabbitMqPublisher
 {
-    void Publish<T>(string routingKey, T message);
+    Task PublishAsync<T>(string routingKey, T message);
 }
 
 public sealed class RabbitMqPublisher : IRabbitMqPublisher
@@ -22,26 +22,30 @@ public sealed class RabbitMqPublisher : IRabbitMqPublisher
         _options = options.Value;
     }
 
-    public void Publish<T>(string routingKey, T message)
+    public async Task PublishAsync<T>(string routingKey, T message)
     {
-        using var channel = _connection.Connection.CreateModel();
+        await using var channel = await _connection.Connection.CreateChannelAsync();
 
-        channel.ExchangeDeclare(exchange: _options.ExchangeName, type: ExchangeType.Direct, durable: true, autoDelete: false);
+        await channel.ExchangeDeclareAsync(
+            exchange: _options.ExchangeName,
+            type: ExchangeType.Direct,
+            durable: true,
+            autoDelete: false);
 
         var json = JsonSerializer.Serialize(message, JsonOptions);
         var body = Encoding.UTF8.GetBytes(json);
 
-        var props = channel.CreateBasicProperties();
-        props.ContentType = "application/json";
-        props.DeliveryMode = 2; // persistent  public IConnection Connection => _connection;
+        var props = new BasicProperties
+        {
+            ContentType = "application/json",
+            DeliveryMode = DeliveryModes.Persistent
+        };
 
-        channel.BasicPublish(
+        await channel.BasicPublishAsync(
             exchange: _options.ExchangeName,
             routingKey: routingKey,
             mandatory: false,
             basicProperties: props,
-            body: body
-        );
+            body: body);
     }
 }
-

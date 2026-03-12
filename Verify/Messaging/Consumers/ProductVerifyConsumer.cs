@@ -13,38 +13,38 @@ public class ProductVerifyConsumer : BackgroundService
     readonly IRabbitMqConnection connection;
     readonly ILogger<ProductVerifyConsumer> logger;
     readonly IServiceScopeFactory serviceScope;
-    IModel _channel;
+    IChannel? _channel;
     IRabbitMqPublisher _publisher;
 
-    public ProductVerifyConsumer(IRabbitMqConnection connection, ILogger<ProductVerifyConsumer> logger, IServiceScopeFactory serviceScope,IRabbitMqPublisher _publisher)
+    public ProductVerifyConsumer(IRabbitMqConnection connection, ILogger<ProductVerifyConsumer> logger, IServiceScopeFactory serviceScope, IRabbitMqPublisher _publisher)
     {
         this._publisher = _publisher;
         this.connection = connection;
         this.logger = logger;
         this.serviceScope = serviceScope;
     }
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _channel = connection.Connection.CreateModel();
-        _channel.ExchangeDeclare(exchange: "admin.exchange", type: ExchangeType.Direct, durable: true, autoDelete: false);
+        _channel = await connection.Connection.CreateChannelAsync(cancellationToken: stoppingToken);
+        await _channel.ExchangeDeclareAsync(exchange: "admin.exchange", type: ExchangeType.Direct, durable: true, autoDelete: false, cancellationToken: stoppingToken);
         const string queueName = "product.verify";
         const string routingKey = "product.verify";
-        _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBind(queue: queueName, exchange: "admin.exchange", routingKey: routingKey);
-        _channel.BasicQos(prefetchSize: 0, prefetchCount: 10, global: false);
+        await _channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
+        await _channel.QueueBindAsync(queue: queueName, exchange: "admin.exchange", routingKey: routingKey, cancellationToken: stoppingToken);
+        await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 10, global: false, cancellationToken: stoppingToken);
         var consumer = new AsyncEventingBasicConsumer(_channel);
-        consumer.Received += verifyProduct;
-        _channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
-
-        return Task.CompletedTask;
+        consumer.ReceivedAsync += verifyProduct;
+        await _channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
     }
+
     public async Task verifyProduct(object sender, BasicDeliverEventArgs args)
     {
+        if (_channel == null) return;
 
         using var scope = serviceScope.CreateScope();
         try
         {
-
             var dbContext = scope.ServiceProvider.GetRequiredService<VerifyDbContext>();
             var body = args.Body.ToArray();
             var json = Encoding.UTF8.GetString(body);
@@ -55,7 +55,7 @@ public class ProductVerifyConsumer : BackgroundService
                 var containProduct = dbContext.VERIFY_PRODUCTS.Where(x => x.ProductId == product.productId).FirstOrDefault();
                 if (containProduct == null)
                 {
-                    _channel.BasicAck(args.DeliveryTag, false);
+                    await _channel.BasicAckAsync(args.DeliveryTag, false);
                     return;
                 }
 
@@ -63,30 +63,30 @@ public class ProductVerifyConsumer : BackgroundService
                 containProduct.Description = product.description;
                 containProduct.VerifierId = product.verifierId;
                 containProduct.VerifiedTime = DateTime.Now;
-                
+
                 await dbContext.SaveChangesAsync();
-                _publisher.Publish("product.verified", new
+                await _publisher.PublishAsync("product.verified", new
                 {
                     product.productId
                 });
-                 logger.LogInformation("Product {ProductId} verified successfully by verifier {VerifierId}", product.productId, product.verifierId);
+                logger.LogInformation("Product {ProductId} verified successfully by verifier {VerifierId}", product.productId, product.verifierId);
             }
-            _channel.BasicAck(args.DeliveryTag, false);
-
+            await _channel.BasicAckAsync(args.DeliveryTag, false);
         }
         catch (System.Exception)
         {
             logger.LogError("Error processing message with DeliveryTag: {DeliveryTag}", args.DeliveryTag);
-            _channel.BasicNack(args.DeliveryTag, false, true);
-
+            await _channel.BasicNackAsync(args.DeliveryTag, false, true);
         }
     }
-    public override void Dispose()
-    {
-        _channel?.Close();
-        _channel?.Dispose();
 
-#pragma warning restore format
-        base.Dispose();
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (_channel != null)
+        {
+            await _channel.CloseAsync(cancellationToken);
+            _channel.Dispose();
+        }
+        await base.StopAsync(cancellationToken);
     }
 }

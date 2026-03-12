@@ -4,18 +4,20 @@ using VERIFY.DTOs.Responses;
 using VERIFY.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Verify.Messaging.Events;
 
 namespace VERIFY.Controllers
 {
-   
+
     [ApiController]
     [Route("api/[controller]")]
     public class VerifyController : ControllerBase
     {
         private readonly IVerifyService _verifyService;
 
-        public VerifyController(IVerifyService verifyService)
+        public VerifyController( IVerifyService verifyService)
         {
+            
             _verifyService = verifyService;
         }
 
@@ -65,7 +67,7 @@ namespace VERIFY.Controllers
 
         [HttpGet("my-products")]
         [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> GetProductsVerifiedByMe([FromQuery] string? searchName = null,[FromQuery] int page=1,[FromQuery] int size=10)
+        public async Task<IActionResult> GetProductsVerifiedByMe([FromQuery] string? searchName = null, [FromQuery] int page = 1, [FromQuery] int size = 10)
         {
             var adminId = GetCurrentUserId();
             if (adminId == null)
@@ -75,14 +77,14 @@ namespace VERIFY.Controllers
                 ? headerValue.ToString()
                 : null;
 
-            var result = await _verifyService.GetProductsVerifiedByMeAsync(adminId.Value, searchName, authHeader,page,size);
+            var result = await _verifyService.GetProductsVerifiedByMeAsync(adminId.Value, searchName, authHeader, page, size);
             return ToActionResult(result);
         }
 
 
         [HttpGet("unverified-products")]
         [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> GetUnverifiedProducts([FromQuery] string? searchName = null,[FromQuery] int page=1,[FromQuery] int size=10)
+        public async Task<IActionResult> GetUnverifiedProducts([FromQuery] string? searchName = null, [FromQuery] int page = 1, [FromQuery] int size = 10)
         {
             var adminId = GetCurrentUserId();
             if (adminId == null)
@@ -92,10 +94,12 @@ namespace VERIFY.Controllers
                 ? headerValue.ToString()
                 : null;
 
-            var result = await _verifyService.GetUnverifiedProductsAsync(adminId.Value, searchName, authHeader,page,size);
+            var result = await _verifyService.GetUnverifiedProductsAsync(adminId.Value, searchName, authHeader, page, size);
             return ToActionResult(result);
         }
 
+       
+        [NonAction]
         private IActionResult ToActionResult<T>(ServiceResult<T> result)
         {
             if (result.Success)

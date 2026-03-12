@@ -63,6 +63,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+
+
 builder.Services.AddValidatorsFromAssemblyContaining<verifyProductValidator>();
 builder.Services.AddFluentValidationAutoValidation();
 

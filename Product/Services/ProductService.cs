@@ -29,7 +29,7 @@ namespace PRODUCT.Services
             }
             var data = mapper.Map<ProductTable>(product);
             var response = await repository.Add(data);
-            _publisher.Publish<RequestVerifyEvent>("product.create", new RequestVerifyEvent
+            await _publisher.PublishAsync<RequestVerifyEvent>("product.create", new RequestVerifyEvent
             {
                 ProductId = response.Id,
                 SellerId = (int)response.user_id!,
@@ -52,7 +52,7 @@ namespace PRODUCT.Services
             if(deleted_product==null)
             return ServiceResult<ProductDto>.Fail("Product didn't return",500);
             var result = mapper.Map<ProductDto>(deleted_product);
-            _publisher.Publish<ProductDeletedEvent>("product.deleted", new ProductDeletedEvent
+            await _publisher.PublishAsync<ProductDeletedEvent>("product.deleted", new ProductDeletedEvent
             {
                 ProductId = productId,
                 DeletedByUserId = userid

@@ -983,15 +983,15 @@
           }
         }
       },
-      "RabbitMQ.Client/6.8.1": {
+      "RabbitMQ.Client/7.1.2": {
         "type": "package",
         "compile": {
-          "lib/netstandard2.0/RabbitMQ.Client.dll": {
+          "lib/net8.0/RabbitMQ.Client.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/RabbitMQ.Client.dll": {
+          "lib/net8.0/RabbitMQ.Client.dll": {
             "related": ".xml"
           }
         }
@@ -3454,20 +3454,20 @@
         "newtonsoft.json.bson.nuspec"
       ]
     },
-    "RabbitMQ.Client/6.8.1": {
-      "sha512": "jNsmGgmCNw2S/NzskeN2ijtGywtH4Sk/G6jWUTD5sY9SrC27Xz6BsLIiB8hdsfjeyWCa4j4GvCIGkpE8wrjU1Q==",
+    "RabbitMQ.Client/7.1.2": {
+      "sha512": "y3c6ulgULScWthHw5PLM1ShHRLhxg0vCtzX/hh61gRgNecL3ZC3WoBW2HYHoXOVRqTl99Br9E7CZEytGZEsCyQ==",
       "type": "package",
-      "path": "rabbitmq.client/6.8.1",
+      "path": "rabbitmq.client/7.1.2",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "README.md",
         "icon.png",
-        "lib/net462/RabbitMQ.Client.dll",
-        "lib/net462/RabbitMQ.Client.xml",
+        "lib/net8.0/RabbitMQ.Client.dll",
+        "lib/net8.0/RabbitMQ.Client.xml",
         "lib/netstandard2.0/RabbitMQ.Client.dll",
         "lib/netstandard2.0/RabbitMQ.Client.xml",
-        "rabbitmq.client.6.8.1.nupkg.sha512",
+        "rabbitmq.client.7.1.2.nupkg.sha512",
         "rabbitmq.client.nuspec"
       ]
     },
@@ -3949,32 +3949,31 @@
       "Microsoft.EntityFrameworkCore.SqlServer >= 10.0.3",
       "Microsoft.EntityFrameworkCore.Tools >= 10.0.3",
       "Microsoft.IdentityModel.Tokens >= 8.16.0",
-      "RabbitMQ.Client >= 6.8.1",
+      "RabbitMQ.Client >= 7.1.2",
       "Serilog >= 4.3.1",
       "Swashbuckle.AspNetCore >= 10.1.4",
       "System.IdentityModel.Tokens.Jwt >= 8.16.0"
     ]
   },
   "packageFolders": {
-    "/home/harshid/.nuget/packages/": {}
+    "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/harshid/Project_Practice/_net/Microservice_2/Verify/Verify.csproj",
+      "projectUniqueName": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Verify\\Verify.csproj",
       "projectName": "Verify",
-      "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/Verify/Verify.csproj",
-      "packagesPath": "/home/harshid/.nuget/packages/",
-      "outputPath": "/home/harshid/Project_Practice/_net/Microservice_2/Verify/obj/",
+      "projectPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Verify\\Verify.csproj",
+      "packagesPath": "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\",
+      "outputPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Verify\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/harshid/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\Harshid Hadiya\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
       ],
       "sources": {
-        "/usr/lib/dotnet/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -4055,7 +4054,7 @@
           },
           "RabbitMQ.Client": {
             "target": "Package",
-            "version": "[6.8.1, )"
+            "version": "[7.1.2, )"
           },
           "Serilog": {
             "target": "Package",
@@ -4089,7 +4088,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

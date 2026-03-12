@@ -6,6 +6,7 @@ using MACUTION.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using PRODUCT.Messaging;
 using PRODUCT.GlobalErrorHandler;
@@ -14,10 +15,15 @@ using PRODUCT.Validation;
 using PRODUCT.Services;
 using PRODUCT.Mapper;
 using PRODUCT.Repository;
+using MassTransit;
+using PRODUCT.Messaging.Consumers;
+using MassTransit.Configuration;
+using System.Net.Sockets;
 
 
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddSingleton<PasswordHasher<object>>();
 builder.Services.AddDbContext<MACUTIONDB>(options=>options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddValidatorsFromAssemblyContaining<productCreateValidation>();
@@ -70,6 +76,22 @@ builder.Services.AddAutoMapper(typeof(Mapper));
 builder.Services.AddScoped<IVerificationService, HttpVerificationService>();
 builder.Services.AddAutoMapper(typeof(Mapping));
 builder.Services.AddRabbitMqMessaging(builder.Configuration);
+builder.Services.AddMassTransit(x =>
+{
+    x.SetKebabCaseEndpointNameFormatter();
+  x.AddConsumer<verifyConsumer>();
+    x.UsingRabbitMq((context, cnf) =>
+    {
+        var options=context.GetService<IOptions<RabbitMqOptions>>().Value;
+        cnf.Host(options.HostName, options.VirtualHost, (k) =>
+        {
+            k.Username(options.UserName);
+            k.Password(options.Password);
+        });
+      cnf.ConfigureEndpoints(context);        
+    });    
+
+});
 var app = builder.Build();
 Console.WriteLine(DateTime.Now);
 app.UseCors("MyPolicy");

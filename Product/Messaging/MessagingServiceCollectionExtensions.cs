@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using PRODUCT.Messaging.Consumers;
 
 namespace PRODUCT.Messaging;
@@ -10,7 +11,12 @@ public static class MessagingServiceCollectionExtensions
             .Bind(configuration.GetSection("RabbitMq"))
             .ValidateOnStart();
 
-        services.AddSingleton<IRabbitMqConnection, RabbitMqConnection>();
+        services.AddSingleton<IRabbitMqConnection>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<RabbitMqOptions>>();
+            return RabbitMqConnection.CreateAsync(options).GetAwaiter().GetResult();
+        });
+
         services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
 
         services.AddHostedService<ProductUnverifiedConsumer>();
@@ -19,4 +25,3 @@ public static class MessagingServiceCollectionExtensions
         return services;
     }
 }
-

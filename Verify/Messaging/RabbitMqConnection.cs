@@ -8,7 +8,7 @@ public interface IRabbitMqConnection
     IConnection Connection { get; }
 }
 
-public sealed class RabbitMqConnection : IRabbitMqConnection, IDisposable
+public sealed class RabbitMqConnection : IRabbitMqConnection, IAsyncDisposable
 {
     private readonly IConnection _connection;
 
@@ -22,19 +22,17 @@ public sealed class RabbitMqConnection : IRabbitMqConnection, IDisposable
             Port = opt.Port,
             UserName = opt.UserName,
             Password = opt.Password,
-            VirtualHost = opt.VirtualHost,
-            DispatchConsumersAsync = true
+            VirtualHost = opt.VirtualHost
         };
 
-        _connection = factory.CreateConnection();
+        _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
     }
 
     public IConnection Connection => _connection;
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        if (_connection.IsOpen) _connection.Close();
+        await _connection.CloseAsync();
         _connection.Dispose();
     }
 }
-

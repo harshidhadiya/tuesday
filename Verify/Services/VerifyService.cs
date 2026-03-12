@@ -81,7 +81,7 @@ namespace VERIFY.Services
 
             await _repository.SaveChangesAsync();
 
-            _publisher.Publish("product.verified", new
+            await _publisher.PublishAsync("product.verified", new
             {
                 request.ProductId
             });
@@ -130,7 +130,7 @@ namespace VERIFY.Services
             _repository.Update(record);
             await _repository.SaveChangesAsync();
 
-            _publisher.Publish("product.unverified", new ProductUnverifiedEvent
+            await _publisher.PublishAsync("product.unverified", new ProductUnverifiedEvent
             {
                 ProductId = productId,
             });

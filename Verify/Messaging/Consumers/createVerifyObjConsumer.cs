@@ -13,7 +13,7 @@ public class createVerifyObjConsumer : BackgroundService
     readonly IRabbitMqConnection connection;
     readonly ILogger<createVerifyObjConsumer> logger;
     readonly IServiceScopeFactory serviceScope;
-    IModel _channel;
+    IChannel? _channel;
 
     public createVerifyObjConsumer(IRabbitMqConnection connection, ILogger<createVerifyObjConsumer> logger, IServiceScopeFactory serviceScope)
     {
@@ -21,28 +21,28 @@ public class createVerifyObjConsumer : BackgroundService
         this.logger = logger;
         this.serviceScope = serviceScope;
     }
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _channel = connection.Connection.CreateModel();
-        _channel.ExchangeDeclare(exchange: "product", type: ExchangeType.Direct, durable: true, autoDelete: false);
+        _channel = await connection.Connection.CreateChannelAsync(cancellationToken: stoppingToken);
+        await _channel.ExchangeDeclareAsync(exchange: "product", type: ExchangeType.Direct, durable: true, autoDelete: false, cancellationToken: stoppingToken);
         const string queueName = "product.create";
         const string routingKey = "product.create";
-        _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBind(queue: queueName, exchange: "product", routingKey: routingKey);
-        _channel.BasicQos(prefetchSize: 0, prefetchCount: 10, global: false);
+        await _channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
+        await _channel.QueueBindAsync(queue: queueName, exchange: "product", routingKey: routingKey, cancellationToken: stoppingToken);
+        await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 10, global: false, cancellationToken: stoppingToken);
         var consumer = new AsyncEventingBasicConsumer(_channel);
-        consumer.Received += createVerifyObj;
-        _channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
-
-        return Task.CompletedTask;
+        consumer.ReceivedAsync += createVerifyObj;
+        await _channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
     }
+
     public async Task createVerifyObj(object sender, BasicDeliverEventArgs args)
     {
+        if (_channel == null) return;
 
         using var scope = serviceScope.CreateScope();
         try
         {
-
             var dbContext = scope.ServiceProvider.GetRequiredService<VerifyDbContext>();
             var body = args.Body.ToArray();
             var json = Encoding.UTF8.GetString(body);
@@ -53,36 +53,35 @@ public class createVerifyObjConsumer : BackgroundService
                 var containProduct = dbContext.VERIFY_PRODUCTS.Where(x => x.ProductId == product.productId).FirstOrDefault();
                 if (containProduct == null)
                 {
-                    var addVerify=new VerifyProductTable
+                    var addVerify = new VerifyProductTable
                     {
                         ProductId = product.productId,
                         SellerId = product.sellerId,
-                        ProductName=product.productName,
-                        isProductVerified=false,
+                        ProductName = product.productName,
+                        isProductVerified = false,
                         Description = "Pending admin verification."
                     };
                     await dbContext.VERIFY_PRODUCTS.AddAsync(addVerify);
 
                     await dbContext.SaveChangesAsync();
                 }
-
             }
-            _channel.BasicAck(args.DeliveryTag, false);
-
+            await _channel.BasicAckAsync(args.DeliveryTag, false);
         }
         catch (System.Exception)
         {
             logger.LogError("Here This Service Not Able to Create Verify Object Error processing message with DeliveryTag: {DeliveryTag}", args.DeliveryTag);
-            _channel.BasicNack(args.DeliveryTag, false, true);
-
+            await _channel.BasicNackAsync(args.DeliveryTag, false, true);
         }
     }
-    public override void Dispose()
-    {
-        _channel?.Close();
-        _channel?.Dispose();
 
-#pragma warning restore format
-        base.Dispose();
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (_channel != null)
+        {
+            await _channel.CloseAsync(cancellationToken);
+            _channel.Dispose();
+        }
+        await base.StopAsync(cancellationToken);
     }
 }

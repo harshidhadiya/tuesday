@@ -10,51 +10,49 @@ using VERIFY.Model;
 
 namespace VERIFY.Messaging.Consumers;
 
-public class ProductUnverifyConsumer: BackgroundService
+public class ProductUnverifyConsumer : BackgroundService
 {
-    
-    private JsonSerializerOptions options=new (JsonSerializerDefaults.Web);
+
+    private JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
     private readonly IRabbitMqConnection _rabbitConnection;
     private readonly RabbitMqOptions _options;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<ProductUnverifyConsumer> _logger;
 
-    private IModel? _channel;
+    private IChannel? _channel;
     IRabbitMqPublisher _publisher;
 
     public ProductUnverifyConsumer(
         IRabbitMqConnection rabbitConnection,
         IOptions<RabbitMqOptions> options,
         IServiceScopeFactory scopeFactory,
-        ILogger<ProductUnverifyConsumer> logger,IRabbitMqPublisher publisher)
+        ILogger<ProductUnverifyConsumer> logger, IRabbitMqPublisher publisher)
     {
         _rabbitConnection = rabbitConnection;
         _options = options.Value;
         _scopeFactory = scopeFactory;
         _logger = logger;
-        this._publisher=publisher;
+        this._publisher = publisher;
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _channel = _rabbitConnection.Connection.CreateModel();
+        _channel = await _rabbitConnection.Connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
-        _channel.ExchangeDeclare(exchange: "admin.exchange", type: ExchangeType.Direct, durable: true, autoDelete: false);
+        await _channel.ExchangeDeclareAsync(exchange: "admin.exchange", type: ExchangeType.Direct, durable: true, autoDelete: false, cancellationToken: stoppingToken);
 
         const string queueName = "admin.unverify";
         const string routingKey = "admin.unverify";
 
-        _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBind(queue: queueName, exchange: "admin.exchange", routingKey: routingKey);
+        await _channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
+        await _channel.QueueBindAsync(queue: queueName, exchange: "admin.exchange", routingKey: routingKey, cancellationToken: stoppingToken);
 
-        _channel.BasicQos(prefetchSize: 0, prefetchCount: 10, global: false);
+        await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 10, global: false, cancellationToken: stoppingToken);
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
-        consumer.Received += OnMessageAsync;
+        consumer.ReceivedAsync += OnMessageAsync;
 
-        _channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
-
-        return Task.CompletedTask;
+        await _channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
     }
 
     private async Task OnMessageAsync(object sender, BasicDeliverEventArgs args)
@@ -69,22 +67,22 @@ public class ProductUnverifyConsumer: BackgroundService
             if (message == null || message.productId <= 0)
             {
                 _logger.LogWarning("Invalid message on {RoutingKey}", args.RoutingKey);
-                _channel.BasicAck(args.DeliveryTag, multiple: false);
+                await _channel.BasicAckAsync(args.DeliveryTag, multiple: false);
                 return;
             }
-           
+
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<VerifyDbContext>();
 
             var record = await db.VERIFY_PRODUCTS.FirstOrDefaultAsync(v => v.ProductId == message.productId);
             if (record == null)
             {
-                _channel.BasicAck(args.DeliveryTag, multiple: false);
+                await _channel.BasicAckAsync(args.DeliveryTag, multiple: false);
                 return;
             }
             if (record.VerifierId != message.adminId)
             {
-                _channel.BasicAck(args.DeliveryTag, multiple: false);
+                await _channel.BasicAckAsync(args.DeliveryTag, multiple: false);
                 return;
             }
 
@@ -94,34 +92,36 @@ public class ProductUnverifyConsumer: BackgroundService
 
             await db.SaveChangesAsync();
 
-            _publisher.Publish("product.unverified", new ProductUnverifiedEvent
+            await _publisher.PublishAsync("product.unverified", new ProductUnverifiedEvent
             {
                 ProductId = record.ProductId,
                 AdminId = message.adminId
             });
 
             _logger.LogInformation("Product {ProductId} unverification processed from admin event", message.productId);
-            _channel.BasicAck(args.DeliveryTag, multiple: false);
+            await _channel.BasicAckAsync(args.DeliveryTag, multiple: false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed processing {RoutingKey}", args.RoutingKey);
-            _channel.BasicNack(args.DeliveryTag, multiple: false, requeue: true);
+            await _channel.BasicNackAsync(args.DeliveryTag, multiple: false, requeue: true);
         }
     }
 
-    public override void Dispose()
+    public override async Task StopAsync(CancellationToken cancellationToken)
     {
         try
         {
-            _channel?.Close();
-            _channel?.Dispose();
+            if (_channel != null)
+            {
+                await _channel.CloseAsync(cancellationToken);
+                _channel.Dispose();
+            }
         }
         catch
         {
         }
 
-        base.Dispose();
+        await base.StopAsync(cancellationToken);
     }
 }
-
