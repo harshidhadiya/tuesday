@@ -12,8 +12,8 @@ using USER.Model;
 namespace User.Migrations
 {
     [DbContext(typeof(MACUTIONDB))]
-    [Migration("20260307180131_lastadd")]
-    partial class lastadd
+    [Migration("20260313055041_addingupdates")]
+    partial class addingupdates
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,6 +70,9 @@ namespace User.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("SELLER");
+
+                    b.Property<string>("publicPictureId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

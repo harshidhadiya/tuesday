@@ -28,7 +28,7 @@ namespace PRODUCT.Repository
 
         public async Task<ProductTable> getByIdProduct(int id)
         {
-            var response = await db.PRODUCTS.Where(x => x.Id == id).FirstOrDefaultAsync();
+            var response = await db.PRODUCTS.Where(x => x.Id == id).Include(x=>x.images).FirstOrDefaultAsync();
             return response;
         }
 
@@ -45,7 +45,7 @@ namespace PRODUCT.Repository
         }
         public async Task<IEnumerable<ProductTable>> AllProducts(ProductAll query)
         {
-            IQueryable<ProductTable> products = db.PRODUCTS.AsQueryable();
+            IQueryable<ProductTable> products = db.PRODUCTS.AsQueryable().Include(x=>x.images);
 
            
 
@@ -89,5 +89,6 @@ namespace PRODUCT.Repository
             }
             return false;
         }
+    
     }
 }

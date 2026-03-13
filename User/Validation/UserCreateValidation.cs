@@ -37,6 +37,7 @@ namespace USER.Validation
                                 .NotEmpty()
                                 .Must(role => role == "USER" || role == "SELLER" || role == "ADMIN")
                                 .WithMessage("Role must be either USER or SELLER");
+
         }
     }
 }

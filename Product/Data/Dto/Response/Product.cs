@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace PRODUCT.Data.Dto.Response
 {
+    public class imageData
+    {
+        public int id{get;set;}
+        public String imageUrl{get;set;}
+    }
     public class ProductDto
     {
         public int id { get; set; }
@@ -11,6 +16,7 @@ namespace PRODUCT.Data.Dto.Response
         public string Name { get; set; }
         public string? description { get; set; }
         public bool verified { get; set; } = false;
+        public List<imageData> ?images{get;set;}
         public DateTime? AuctionStartTime { get; set; }
         public DateTime? AuctionEndTime { get; set; }
     }

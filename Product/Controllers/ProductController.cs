@@ -86,7 +86,6 @@ namespace PRODUCT.Controllers
 
             product.id = productId;
             var updatedProduct = await service.updateProduct(product, (int)id);
-            logger.LogError("UPDATED TIME"+product.AuctionStartTime);
             if (!updatedProduct.Success)
             {
                 switch (updatedProduct.StatusCode)

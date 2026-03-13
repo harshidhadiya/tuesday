@@ -30,3 +30,6 @@ public sealed record ProductUnverified(
     int ProductId,
     int AdminId);
 
+public sealed record productDeleteImage(
+    String publicId
+);

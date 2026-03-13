@@ -86,6 +86,8 @@ namespace USER.Repository
                     var hashedPassword = _hash.HashPassword(new object(), profile.Password);
                     currentUser.HashPassword=hashedPassword;
                 }
+                if(!string.IsNullOrEmpty(profile.publicId))
+                currentUser.publicPictureId=profile.publicId;
                 await _db.SaveChangesAsync();
                 return currentUser;
         }

@@ -16,6 +16,7 @@ using PRODUCT.Services;
 using PRODUCT.Mapper;
 using PRODUCT.Repository;
 using MassTransit;
+using CloudinaryService;
 
 
 
@@ -88,6 +89,8 @@ builder.Services.AddMassTransit(x =>
     });    
 
 });
+
+builder.Services.AddScoped<ClodinaryService>();
 var app = builder.Build();
 Console.WriteLine(DateTime.Now);
 app.UseCors("MyPolicy");

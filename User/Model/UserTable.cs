@@ -12,6 +12,7 @@ namespace USER.Model
         public String Address{get;set;}
         public String Role{get;set;}="SELLER";
         public String? ProfilePicture { get; set; }
+        public String? publicPictureId{get;set;}
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using ADMIN.Data.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using USER.CloudinaryService;
 using USER.Data.Dto;
 using USER.Data.Interfaces;
 using USER.Services;
@@ -12,14 +13,16 @@ namespace USER.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
+        private readonly ClodinaryService clodinary;
         private readonly IUserService _userService;
         private readonly IsellerLogin _loginInterface;
         private readonly ILogger<UserController> logger;
-        public UserController(IUserService userService, IsellerLogin loginInterface, ILogger<UserController> logger)
+        public UserController(IUserService userService, IsellerLogin loginInterface, ILogger<UserController> logger,ClodinaryService clodinary)
         {
             _userService = userService;
             this.logger = logger;
             _loginInterface = loginInterface;
+            this.clodinary=clodinary;
         }
 
         [NonAction]
@@ -49,7 +52,7 @@ namespace USER.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<ActionResult> CreateUser(UserCreateDto user)
+        public async Task<ActionResult> CreateUser([FromForm]UserCreateDto user)
         {
             var responce = await _userService.CreateUserAsync(user);
             // I changed this: if (responce.Success) was returning a bad response even on success. Changed to if (!responce.Success)
@@ -96,6 +99,7 @@ namespace USER.Controllers
 
             return Ok(ApiResponse<object>.SuccessResponse(responce.Data!, responce.Message, responce.StatusCode));
         }
+        
 
 
 
