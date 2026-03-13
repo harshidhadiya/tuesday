@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Name;
 using USER.Data.Dto;
 using USER.Data.Dto.Response;
-using USER.Messaging;
 using USER.Model;
 using USER.Repository;
 
@@ -22,20 +21,17 @@ namespace USER.Services
         private readonly HttpClient _httpClient;
         private readonly ItokenGeneration _token;
         private readonly IMapper _mapper;
-        private readonly IRabbitMqPublisher _publisher;
 
         public UserAdminService(
             IUserRepository repository,
             IHttpClientFactory httpClientFactory,
             ItokenGeneration token,
-            IMapper mapper,
-            IRabbitMqPublisher publisher)
+            IMapper mapper)
         {
             _repository = repository;
             _httpClient = httpClientFactory.CreateClient("DefaultClient");
             _token = token;
             _mapper = mapper;
-            _publisher = publisher;
         }
 
 

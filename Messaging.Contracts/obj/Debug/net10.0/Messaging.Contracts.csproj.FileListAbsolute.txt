@@ -1,0 +1,12 @@
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/bin/Debug/net10.0/Messaging.Contracts.deps.json
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/bin/Debug/net10.0/Messaging.Contracts.dll
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/bin/Debug/net10.0/Messaging.Contracts.pdb
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/Messaging.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/Messaging.Contracts.AssemblyInfoInputs.cache
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/Messaging.Contracts.AssemblyInfo.cs
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/Messaging.Contracts.csproj.CoreCompileInputs.cache
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/Messaging.Contracts.sourcelink.json
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/Messaging.Contracts.dll
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/refint/Messaging.Contracts.dll
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/Messaging.Contracts.pdb
+/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/ref/Messaging.Contracts.dll

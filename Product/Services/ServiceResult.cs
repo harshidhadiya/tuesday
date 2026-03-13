@@ -1,4 +1,4 @@
-namespace VERIFY.Services
+namespace PRODUCT.Services
 {
   
     public class ServiceResult<T>

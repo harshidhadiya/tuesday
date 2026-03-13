@@ -5,8 +5,6 @@ using PRODUCT.Data.Dto.Request;
 using PRODUCT.Services;
 
 using PRODUCT.Data.Dto.Response;
-using MassTransit;
-using PRODUCT.Messaging.Events;
 
 namespace PRODUCT.Controllers
 {
@@ -120,15 +118,6 @@ namespace PRODUCT.Controllers
             return Ok(ApiResponse<List<ProductDto>>.SuccessResponse(products.Data, products.Message));
 
         }
-
-        [HttpGet("SEND")]
-        public async Task<IActionResult> sendMessage([FromServices]IBus bus)
-        {
-            bus.Publish<verifyEvent>(new verifyEvent{ProductId = 2345});
-            
-            return Ok("Send Success Fully");
-        }
-
 
     }
 }

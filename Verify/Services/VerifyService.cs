@@ -2,10 +2,10 @@ using ADMIN.Data.Dto;
 using VERIFY.Data.Dto;
 using VERIFY.DTOs.Requests;
 using VERIFY.DTOs.Responses;
-using VERIFY.Messaging;
-using VERIFY.Messaging.Events;
 using VERIFY.Model;
 using VERIFY.Repositories;
+using MassTransit;
+using Messaging.Contracts;
 
 namespace VERIFY.Services
 {
@@ -14,18 +14,18 @@ namespace VERIFY.Services
     {
         private readonly IVerifyRepository _repository;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IRabbitMqPublisher _publisher;
+        private readonly IPublishEndpoint _publishEndpoint;
         private readonly ILogger<VerifyService> _logger;
 
         public VerifyService(
             IVerifyRepository repository,
             IHttpClientFactory httpClientFactory,
-            IRabbitMqPublisher publisher,
+            IPublishEndpoint publishEndpoint,
             ILogger<VerifyService> logger)
         {
             _repository = repository;
             _httpClientFactory = httpClientFactory;
-            _publisher = publisher;
+            _publishEndpoint = publishEndpoint;
             _logger = logger;
         }
 
@@ -81,10 +81,7 @@ namespace VERIFY.Services
 
             await _repository.SaveChangesAsync();
 
-            await _publisher.PublishAsync("product.verified", new
-            {
-                request.ProductId
-            });
+            await _publishEndpoint.Publish(new ProductVerified(request.ProductId));
 
             _logger.LogInformation("Product {ProductId} verified by admin {AdminId}", request.ProductId, adminId);
 
@@ -130,10 +127,9 @@ namespace VERIFY.Services
             _repository.Update(record);
             await _repository.SaveChangesAsync();
 
-            await _publisher.PublishAsync("product.unverified", new ProductUnverifiedEvent
-            {
-                ProductId = productId,
-            });
+            await _publishEndpoint.Publish(new ProductUnverified(
+                ProductId: productId,
+                AdminId: adminId));
 
             return ServiceResult<object>.Ok(
                 new { ProductId = productId },

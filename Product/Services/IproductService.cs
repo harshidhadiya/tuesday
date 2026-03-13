@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PRODUCT.Data.Dto;
 using PRODUCT.Data.Dto.Request;
 using PRODUCT.Data.Dto.Response;
-using VERIFY.Services;
+using PRODUCT.Services;
 
 namespace  PRODUCT.Services
 {

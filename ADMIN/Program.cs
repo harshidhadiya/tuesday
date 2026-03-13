@@ -12,12 +12,33 @@ using ADMIN.Model;
 using ADMIN.Repositories;
 using ADMIN.Services;
 using Microsoft.AspNetCore.Identity;
+using MassTransit;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<PasswordHasher<object>>();
 builder.Services.AddDbContext<MACUTIONDB>(options=>options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddRabbitMqMessaging(builder.Configuration);
+builder.Services.AddOptions<RabbitMqOptions>()
+    .Bind(builder.Configuration.GetSection("RabbitMq"))
+    .ValidateOnStart();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.SetKebabCaseEndpointNameFormatter();
+    x.AddConsumersFromNamespaceContaining<ADMIN.Messaging.Consumers.RequestConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        var options = context.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
+        cfg.Host(options.HostName, options.VirtualHost, h =>
+        {
+            h.Username(options.UserName);
+            h.Password(options.Password);
+        });
+        cfg.ConfigureEndpoints(context);
+    });
+});
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddAuthentication(options =>   
 {  

@@ -5,7 +5,8 @@ using USER.Data.Dto;
 using USER.Model;
 using USER.Repository;
 using USER.Data.Dto.Response;
-using USER.Messaging;
+using MassTransit;
+using Messaging.Contracts;
 
 namespace USER.Services
 {
@@ -16,17 +17,18 @@ namespace USER.Services
         private readonly ItokenGeneration _token;
         private readonly PasswordHasher<object> _hash;
         private readonly IMapper _mapper;
-        private readonly IRabbitMqPublisher _publisher;
+        private readonly IPublishEndpoint _publishEndpoint;
 
         public UserService(
             IUserRepository repository,
             ILogger<UserService> logger,
             PasswordHasher<object> hash,
             ItokenGeneration token,
-            IMapper mapper, IRabbitMqPublisher _publisher)
+            IMapper mapper,
+            IPublishEndpoint publishEndpoint)
         {
             _repository = repository;
-            this._publisher = _publisher;
+            _publishEndpoint = publishEndpoint;
             _logger = logger;
             _hash = hash;
             _token = token;
@@ -48,9 +50,10 @@ namespace USER.Services
 
             if (response.Role == "ADMIN")
             {
-                var requestBody = new { RequestUserId = userData.Id, Name = userData.Name, Email = userData.Email };
-
-               await _publisher.Publish<object>("request.created", requestBody);
+                await _publishEndpoint.Publish(new AdminRegistrationRequested(
+                    RequestUserId: userData.Id,
+                    Name: userData.Name,
+                    Email: userData.Email));
             }
             var data = _mapper.Map<UserDetail>(response);
             return ServiceResult<UserDetail>.Ok(data, "User created successfully");

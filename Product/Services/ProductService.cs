@@ -1,11 +1,10 @@
 using AutoMapper;
 using PRODUCT.Data.Dto.Request;
-using PRODUCT.Messaging;
-using PRODUCT.Messaging.Events;
 using PRODUCT.Model;
 using PRODUCT.Repository;
 using PRODUCT.Data.Dto.Response;
-using VERIFY.Services;
+using MassTransit;
+using Messaging.Contracts;
 
 namespace PRODUCT.Services
 {
@@ -13,10 +12,10 @@ namespace PRODUCT.Services
     {
         private readonly IMapper mapper;
         private readonly Irepository repository;
-        private readonly IRabbitMqPublisher _publisher;
-        public ProductService(Irepository repo, IMapper mapper, IRabbitMqPublisher _publisher)
+        private readonly IPublishEndpoint _publishEndpoint;
+        public ProductService(Irepository repo, IMapper mapper, IPublishEndpoint publishEndpoint)
         {
-            this._publisher = _publisher;
+            _publishEndpoint = publishEndpoint;
             this.repository = repo;
             this.mapper = mapper;
         }
@@ -29,12 +28,10 @@ namespace PRODUCT.Services
             }
             var data = mapper.Map<ProductTable>(product);
             var response = await repository.Add(data);
-            await _publisher.PublishAsync<RequestVerifyEvent>("product.create", new RequestVerifyEvent
-            {
-                ProductId = response.Id,
-                SellerId = (int)response.user_id!,
-                ProductName = response.product_name
-            });
+            await _publishEndpoint.Publish(new ProductCreatedForVerification(
+                ProductId: response.Id,
+                SellerId: (int)response.user_id!,
+                ProductName: response.product_name));
 
             var result = mapper.Map<ProductDto>(response);
             return ServiceResult<ProductDto>.Ok(result, "User create Successfully");
@@ -52,11 +49,9 @@ namespace PRODUCT.Services
             if(deleted_product==null)
             return ServiceResult<ProductDto>.Fail("Product didn't return",500);
             var result = mapper.Map<ProductDto>(deleted_product);
-            await _publisher.PublishAsync<ProductDeletedEvent>("product.deleted", new ProductDeletedEvent
-            {
-                ProductId = productId,
-                DeletedByUserId = userid
-            });
+            await _publishEndpoint.Publish(new ProductDeleted(
+                ProductId: productId,
+                DeletedByUserId: userid));
 
             return ServiceResult<ProductDto>.Ok(result, "Product Delete Success Fully");
         }

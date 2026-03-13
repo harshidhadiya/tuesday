@@ -16,7 +16,6 @@ using PRODUCT.Services;
 using PRODUCT.Mapper;
 using PRODUCT.Repository;
 using MassTransit;
-using PRODUCT.Messaging.Consumers;
 
 
 
@@ -73,11 +72,10 @@ builder.Services.AddProblemDetails();
 builder.Services.AddAutoMapper(typeof(Mapper));
 builder.Services.AddScoped<IVerificationService, HttpVerificationService>();
 builder.Services.AddAutoMapper(typeof(Mapping));
-builder.Services.AddRabbitMqMessaging(builder.Configuration);
 builder.Services.AddMassTransit(x =>
 {
     x.SetKebabCaseEndpointNameFormatter();
-  x.AddConsumer<verifyConsumer>();
+    x.AddConsumersFromNamespaceContaining<PRODUCT.Messaging.Consumers.ProductVerifiedConsumer>();
     x.UsingRabbitMq((context, cnf) =>
     {
         var options=context.GetService<IOptions<RabbitMqOptions>>().Value;

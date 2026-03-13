@@ -15,7 +15,8 @@ using USER.Model;
 using USER.Repository;
 using USER.Services;
 using USER.Validation;
-using USER.Validation;
+using MassTransit;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<PasswordHasher<object>>();
@@ -25,7 +26,24 @@ builder.Services.AddValidatorsFromAssemblyContaining<ChangeProfileValidator>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddScoped<IsellerLogin,SellerLogin>();
 builder.Services.AddScoped<IadminLogin,AdminLogin>();
-builder.Services.AddRabbitMqMessaging(builder.Configuration);
+builder.Services.AddOptions<RabbitMqOptions>()
+    .Bind(builder.Configuration.GetSection("RabbitMq"))
+    .ValidateOnStart();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.SetKebabCaseEndpointNameFormatter();
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        var options = context.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
+        cfg.Host(options.HostName, options.VirtualHost, h =>
+        {
+            h.Username(options.UserName);
+            h.Password(options.Password);
+        });
+        cfg.ConfigureEndpoints(context);
+    });
+});
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyPolicy", policy =>
