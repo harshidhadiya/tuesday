@@ -17,6 +17,8 @@ using USER.Services;
 using USER.Validation;
 using MassTransit;
 using Microsoft.Extensions.Options;
+using USER.CloudinaryService;
+using USER.Messaging.Consumer;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<PasswordHasher<object>>();
@@ -33,6 +35,10 @@ builder.Services.AddOptions<RabbitMqOptions>()
 builder.Services.AddMassTransit(x =>
 {
     x.SetKebabCaseEndpointNameFormatter();
+    x.AddConsumer<ImageDeleteConsumer>(e =>
+    {
+        e.UseMessageRetry(x=>x.Interval(6,TimeSpan.FromSeconds(30)));
+    });
     x.UsingRabbitMq((context, cfg) =>
     {
         var options = context.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
@@ -40,6 +46,10 @@ builder.Services.AddMassTransit(x =>
         {
             h.Username(options.UserName);
             h.Password(options.Password);
+        });
+        cfg.ReceiveEndpoint("user-messaging-consumer-image-delete-consumer", x =>
+        {
+            x.ConfigureConsumer<ImageDeleteConsumer>(context);
         });
         cfg.ConfigureEndpoints(context);
     });
@@ -51,6 +61,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5087", "http://localhost:5000", "http://localhost:3000")
               .AllowAnyHeader()
               .AllowAnyMethod();
+              
     });
 });
 
@@ -82,6 +93,7 @@ builder.Services.AddScoped<IUserAdminService, UserAdminService>();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ItokenGeneration,Tokenget>();
 builder.Services.AddAutoMapper(typeof(Mapper));
+builder.Services.AddScoped<ClodinaryService>();
 var app = builder.Build();
 app.UseCors("MyPolicy");
 app.UseAuthentication();

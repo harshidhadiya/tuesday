@@ -41,6 +41,7 @@ namespace USER.Validation
                 .Equal(x => x.Password)
                 .When(x => !string.IsNullOrWhiteSpace(x.Password))
                 .WithMessage("ConfirmPassword must match Password");
+                RuleFor(x=>x.publicId).Must(X=>X==null).WithMessage("Sorry But You are Not Authorize To Set This Okay");
         }
     }
 }

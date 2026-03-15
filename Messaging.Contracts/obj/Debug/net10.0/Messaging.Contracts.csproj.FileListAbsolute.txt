@@ -10,3 +10,15 @@
 /home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/refint/Messaging.Contracts.dll
 /home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/Messaging.Contracts.pdb
 /home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/obj/Debug/net10.0/ref/Messaging.Contracts.dll
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\bin\Debug\net10.0\Messaging.Contracts.deps.json
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\bin\Debug\net10.0\Messaging.Contracts.dll
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\bin\Debug\net10.0\Messaging.Contracts.pdb
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\obj\Debug\net10.0\Messaging.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\obj\Debug\net10.0\Messaging.Contracts.AssemblyInfoInputs.cache
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\obj\Debug\net10.0\Messaging.Contracts.AssemblyInfo.cs
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\obj\Debug\net10.0\Messaging.Contracts.csproj.CoreCompileInputs.cache
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\obj\Debug\net10.0\Messaging.Contracts.sourcelink.json
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\obj\Debug\net10.0\Messaging.Contracts.dll
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\obj\Debug\net10.0\refint\Messaging.Contracts.dll
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\obj\Debug\net10.0\Messaging.Contracts.pdb
+D:\Codes_pracitce\PROJECT\tuesday\Messaging.Contracts\obj\Debug\net10.0\ref\Messaging.Contracts.dll

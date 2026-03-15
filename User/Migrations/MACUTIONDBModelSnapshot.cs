@@ -68,6 +68,9 @@ namespace User.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("SELLER");
 
+                    b.Property<string>("publicPictureId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")

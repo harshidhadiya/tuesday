@@ -9,6 +9,7 @@ namespace USER.Data.Dto
         public String Address { get; set; }
         public String Role { get; set; } = "SELLER";
         public String? ProfilePicture { get; set; }
+        public IFormFile? file{get;set;}
     }
     public class UserLoginDto
     {
@@ -43,5 +44,7 @@ namespace USER.Data.Dto
         public String ?Email { get; set; }
         public String ?Password{get;set;}
         public String ?confirmPassword{get;set;}
+        public IFormFile ?file{get;set;}
+        public String ?publicId{get;set;}
     }
 }
