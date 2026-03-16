@@ -16,86 +16,82 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
   verify:
-     build: ./Verify
-     ports:
+    build: ./Verify
+    ports:
       - "5089:5089"
-     container_name: VerifyService
-     depends_on: 
-      rabbitmq: 
-       condition: service_healthy
-     environment:
-        Microservice__Request_admin_url: "http://admin:5087"
-        Microservice__Product_url: "http://product:5088"
-        Microservice__User_url: "http://user:8080"
-        ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=UserDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
-        RabbitMq__HostName: rabbitmq
-        RabbitMq__ExchangeName: product
-        ASPNETCORE_URLS: http://+:5089
-        ASPNETCORE_ENVIRONMENT: Development
-  product: 
-     build: ./Product
-     ports:
-     - "5088:5088"
-     container_name: ProductService
-     depends_on:
-       rabbitmq:
-        condition: service_healthy
-     environment:
-        Microservice__Request_admin_url: "http://admin:5087"
-        Microservice__Verify_url: "http://verify:5089"
-        Microservice__User_url: "http://user:8080"
-        ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=ProductDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
-        RabbitMq__HostName: rabbitmq
-        ASPNETCORE_URLS: http://+:5088
-        ASPNETCORE_ENVIRONMENT: Development
-  user:
-     build: ./User
-     ports:
-     - "8080:8080"
-     container_name: UserService
-     depends_on:
+    container_name: VerifyService
+    depends_on:
       rabbitmq:
-       condition: service_healthy
-     environment:
-       ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=UserDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
-       RabbitMq__HostName: rabbitmq
-       Microservice__Request_admin_url: "http://admin:5087"
-       ASPNETCORE_URLS: http://+:8080
-       ASPNETCORE_ENVIRONMENT: Development
+        condition: service_healthy
+    environment:
+      Microservice__Request_admin_url: "http://admin:5087"
+      Microservice__Product_url: "http://product:5088"
+      Microservice__User_url: "http://user:8080"
+      ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=UserDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__ExchangeName: product
+      ASPNETCORE_URLS: http://+:5089
+      ASPNETCORE_ENVIRONMENT: Development
+  product:
+    build: ./Product
+    ports:
+      - "5088:5088"
+    container_name: ProductService
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      Microservice__Request_admin_url: "http://admin:5087"
+      Microservice__Verify_url: "http://verify:5089"
+      Microservice__User_url: "http://user:8080"
+      ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=ProductDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
+      RabbitMq__HostName: rabbitmq
+      ASPNETCORE_URLS: http://+:5088
+      ASPNETCORE_ENVIRONMENT: Development
+  user:
+    build: ./User
+    ports:
+      - "8080:8080"
+    container_name: UserService
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=UserDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
+      RabbitMq__HostName: rabbitmq
+      Microservice__Request_admin_url: "http://admin:5087"
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Development
   admin:
     build: ./ADMIN
     ports:
-    - "5087:5087"
+      - "5087:5087"
     container_name: AdminService
     depends_on:
-     rabbitmq:
-      condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
-       ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=AdminDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
-       RabbitMq__HostName: rabbitmq
-       ASPNETCORE_URLS: http://+:5087
-       ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=AdminDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
+      RabbitMq__HostName: rabbitmq
+      ASPNETCORE_URLS: http://+:5087
+      ASPNETCORE_ENVIRONMENT: Development
   apigateway:
     build: ./APIGateway
     ports:
-    - "5000:5000"
+      - "5000:5000"
     container_name: ApiGateway
     depends_on:
-     rabbitmq:
-      condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
-       ReverseProxy__Clusters__userCluster__Destinations__d1__Address: "http://user:8080/"
-       ReverseProxy__Clusters__adminCluster__Destinations__d1__Address: "http://user:8080/"
-       ReverseProxy__Clusters__productCluster__Destinations__d1__Address: "http://product:5088/"
-       ReverseProxy__Clusters__verifyCluster__Destinations__d1__Address: "http://verify:5089/"
-       ReverseProxy__Clusters__requestCluster__Destinations__d1__Address: "http://admin:5087"
-       ReverseProxy__Clusters__adminProductCluster__Destinations__d1__Address: "http://admin:5087/"
-       ASPNETCORE_URLS: http://+:5000
-       ASPNETCORE_ENVIRONMENT: Development
-  
-    
-
-  
+      ReverseProxy__Clusters__userCluster__Destinations__d1__Address: "http://user:8080/"
+      ReverseProxy__Clusters__adminCluster__Destinations__d1__Address: "http://user:8080/"
+      ReverseProxy__Clusters__productCluster__Destinations__d1__Address: "http://product:5088/"
+      ReverseProxy__Clusters__verifyCluster__Destinations__d1__Address: "http://verify:5089/"
+      ReverseProxy__Clusters__requestCluster__Destinations__d1__Address: "http://admin:5087"
+      ReverseProxy__Clusters__adminProductCluster__Destinations__d1__Address: "http://admin:5087/"
+      ASPNETCORE_URLS: http://+:5000
+      ASPNETCORE_ENVIRONMENT: Development
 
 volumes:
- rabbitmq_data:
+  rabbitmq_data:

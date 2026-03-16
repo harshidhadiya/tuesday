@@ -6,7 +6,6 @@ using PRODUCT.Data.Dto.Response;
 using MassTransit;
 using Messaging.Contracts;
 using CloudinaryService;
-
 namespace PRODUCT.Services
 {
     public class ProductService : IproductService
@@ -16,13 +15,13 @@ namespace PRODUCT.Services
         private readonly ClodinaryService clodinary;
         private readonly IPublishEndpoint _publishEndpoint;
         public readonly ILogger<ProductService> logger;
-        public ProductService(Irepository repo, IMapper mapper, IPublishEndpoint publishEndpoint,ClodinaryService clodinary,ILogger<ProductService> logger)
+        public ProductService(Irepository repo, IMapper mapper, IPublishEndpoint publishEndpoint, ClodinaryService clodinary, ILogger<ProductService> logger)
         {
             _publishEndpoint = publishEndpoint;
             this.repository = repo;
             this.mapper = mapper;
-            this.clodinary=clodinary;
-            this.logger=logger;
+            this.clodinary = clodinary;
+            this.logger = logger;
         }
         public async Task<ServiceResult<ProductDto>> createProduct(ProductCreate product)
         {
@@ -32,14 +31,14 @@ namespace PRODUCT.Services
                 return ServiceResult<ProductDto>.Fail("product already exist", 400);
             }
 
-            List<ImageTable> images=null;
-            if (product.images !=null)
+            List<ImageTable> images = null;
+            if (product.images != null)
             {
-                images=await addImages(product.images);
+                images = await addImages(product.images);
             }
 
             var data = mapper.Map<ProductTable>(product);
-            data.images=images ?? new List<ImageTable>();
+            data.images = images ?? new List<ImageTable>();
             var response = await repository.Add(data);
             await _publishEndpoint.Publish(new ProductCreatedForVerification(
                 ProductId: response.Id,
@@ -59,8 +58,8 @@ namespace PRODUCT.Services
                 return ServiceResult<ProductDto>.Forbidden("You are not owner of this Product");
 
             var deleted_product = await repository.deleteProduct(data);
-            if(deleted_product==null)
-            return ServiceResult<ProductDto>.Fail("Product didn't return",500);
+            if (deleted_product == null)
+                return ServiceResult<ProductDto>.Fail("Product didn't return", 500);
             var result = mapper.Map<ProductDto>(deleted_product);
             await _publishEndpoint.Publish(new ProductDeleted(
                 ProductId: productId,
@@ -77,7 +76,7 @@ namespace PRODUCT.Services
 
             if (data.user_id != userid)
                 return ServiceResult<ProductDto>.Forbidden("You are not owner of this Product");
-            
+
 
             if (product.AuctionStartTime != null && product.AuctionEndTime != null && product.AuctionEndTime > product.AuctionStartTime && product.AuctionStartTime > DateTime.Now)
             {
@@ -95,51 +94,185 @@ namespace PRODUCT.Services
             if (product.date != null && product.date >= DateTime.Now)
                 data.Buy_Date = (DateTime)product.date;
 
-           var response=await repository.Update(data);
+            if (product.ids != null && product.images != null && product.ids.Count() > 0 && product.images.Count() > 0)
+            {
+                data.images = await updateImages(product.images, product.ids, data.images);
 
-           return ServiceResult<ProductDto>.Ok(mapper.Map<ProductDto>(response),"product updated successfully");
+            }
+
+            var response = await repository.Update(data);
+
+            return ServiceResult<ProductDto>.Ok(mapper.Map<ProductDto>(response), "product updated successfully");
         }
+
+        public async Task<ServiceResult<ProductDto>> addImage(AddImage query, int userid)
+        {
+            var data = await repository.getByIdProduct(query.id);
+
+            if (data == null)
+                return ServiceResult<ProductDto>.NotFound("Product Not Found");
+
+            if (data.user_id != userid)
+                return ServiceResult<ProductDto>.Forbidden("You are not owner of this Product");
+
+            if (query.images == null || query.images.Count() == 0)
+                return ServiceResult<ProductDto>.Fail("No Images Found to Add", 400);
+
+            var newImages = await addImages(query.images, data.images?.Count ?? 0);
+
+            if (data.images == null)
+                data.images = new List<ImageTable>();
+
+            foreach (var img in newImages)
+                data.images.Add(img);
+
+            var response = await repository.Update(data);
+
+            return ServiceResult<ProductDto>.Ok(
+                mapper.Map<ProductDto>(response),
+                "Images added successfully"
+            );
+        }
+
         public async Task<ServiceResult<List<ProductDto>>> getAllProducts(ProductAll query)
         {
-               var products = await repository.AllProducts(query);
-               if(products == null)
+            var products = await repository.AllProducts(query);
+            if (products == null)
                 return ServiceResult<List<ProductDto>>.NotFound("Product Not Found");
 
-            
 
-            var response=mapper.Map<List<ProductDto>>(products);
-            return ServiceResult<List<ProductDto>>.Ok(response,$"{response.Count()} product's fetched successfully");
+
+            var response = mapper.Map<List<ProductDto>>(products);
+            return ServiceResult<List<ProductDto>>.Ok(response, $"{response.Count()} product's fetched successfully");
 
         }
-        public async Task<List<ImageTable>> addImages(List<IFormFile> files)
+
+        public async Task<ServiceResult<ProductDto>> deleteProductImage(int productId, int imageId, int userId)
         {
-            List<ImageTable> images=new List<ImageTable>();
-            if (files==null || files.Count()==0)
-            {
-                return images;
-            }
+            var product = await repository.getByIdProduct(productId);
+
+            if (product == null)
+                throw new KeyNotFoundException("Product not found");
+
+            if (product.user_id != userId)
+                throw new UnauthorizedAccessException("You are not owner of this product");
+
+            if (product.images == null || product.images.Count == 0)
+                throw new InvalidOperationException("Product has no images");
+
+            var image = product.images.FirstOrDefault(x => x.Id == imageId);
+
+            if (image == null)
+                throw new KeyNotFoundException("Image not found");
+
             try
             {
-                int count=0;
-                foreach (var item in files)
-                {
-                    if(count>=5)break;
-                    logger.LogInformation(item+"");
-                    var data=await clodinary.singleUpload(item);
 
-                    if(data.url != null && data.publicId!= null)
-                    images.Add(new ImageTable{Image_URL=data.url,public_Id=data.publicId});
-                    count++;
-                }
-                return images;
+                product.images.Remove(image);
+
+                var response = await repository.Update(product);
+
+                await _publishEndpoint.Publish(new productDeleteImage(
+                    publicId: image.public_Id
+                ));
+                return ServiceResult<ProductDto>.Ok(
+                    mapper.Map<ProductDto>(response),
+                    "Image deleted successfully");
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                
-                logger.LogError(ex.Message+ " while Storing the Images");
-                logger.LogError("stackTrace : "+ex.StackTrace);
+                logger.LogError(ex, "Error deleting product image");
+                throw;
             }
-            return new List<ImageTable>();
+        }
+
+        // this is the helper used in the another method to update the images of the product and also add new images if needed
+        public async Task<ICollection<ImageTable>> updateImages(
+           List<IFormFile> files,
+           List<int> ids,
+           ICollection<ImageTable> images)
+        {
+            if (files == null || files.Count == 0)
+                throw new ArgumentException("No images provided");
+
+            if (ids == null || ids.Count == 0)
+                throw new ArgumentException("Image ids required");
+
+            if (files.Count != ids.Count)
+                throw new ArgumentException("Images count and ids count must match");
+
+            if (images == null || images.Count == 0)
+                throw new InvalidOperationException("Product has no images");
+
+            for (int i = 0; i < files.Count; i++)
+            {
+                var image = images.FirstOrDefault(x => x.Id == ids[i]);
+
+                if (image == null)
+                    throw new KeyNotFoundException($"Image with id {ids[i]} not found");
+
+                try
+                {
+                    var upload = await clodinary.singleUpload(files[i]);
+
+                    if (upload.url == null || upload.publicId == null)
+                        throw new Exception("Image upload failed");
+
+                    await _publishEndpoint.Publish(new productDeleteImage(
+                        publicId: image.public_Id
+                    ));
+
+                    image.Image_URL = upload.url;
+                    image.public_Id = upload.publicId;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error updating product image");
+                    throw;
+                }
+            }
+
+            return images;
+        }
+        public async Task<List<ImageTable>> addImages(List<IFormFile>? files, int alreadyHas = 0)
+        {
+            if (files == null || files.Count == 0)
+                throw new ArgumentException("No images provided");
+
+            if (alreadyHas >= 5)
+                throw new InvalidOperationException("Product already has maximum allowed images");
+
+            if (files.Count + alreadyHas > 5)
+                throw new InvalidOperationException("Maximum 5 images allowed per product");
+
+            List<ImageTable> images = new();
+
+            foreach (var file in files)
+            {
+                if (file == null || file.Length == 0)
+                    throw new ArgumentException("Invalid image file");
+
+                try
+                {
+                    var result = await clodinary.singleUpload(file);
+
+                    if (result.url == null || result.publicId == null)
+                        throw new Exception("Image upload failed");
+
+                    images.Add(new ImageTable
+                    {
+                        Image_URL = result.url,
+                        public_Id = result.publicId
+                    });
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error while uploading image to Cloudinary");
+                    throw;
+                }
+            }
+
+            return images;
         }
     }
 }

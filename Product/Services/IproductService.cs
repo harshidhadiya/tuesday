@@ -1,9 +1,5 @@
-using System.Security.Cryptography;
-using Microsoft.AspNetCore.Mvc;
-using PRODUCT.Data.Dto;
 using PRODUCT.Data.Dto.Request;
 using PRODUCT.Data.Dto.Response;
-using PRODUCT.Services;
 
 namespace  PRODUCT.Services
 {
@@ -13,6 +9,8 @@ namespace  PRODUCT.Services
         public Task<ServiceResult<ProductDto>> deleteProduct(int productId,int userid);
         public Task<ServiceResult<ProductDto>> updateProduct(ProductUpdate product,int useId);
         public  Task<ServiceResult<List<ProductDto>>> getAllProducts(ProductAll query);
+        public Task<ServiceResult<ProductDto>> addImage(AddImage query,int productId);
+        public  Task<ServiceResult<ProductDto>> deleteProductImage(int productId, int imageId, int userId);
 
     }
 }

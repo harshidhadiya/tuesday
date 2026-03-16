@@ -14,7 +14,7 @@ namespace PRODUCT.Controllers
     {
         IproductService service;
         ILogger<ProductController> logger;
-        public ProductController(IproductService service,ILogger<ProductController> logger)
+        public ProductController(IproductService service, ILogger<ProductController> logger)
         {
             this.service = service;
             this.logger = logger;
@@ -78,7 +78,7 @@ namespace PRODUCT.Controllers
         // all the things you can update here like schedule the auction or another thing you have to update all the things you can do this one api points okay
         [HttpPatch("{productId:int}")]
         [Authorize(Roles = "SELLER,USER")]
-        public async Task<IActionResult> updateproduct(int productId, [FromBody] ProductUpdate product)
+        public async Task<IActionResult> updateproduct(int productId, [FromForm] ProductUpdate product)
         {
             int? id = getId(HttpContext);
             if (id == null)
@@ -109,13 +109,53 @@ namespace PRODUCT.Controllers
             query.id = id;
             var products = await service.getAllProducts(query);
             if (!products.Success)
-                return NotFound(ApiResponse<object>.ErrorResponse(products.Message,products.StatusCode));
+                return NotFound(ApiResponse<object>.ErrorResponse(products.Message, products.StatusCode));
             if (products.Data.Count == 0)
             {
                 return NotFound(ApiResponse<object>.SuccessResponse(null, "0 product found", 404));
             }
             return Ok(ApiResponse<List<ProductDto>>.SuccessResponse(products.Data, products.Message));
 
+        }
+        [HttpPost("images")]
+        [Authorize(Roles = "SELLER,USER")]
+        public async Task<IActionResult> addImages([FromForm] AddImage query)
+        {
+            int? id = getId(HttpContext);
+            if (id == null)
+                return BadRequest(ApiResponse<Object>.ErrorResponse("Your Id is not valid in the token", 400));
+
+            var data = await service.addImage(query, (int)id);
+            if (!data.Success)
+            {
+                switch (data.StatusCode)
+                {
+                    case 404: return NotFound(ApiResponse<object>.ErrorResponse(data.Message, 404));
+                    case 403: return Forbid(data.Message);
+                    default: return BadRequest(ApiResponse<object>.ErrorResponse(data.Message, data.StatusCode));
+                }
+            }
+
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(data.Data!, data.Message, 200));
+        }
+        [HttpDelete("{productId:int}/images/{imageId:int}")]
+        [Authorize(Roles = "SELLER,USER")]
+        public async Task<IActionResult> deleteProductImage(int productId, int imageId)
+        {
+            int? id = getId(HttpContext);
+            if (id == null)
+                return BadRequest(ApiResponse<Object>.ErrorResponse("Your Id is not valid in the token", 400));     
+                var data = await service.deleteProductImage(productId, imageId, (int)id);
+            if (!data.Success)            {
+                switch (data.StatusCode)
+                {
+                    case 404: return NotFound(ApiResponse<object>.ErrorResponse(data.Message, 404));
+                    case 403: return Forbid(data.Message);
+                    default: return BadRequest(ApiResponse<object>.ErrorResponse(data.Message, data.StatusCode));       
+                }
+            }
+
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(data.Data!, data.Message, 200));
         }
 
     }

@@ -7,11 +7,7 @@ using USER.Repository;
 using USER.Data.Dto.Response;
 using MassTransit;
 using Messaging.Contracts;
-using Microsoft.AspNetCore.Mvc;
 using USER.CloudinaryService;
-using MassTransit.Testing;
-using RabbitMQ.Client;
-using MassTransit.RabbitMqTransport.Configuration;
 using USER.Messaging.Consumer;
 
 namespace USER.Services
@@ -45,13 +41,13 @@ namespace USER.Services
             this.sendEndpoint=sendEndpoint;
         }
 
-        public async Task<ServiceResult<UserDetail>> CreateUserAsync(UserCreateDto user)
+        public async Task<ServiceResult<OwnDetail>> CreateUserAsync(UserCreateDto user)
         {
 
             var existingUser = await _repository.GetByEmailAsync(user.Email);
 
             if (existingUser != null)
-                return ServiceResult<UserDetail>.Fail("User already exists with this email");
+                return ServiceResult<OwnDetail>.Fail("User already exists with this email");
             (string? url, string? publicId) = (null, null);
             if (user.file != null)
             {
@@ -72,7 +68,7 @@ namespace USER.Services
 
             var response = await _repository.AddAsync(userData);
             if (response == null)
-                return ServiceResult<UserDetail>.Fail("User Not create successfully");
+                return ServiceResult<OwnDetail>.Fail("User Not create successfully");
 
             if (response.Role == "ADMIN")
             {
@@ -81,16 +77,16 @@ namespace USER.Services
                     Name: userData.Name,
                     Email: userData.Email));
             }
-            var data = _mapper.Map<UserDetail>(response);
-            return ServiceResult<UserDetail>.Ok(data, "User created successfully");
+            var data = _mapper.Map<OwnDetail>(response);
+            return ServiceResult<OwnDetail>.Ok(data, "User created successfully");
 
         }
 
-        public async Task<ServiceResult<UserDetail>> ChangeProfileAsync(int userId, changeProfileDto docs)
+        public async Task<ServiceResult<OwnDetail>> ChangeProfileAsync(int userId, changeProfileDto docs)
         {
             var existOrNot = await _repository.GetByIdAsync(userId);
             if (existOrNot == null)
-                return ServiceResult<UserDetail>.Fail("User Not Exist");
+                return ServiceResult<OwnDetail>.Fail("User Not Exist");
 
 
             if (docs.file != null)
@@ -105,13 +101,13 @@ namespace USER.Services
 
             var currentUser = await _repository.changeFields(docs, userId);
             if (currentUser == null)
-                return ServiceResult<UserDetail>.NotFound("User Is Not Found Here");
+                return ServiceResult<OwnDetail>.NotFound("User Is Not Found Here");
 
 
 
 
-            var response = _mapper.Map<UserDetail>(currentUser);
-            return ServiceResult<UserDetail>.Ok(response, "Profile updated successfully");
+            var response = _mapper.Map<OwnDetail>(currentUser);
+            return ServiceResult<OwnDetail>.Ok(response, "Profile updated successfully");
 
         }
 

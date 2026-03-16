@@ -1,6 +1,6 @@
 namespace USER.Data.Dto.Response
 {
-    public class UserDetail
+    public class userProfileResponce
     {
         public int id { get; set; }
         public String Name { get; set; }
@@ -9,6 +9,6 @@ namespace USER.Data.Dto.Response
         public String Address { get; set; }
         public String imageUrl { get; set; } = "";
         public String Role { get; set; } = "SELLER";
-        public String token { get; set; }
+
     }
 }
