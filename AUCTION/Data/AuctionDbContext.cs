@@ -16,7 +16,7 @@ public class AuctionDbContext : DbContext
         mb.Entity<Auction>(e =>
         {
             e.HasKey(x => x.Id);
-            e.Property(x => x.Id).UseIdentityAlwaysColumn();
+            e.Property(x => x.Id).UseIdentityColumn();
             e.Property(x => x.StartingPrice).HasPrecision(18, 2);
             e.Property(x => x.ReservePrice).HasPrecision(18, 2);
             e.Property(x => x.MinBidIncrement).HasPrecision(18, 2);
@@ -32,7 +32,7 @@ public class AuctionDbContext : DbContext
         mb.Entity<Bid>(e =>
         {
             e.HasKey(x => x.Id);
-            e.Property(x => x.Id).UseIdentityAlwaysColumn();
+            e.Property(x => x.Id).UseIdentityColumn();
             e.Property(x => x.Amount).HasPrecision(18, 2);
             e.Property(x => x.Status).HasConversion<string>();
             e.HasIndex(x => x.AuctionId);
@@ -46,7 +46,7 @@ public class AuctionDbContext : DbContext
         mb.Entity<Watchlist>(e =>
         {
             e.HasKey(x => x.Id);
-            e.Property(x => x.Id).UseIdentityAlwaysColumn();
+            e.Property(x => x.Id).UseIdentityColumn();
             e.HasIndex(x => new { x.UserId, x.AuctionId }).IsUnique();
             e.HasOne(x => x.Auction)
              .WithMany(x => x.Watchlists)

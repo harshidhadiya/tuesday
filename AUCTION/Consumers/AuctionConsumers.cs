@@ -1,15 +1,11 @@
+using AUCTION.Data.Entities;
 using MassTransit;
 using Messaging.Contracts;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AUCTION.Consumers;
 
-/// <summary>
-/// Listens for ProductVerified from your VerifyService.
-/// You can use this to maintain a local cache of verified product IDs,
-/// or simply use it for logging/alerting.
-/// The auction creation endpoint already requires isVerified claim from JWT,
-/// but this consumer gives you a server-side event trail.
-/// </summary>
+
 public class ProductVerifiedConsumer : IConsumer<ProductVerified>
 {
     private readonly ILogger<ProductVerifiedConsumer> _logger;
@@ -36,7 +32,7 @@ public class ProductVerifiedConsumer : IConsumer<ProductVerified>
 /// Listens for ProductUnverified from your VerifyService.
 /// When a product is un-verified, we should close any live auctions for it.
 /// </summary>
-public class ProductUnverifiedConsumer : IConsumer<ProductUnverified>
+public class ProductUnverifiedConsumer : IConsumer<ProductUnverifiedFromService>
 {
     private readonly Data.Repositories.Interfaces.IAuctionRepository _auctionRepo;
     private readonly Services.Interfaces.IAuctionService             _auctionService;
@@ -52,32 +48,19 @@ public class ProductUnverifiedConsumer : IConsumer<ProductUnverified>
         _logger         = logger;
     }
 
-    public async Task Consume(ConsumeContext<ProductUnverified> context)
+    public async Task Consume(ConsumeContext<ProductUnverifiedFromService> context)
     {
         var msg = context.Message;
         _logger.LogWarning(
-            "Product {ProductId} was un-verified by admin {AdminId} — checking for live auctions",
-            msg.ProductId, msg.AdminId);
+            "Product {ProductId} was un-verified  — checking for live auctions",
+            msg.productId);
 
-        // Find any live auctions for this product and force-close them
-        var filter = new Data.Dto.Request.AuctionFilterRequest
-        {
-            Status   = Data.Entities.AuctionStatus.Live,
-            PageSize = 100
-        };
-
-        var (auctions, _) = await _auctionRepo.GetAllAsync(filter);
-        var affected       = auctions.Where(a => a.ProductId == msg.ProductId).ToList();
-
-        foreach (var auction in affected)
-        {
-            _logger.LogWarning(
-                "Force-closing auction {AuctionId} because product {ProductId} was un-verified",
-                auction.Id, msg.ProductId);
-
-            await _auctionService.CloseAuctionAsync(auction.Id);
-        }
+       if(context.Message.productId != 0)
+          await  _auctionService.ProductDeleteHandling(context.Message.productId);
+        return ;
     }
+
+   
 }
 
 /// <summary>
@@ -106,28 +89,9 @@ public class ProductDeletedConsumer : IConsumer<ProductDeleted>
         _logger.LogWarning(
             "Product {ProductId} deleted by user {UserId} — cancelling related auctions",
             msg.ProductId, msg.DeletedByUserId);
-
-        // Close live auctions
-        var liveFilter = new Data.Dto.Request.AuctionFilterRequest
-        {
-            Status = Data.Entities.AuctionStatus.Live, PageSize = 100
-        };
-        var (liveAuctions, _) = await _auctionRepo.GetAllAsync(liveFilter);
-        foreach (var a in liveAuctions.Where(a => a.ProductId == msg.ProductId))
-            await _auctionService.CloseAuctionAsync(a.Id);
-
-        // Cancel upcoming auctions (admin userId = DeletedByUserId bypass)
-        var upcomingFilter = new Data.Dto.Request.AuctionFilterRequest
-        {
-            Status = Data.Entities.AuctionStatus.Upcoming, PageSize = 100
-        };
-        var (upcomingAuctions, _) = await _auctionRepo.GetAllAsync(upcomingFilter);
-        foreach (var a in upcomingAuctions.Where(a => a.ProductId == msg.ProductId))
-        {
-            a.Status    = Data.Entities.AuctionStatus.Cancelled;
-            a.UpdatedAt = DateTime.UtcNow;
-            await _auctionRepo.UpdateAsync(a);
-        }
-        await _auctionRepo.SaveChangesAsync();
+  
+         if(context.Message.ProductId != 0)
+          await  _auctionService.ProductDeleteHandling(context.Message.ProductId);
+        return ;
     }
 }

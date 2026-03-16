@@ -57,6 +57,5 @@ public class Watchlist
     public int      UserId    { get; set; }
     public int      AuctionId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
     public Auction Auction { get; set; } = null!;
 }

@@ -7,7 +7,7 @@ namespace PRODUCT.Messaging.Consumers;
 
 public sealed class ProductUnverifiedConsumer(
     IServiceScopeFactory scopeFactory,
-    ILogger<ProductUnverifiedConsumer> logger)
+    ILogger<ProductUnverifiedConsumer> logger,IPublishEndpoint publish)
     : IConsumer<ProductUnverified>
 {
     public async Task Consume(ConsumeContext<ProductUnverified> context)
@@ -33,7 +33,7 @@ public sealed class ProductUnverifiedConsumer(
         product.isVerified = false;
 
         await db.SaveChangesAsync();
-
+       await  publish.Publish<ProductUnverifiedFromService>(new ProductUnverifiedFromService(productId:product.Id));
         logger.LogInformation("Product {ProductId} marked unverified (admin {AdminId})", context.Message.ProductId, context.Message.AdminId);
     }
 }

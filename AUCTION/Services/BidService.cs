@@ -6,17 +6,18 @@ using AUCTION.Hubs;
 using AUCTION.Services.Interfaces;
 using MassTransit;
 using Messaging.Contracts;
+using Microsoft.AspNetCore.SignalR;
 
 namespace AUCTION.Services;
 
 public class BidService : IBidService
 {
-    private readonly IAuctionRepository   _auctionRepo;
-    private readonly IBidRepository       _bidRepo;
-    private readonly IRedisService        _redis;
-    private readonly IPublishEndpoint     _publish;     // MassTransit
-    private readonly IAuctionHubService   _hub;
-    private readonly ILogger<BidService>  _logger;
+    private readonly IAuctionRepository _auctionRepo;
+    private readonly IBidRepository _bidRepo;
+    private readonly IRedisService _redis;
+    private readonly IPublishEndpoint _publish;     
+    private readonly IAuctionHubService _hub;
+    private readonly ILogger<BidService> _logger;
 
     public BidService(
         IAuctionRepository auctionRepo,
@@ -106,6 +107,8 @@ public class BidService : IBidService
                 PlacedAt = newBid.PlacedAt
             });
 
+            
+
             // 9. Auto-extend: if bid placed in last 2 minutes, extend by 2 more minutes
             if (auction.EndDate - DateTime.UtcNow <= TimeSpan.FromMinutes(2))
             {
@@ -113,6 +116,8 @@ public class BidService : IBidService
                 auction.UpdatedAt = DateTime.UtcNow;
                 await _auctionRepo.UpdateAsync(auction);
                 await _auctionRepo.SaveChangesAsync();
+                await _hub.BroadcastTimerTick(auction.Id,(auction.EndDate - DateTime.UtcNow).TotalSeconds);
+                await _hub.AuctionMessage(auction.Id,"Bid Placed Last 2 minituse auction is Extende by 2 minitues More");
                 _logger.LogInformation("Auction {AuctionId} auto-extended by 2 minutes", auctionId);
             }
 

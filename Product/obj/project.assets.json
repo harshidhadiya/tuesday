@@ -4138,36 +4138,35 @@
     ]
   },
   "packageFolders": {
-    "/home/harshid/.nuget/packages/": {}
+    "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/harshid/Project_Practice/_net/Microservice_2/Product/Product.csproj",
+      "projectUniqueName": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\Product.csproj",
       "projectName": "Product",
-      "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/Product/Product.csproj",
-      "packagesPath": "/home/harshid/.nuget/packages/",
-      "outputPath": "/home/harshid/Project_Practice/_net/Microservice_2/Product/obj/",
+      "projectPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\Product.csproj",
+      "packagesPath": "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\",
+      "outputPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Product\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/harshid/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\Harshid Hadiya\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
       ],
       "sources": {
-        "/usr/lib/dotnet/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "/home/harshid/Project_Practice/_net/Microservice_2/CloudinaryService/CloudinaryService.csproj": {
-              "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/CloudinaryService/CloudinaryService.csproj"
+            "D:\\Codes_pracitce\\PROJECT\\tuesday\\CloudinaryService\\CloudinaryService.csproj": {
+              "projectPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\CloudinaryService\\CloudinaryService.csproj"
             },
-            "/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/Messaging.Contracts.csproj": {
-              "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/Messaging.Contracts/Messaging.Contracts.csproj"
+            "D:\\Codes_pracitce\\PROJECT\\tuesday\\Messaging.Contracts\\Messaging.Contracts.csproj": {
+              "projectPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Messaging.Contracts\\Messaging.Contracts.csproj"
             }
           }
         }
@@ -4286,7 +4285,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

@@ -1,3 +1,4 @@
+using AUCTION.Data.Entities;
 using AUCTION.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -12,18 +13,18 @@ public class AuctionHub : Hub
 
     public AuctionHub(IRedisService redis, ILogger<AuctionHub> logger)
     {
-        _redis  = redis;
+        _redis = redis;
         _logger = logger;
     }
 
     // Client calls this when they open an auction page
     public async Task JoinAuction(string auctionId)
     {
+
         if (!int.TryParse(auctionId, out var id)) return;
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"auction_{auctionId}");
         await _redis.IncrementViewerCountAsync(id);
-
         var count = await _redis.GetViewerCountAsync(id);
         await Clients.Group($"auction_{auctionId}").SendAsync("ViewerCountUpdated", count);
 
@@ -58,6 +59,7 @@ public interface IAuctionHubService
     Task BroadcastAuctionClosed(int auctionId, object data);
     Task BroadcastEndingSoon(int auctionId, int minutesRemaining);
     Task BroadcastTimerTick(int auctionId, double secondsRemaining);
+    Task AuctionMessage(int auctionId,string message);
 }
 
 public class AuctionHubService : IAuctionHubService
@@ -79,7 +81,9 @@ public class AuctionHubService : IAuctionHubService
 
     public Task BroadcastEndingSoon(int auctionId, int minutesRemaining)
         => Room(auctionId).SendAsync("AuctionEndingSoon", new { auctionId, minutesRemaining });
-
+    public Task AuctionMessage(int auctionId,string message)
+    => Room(auctionId).SendAsync("AuctionMessage", new { message });
+    
     public Task BroadcastTimerTick(int auctionId, double secondsRemaining)
         => Room(auctionId).SendAsync("TimerTick", new { auctionId, secondsRemaining });
 }

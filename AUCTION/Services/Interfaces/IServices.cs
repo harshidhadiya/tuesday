@@ -16,6 +16,7 @@ public interface IAuctionService
     // Internal — called by the scheduler background job only
     Task<ServiceResult<bool>>           StartAuctionAsync(int auctionId);
     Task<ServiceResult<WinnerResponse>> CloseAuctionAsync(int auctionId);
+    Task ProductDeleteHandling(int ProductId);
 }
 
 public interface IBidService

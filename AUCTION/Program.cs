@@ -6,6 +6,8 @@ using AUCTION.Data.Repositories.Interfaces;
 using AUCTION.Hubs;
 using AUCTION.Services;
 using AUCTION.Services.Interfaces;
+using AUCTION.Validation;
+using FluentValidation;
 using MassTransit;
 using Messaging.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,7 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ── Database (PostgreSQL) ─────────────────────────────────────────────────────
 builder.Services.AddDbContext<AuctionDbContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ── Redis ─────────────────────────────────────────────────────────────────────
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
@@ -40,8 +42,11 @@ builder.Services.AddScoped<IWatchlistService, WatchlistService>();
 // ── SignalR ───────────────────────────────────────────────────────────────────
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IAuctionHubService, AuctionHubService>();
+builder.Services.AddValidatorsFromAssemblyContaining<AuctionFilterRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateAuctionRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateAuctionRequestValidator>();
 
-// ── MassTransit + RabbitMQ ────────────────────────────────────────────────────
+
 builder.Services.AddMassTransit(x =>
 {
     // ── Consumers (messages we receive from other services) ───────────────────
@@ -93,7 +98,7 @@ builder.Services.AddMassTransit(x =>
 
 // ── Scheduler Background Job ──────────────────────────────────────────────────
 builder.Services.AddHostedService<AuctionSchedulerJob>();
-
+builder.Services.AddHttpClient("api_gateway",opt=>opt.BaseAddress=new Uri(builder.Configuration["Microservice:api_gate_way"] ?? ""));
 // ── JWT Authentication ────────────────────────────────────────────────────────
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key is not configured");
@@ -103,8 +108,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer           = true,
-            ValidateAudience         = true,
+            ValidateIssuer           = false,
+            ValidateAudience         = false,
             ValidateLifetime         = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer              = builder.Configuration["Jwt:Issuer"],

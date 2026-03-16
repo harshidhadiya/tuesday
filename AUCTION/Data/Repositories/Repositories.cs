@@ -62,6 +62,11 @@ public class AuctionRepository : IAuctionRepository
     public async Task AddAsync(Auction auction)   => await _ctx.Auctions.AddAsync(auction);
     public Task UpdateAsync(Auction auction)      { _ctx.Auctions.Update(auction); return Task.CompletedTask; }
     public Task SaveChangesAsync()                => _ctx.SaveChangesAsync();
+
+    public async Task<Auction?> GetbyProductId(int productId)
+    {
+        return await _ctx.Auctions.Where(x=>x.ProductId==productId).FirstOrDefaultAsync();
+    }
 }
 
 public class BidRepository : IBidRepository
@@ -109,6 +114,7 @@ public class BidRepository : IBidRepository
         _ctx.Bids.UpdateRange(bids);
         return Task.CompletedTask;
     }
+    
 
     public Task SaveChangesAsync() => _ctx.SaveChangesAsync();
 }

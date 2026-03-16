@@ -37,6 +37,9 @@ public sealed record productDeleteImage(
 
 // ── New auction contracts ─────────────────────────────────────────────────────
 
+
+public sealed record ProductUnverifiedFromService(int productId);
+
 /// <summary>Published by AuctionService when a new auction is created.</summary>
 public sealed record AuctionCreated(
     int AuctionId,

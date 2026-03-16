@@ -6,14 +6,14 @@ namespace AUCTION.Services;
 
 public interface IRedisService
 {
-    Task                          SetHighestBidAsync(int auctionId, HighestBidCacheDto bid);
-    Task<HighestBidCacheDto?>     GetHighestBidAsync(int auctionId);
-    Task<bool>                    SetBidLockAsync(int auctionId, int userId, TimeSpan expiry);
-    Task                          ReleaseBidLockAsync(int auctionId, int userId);
-    Task                          IncrementViewerCountAsync(int auctionId);
-    Task                          DecrementViewerCountAsync(int auctionId);
-    Task<long>                    GetViewerCountAsync(int auctionId);
-    Task                          DeleteAuctionCacheAsync(int auctionId);
+    Task SetHighestBidAsync(int auctionId, HighestBidCacheDto bid);
+    Task<HighestBidCacheDto?> GetHighestBidAsync(int auctionId);
+    Task<bool> SetBidLockAsync(int auctionId, int userId, TimeSpan expiry);
+    Task ReleaseBidLockAsync(int auctionId, int userId);
+    Task IncrementViewerCountAsync(int auctionId);
+    Task DecrementViewerCountAsync(int auctionId);
+    Task<long> GetViewerCountAsync(int auctionId);
+    Task DeleteAuctionCacheAsync(int auctionId);
 }
 
 public class RedisService : IRedisService
@@ -32,7 +32,7 @@ public class RedisService : IRedisService
     public async Task<HighestBidCacheDto?> GetHighestBidAsync(int auctionId)
     {
         var val = await _db.StringGetAsync($"auction:{auctionId}:highest_bid");
-        return val.IsNullOrEmpty ? null : JsonSerializer.Deserialize<HighestBidCacheDto>(val!);
+        return val.IsNullOrEmpty ? null : JsonSerializer.Deserialize<HighestBidCacheDto>(val.ToString());
     }
 
     // Returns true if lock was acquired (no concurrent bid in flight)

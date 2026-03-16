@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AUCTION.Data.Dto;
 using AUCTION.Data.Dto.Request;
 using AUCTION.Data.Dto.Response;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AUCTION.Controllers;
 
-// ── Auction Controller ────────────────────────────────────────────────────────
+//  Auction Controller 
 
 [ApiController]
 [Route("api/auctions")]
@@ -16,9 +17,13 @@ namespace AUCTION.Controllers;
 public class AuctionController : ControllerBase
 {
     private readonly IAuctionService _auctionService;
+    private readonly IHttpClientFactory factory;
 
-    public AuctionController(IAuctionService auctionService)
-        => _auctionService = auctionService;
+    public AuctionController(IAuctionService auctionService, IHttpClientFactory factory)
+    {
+        _auctionService = auctionService;
+        this.factory = factory;
+    }
 
     /// GET /api/auctions?Status=Live&Page=1&PageSize=20
     [HttpGet]
@@ -65,10 +70,40 @@ public class AuctionController : ControllerBase
             return StatusCode(403, ApiResponse<object>.ErrorResponse(
                 "Only verified users can create auctions", 403));
 
-        var userId   = ClaimsHelper.GetUserId(User);
-        var verifyId = ClaimsHelper.GetVerifyId(User);
+        var client = factory.CreateClient("api_gateway");
 
-        var result = await _auctionService.CreateAuctionAsync(request, userId, verifyId);
+        var responseData = await client.GetAsync($"/api/verify/status/{request.ProductId}");
+
+        if (!responseData.IsSuccessStatusCode)
+        {
+            var errors = await responseData.Content
+                .ReadFromJsonAsync<ApiResponse<VerifyStatusResponse>>();
+
+            return NotFound(ApiResponse<AuctionDetailResponse>.ErrorResponse(
+                errors?.Message ?? "Sorry, we could not verify your product from admin",
+                errors?.StatusCode ?? 404,
+                errors?.Errors ?? new List<string>()
+            ));
+        }
+
+        var verifyData = await responseData.Content
+            .ReadFromJsonAsync<ApiResponse<VerifyStatusResponse>>();
+
+        if (verifyData?.Data == null)
+        {
+            return BadRequest(ApiResponse<AuctionResponse>.ErrorResponse(
+                "Verification response invalid", 400));
+        }
+
+        var userId = ClaimsHelper.GetUserId(User);
+
+        var verifyId = verifyData.Data.VerifierId;
+        if (verifyId == null)
+        {
+            return NotFound(ApiResponse<AuctionResponse>.ErrorResponse("sorry but we couldn't get verifier id okay"));
+        }
+        var result = await _auctionService.CreateAuctionAsync(request, userId, verifyId.Value);
+
         return StatusCode(result.StatusCode, result.Success
             ? ApiResponse<AuctionResponse>.SuccessResponse(result.Data!, result.Message, 201)
             : ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode));
@@ -167,7 +202,7 @@ public class WatchlistController : ControllerBase
     }
 }
 
-// ── Admin Controller ──────────────────────────────────────────────────────────
+//  Admin Controller 
 
 [ApiController]
 [Route("api/admin/auctions")]
@@ -200,7 +235,7 @@ public class AdminAuctionController : ControllerBase
     }
 }
 
-// ── Internal Controller — NOT exposed through API Gateway ────────────────────
+//  Internal Controller — NOT exposed through API Gateway 
 // Only the scheduler background job calls these endpoints.
 // Protected by a secret header key (X-Internal-Key).
 
@@ -209,12 +244,12 @@ public class AdminAuctionController : ControllerBase
 public class InternalAuctionController : ControllerBase
 {
     private readonly IAuctionService _auctionService;
-    private readonly IConfiguration  _config;
+    private readonly IConfiguration _config;
 
     public InternalAuctionController(IAuctionService auctionService, IConfiguration config)
     {
         _auctionService = auctionService;
-        _config         = config;
+        _config = config;
     }
 
     private IActionResult Forbidden403() =>

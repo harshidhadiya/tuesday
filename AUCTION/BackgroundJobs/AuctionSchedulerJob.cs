@@ -74,7 +74,8 @@ public class AuctionSchedulerJob : BackgroundService
                 auction.Id, auction.EndDate, minutesLeft));
 
             await hub.BroadcastEndingSoon(auction.Id, minutesLeft);
-
+            // here i added for testing you have to remove this also for 
+            await hub.BroadcastTimerTick(auction.Id,(auction.EndDate-DateTime.Now).TotalSeconds);
             _logger.LogInformation(
                 "Auction {AuctionId} ending in {Minutes} minutes", auction.Id, minutesLeft);
         }
@@ -90,7 +91,7 @@ public class AuctionSchedulerJob : BackgroundService
         foreach (var auction in liveAuctions)
         {
             var remaining = auction.EndDate - DateTime.UtcNow;
-            if (remaining > TimeSpan.Zero)
+            if (remaining > TimeSpan.Zero )
                 await hub.BroadcastTimerTick(auction.Id, remaining.TotalSeconds);
         }
     }
