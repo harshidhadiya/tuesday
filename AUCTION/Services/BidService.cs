@@ -110,10 +110,11 @@ public class BidService : IBidService
             
 
             // 9. Auto-extend: if bid placed in last 2 minutes, extend by 2 more minutes
-            if (auction.EndDate - DateTime.UtcNow <= TimeSpan.FromMinutes(2))
+            if (auction.EndDate - DateTime.UtcNow <= TimeSpan.FromMinutes(2) && auction.Extension <= auction.maxExtension)
             {
                 auction.EndDate   = auction.EndDate.AddMinutes(2);
                 auction.UpdatedAt = DateTime.UtcNow;
+                auction.Extension++;
                 await _auctionRepo.UpdateAsync(auction);
                 await _auctionRepo.SaveChangesAsync();
                 await _hub.BroadcastTimerTick(auction.Id,(auction.EndDate - DateTime.UtcNow).TotalSeconds);

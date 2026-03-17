@@ -16,6 +16,7 @@ public interface IAuctionRepository
     Task UpdateAsync(Auction auction);
     Task<Auction?> GetbyProductId(int productId);
     Task SaveChangesAsync();
+    Task<Auction> removeAuction(Auction auction);
 }
 
 public interface IBidRepository

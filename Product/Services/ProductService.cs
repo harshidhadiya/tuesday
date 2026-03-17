@@ -173,7 +173,7 @@ namespace PRODUCT.Services
                 var response = await repository.Update(product);
 
                 await _publishEndpoint.Publish(new productDeleteImage(
-                    publicId: image.public_Id
+                    PublicId: image.public_Id
                 ));
                 return ServiceResult<ProductDto>.Ok(
                     mapper.Map<ProductDto>(response),
@@ -219,7 +219,7 @@ namespace PRODUCT.Services
                         throw new Exception("Image upload failed");
 
                     await _publishEndpoint.Publish(new productDeleteImage(
-                        publicId: image.public_Id
+                        PublicId : image.public_Id
                     ));
 
                     image.Image_URL = upload.url;

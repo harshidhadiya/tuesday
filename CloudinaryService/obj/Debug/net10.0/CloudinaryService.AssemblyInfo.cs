@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CloudinaryService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8410568ae3a9bc0aa780fd77f68c79df4775bf5b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6b2fc0e3d7706a4d42f27d189e03ec775de3fff3")]
 [assembly: System.Reflection.AssemblyProductAttribute("CloudinaryService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CloudinaryService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

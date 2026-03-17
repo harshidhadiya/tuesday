@@ -22,18 +22,13 @@ public sealed class ProductUnverifiedConsumer(
         var db = scope.ServiceProvider.GetRequiredService<MACUTIONDB>();
 
         var product = await db.PRODUCTS.FirstOrDefaultAsync(p => p.Id == context.Message.ProductId);
-        if (product == null)
-        {
-            logger.LogInformation("Product {ProductId} not found to unverify", context.Message.ProductId);
-            return;
-        }
-
+        
         product.AuctionStartTime = null;
         product.AuctionEndTime = null;
         product.isVerified = false;
 
         await db.SaveChangesAsync();
-       await  publish.Publish<ProductUnverifiedFromService>(new ProductUnverifiedFromService(productId:product.Id));
+        await  publish.Publish<ProductUnverifiedFromService>(new ProductUnverifiedFromService(ProductId:product.Id));
         logger.LogInformation("Product {ProductId} marked unverified (admin {AdminId})", context.Message.ProductId, context.Message.AdminId);
     }
 }

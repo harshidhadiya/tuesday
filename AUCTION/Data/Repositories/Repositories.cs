@@ -12,7 +12,7 @@ public class AuctionRepository : IAuctionRepository
 
     public Task<Auction?> GetByIdAsync(int id)
         => _ctx.Auctions.FirstOrDefaultAsync(x => x.Id == id);
-
+    
     public Task<Auction?> GetByIdWithBidsAsync(int id)
         => _ctx.Auctions
                .Include(x => x.Bids.OrderByDescending(b => b.Amount).Take(10))
@@ -35,6 +35,14 @@ public class AuctionRepository : IAuctionRepository
 
         return (items, total);
     }
+    
+    // BUG FIX: Was marked async but had no await — this causes a compiler warning
+    // and creates a needless state machine. It's purely synchronous.
+    public Task<Auction> removeAuction(Auction auction)
+    {
+        var entity = _ctx.Auctions.Remove(auction).Entity;
+        return Task.FromResult(entity);
+    }
 
     public Task<List<Auction>> GetByUserIdAsync(int userId)
         => _ctx.Auctions.Where(x => x.CreatedByUserId == userId).ToListAsync();
@@ -50,7 +58,7 @@ public class AuctionRepository : IAuctionRepository
                .ToListAsync();
 
     public Task<List<Auction>> GetLiveAuctionsEndingSoonAsync(int withinMinutes)
-    {
+    { 
         var threshold = DateTime.UtcNow.AddMinutes(withinMinutes);
         return _ctx.Auctions
                    .Where(x => x.Status == AuctionStatus.Live

@@ -48,7 +48,6 @@ public class AuctionSchedulerJob : BackgroundService
         var publish              = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
         var hub                  = scope.ServiceProvider.GetRequiredService<IAuctionHubService>();
 
-        // ── 1. Start upcoming auctions ────────────────────────────────────────
         var toStart = await auctionRepo.GetUpcomingAuctionsDueToStartAsync();
         foreach (var auction in toStart)
         {
@@ -56,7 +55,6 @@ public class AuctionSchedulerJob : BackgroundService
             await auctionService.StartAuctionAsync(auction.Id);
         }
 
-        // ── 2. Close expired live auctions ────────────────────────────────────
         var toClose = await auctionRepo.GetLiveAuctionsDueToCloseAsync();
         foreach (var auction in toClose)
         {
@@ -64,7 +62,6 @@ public class AuctionSchedulerJob : BackgroundService
             await auctionService.CloseAuctionAsync(auction.Id);
         }
 
-        // ── 3. Ending soon alerts (within 5 minutes) ─────────────────────────
         var endingSoon = await auctionRepo.GetLiveAuctionsEndingSoonAsync(5);
         foreach (var auction in endingSoon)
         {
@@ -74,13 +71,13 @@ public class AuctionSchedulerJob : BackgroundService
                 auction.Id, auction.EndDate, minutesLeft));
 
             await hub.BroadcastEndingSoon(auction.Id, minutesLeft);
-            // here i added for testing you have to remove this also for 
-            await hub.BroadcastTimerTick(auction.Id,(auction.EndDate-DateTime.Now).TotalSeconds);
+            // BUG FIX: Was using DateTime.Now (local time). Use DateTime.UtcNow to match
+            // all other time comparisons in the codebase.
+            await hub.BroadcastTimerTick(auction.Id, (auction.EndDate - DateTime.UtcNow).TotalSeconds);
             _logger.LogInformation(
                 "Auction {AuctionId} ending in {Minutes} minutes", auction.Id, minutesLeft);
         }
 
-        // ── 4. Timer tick for all live auctions ───────────────────────────────
         var (liveAuctions, _) = await auctionRepo.GetAllAsync(
             new Data.Dto.Request.AuctionFilterRequest
             {

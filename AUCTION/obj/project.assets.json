@@ -1384,6 +1384,16 @@
             "related": ".xml"
           }
         }
+      },
+      "Messaging.Contracts/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/Messaging.Contracts.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Messaging.Contracts.dll": {}
+        }
       }
     }
   },
@@ -4112,6 +4122,11 @@
         "xunit.extensibility.execution.2.9.3.nupkg.sha512",
         "xunit.extensibility.execution.nuspec"
       ]
+    },
+    "Messaging.Contracts/1.0.0": {
+      "type": "project",
+      "path": "../Messaging.Contracts/Messaging.Contracts.csproj",
+      "msbuildProject": "../Messaging.Contracts/Messaging.Contracts.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -4121,6 +4136,7 @@
       "FluentValidation.AspNetCore >= 11.3.1",
       "MassTransit >= 8.2.3",
       "MassTransit.RabbitMQ >= 8.2.3",
+      "Messaging.Contracts >= 1.0.0",
       "Microsoft.AspNetCore.Authentication.JwtBearer >= 8.0.0",
       "Microsoft.AspNetCore.SignalR >= 1.1.0",
       "Microsoft.EntityFrameworkCore >= 10.0.3",
@@ -4156,7 +4172,11 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "D:\\Codes_pracitce\\PROJECT\\tuesday\\Messaging.Contracts\\Messaging.Contracts.csproj": {
+              "projectPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\Messaging.Contracts\\Messaging.Contracts.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

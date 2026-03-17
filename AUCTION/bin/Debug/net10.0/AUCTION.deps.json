@@ -13,6 +13,7 @@
           "FluentValidation.AspNetCore": "11.3.1",
           "MassTransit": "8.2.3",
           "MassTransit.RabbitMQ": "8.2.3",
+          "Messaging.Contracts": "1.0.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.0",
           "Microsoft.EntityFrameworkCore": "10.0.3",
           "Microsoft.EntityFrameworkCore.Design": "10.0.3",
@@ -958,6 +959,14 @@
             "fileVersion": "2.9.3.0"
           }
         }
+      },
+      "Messaging.Contracts/1.0.0": {
+        "runtime": {
+          "Messaging.Contracts.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
       }
     }
   },
@@ -1421,6 +1430,11 @@
       "sha512": "sha512-yMb6vMESlSrE3Wfj7V6cjQ3S4TXdXpRqYeNEI3zsX31uTsGMJjEw6oD5F5u1cHnMptjhEECnmZSsPxB6ChZHDQ==",
       "path": "xunit.extensibility.execution/2.9.3",
       "hashPath": "xunit.extensibility.execution.2.9.3.nupkg.sha512"
+    },
+    "Messaging.Contracts/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }

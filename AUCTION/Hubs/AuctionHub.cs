@@ -22,7 +22,6 @@ public class AuctionHub : Hub
     {
 
         if (!int.TryParse(auctionId, out var id)) return;
-
         await Groups.AddToGroupAsync(Context.ConnectionId, $"auction_{auctionId}");
         await _redis.IncrementViewerCountAsync(id);
         var count = await _redis.GetViewerCountAsync(id);
@@ -59,7 +58,9 @@ public interface IAuctionHubService
     Task BroadcastAuctionClosed(int auctionId, object data);
     Task BroadcastEndingSoon(int auctionId, int minutesRemaining);
     Task BroadcastTimerTick(int auctionId, double secondsRemaining);
-    Task AuctionMessage(int auctionId,string message);
+    Task AuctionMessage(int auctionId, string message);
+    Task BroadcastProductDeleted(int auctionId);
+    Task BroadcastProductUnverified(int auctionId);
 }
 
 public class AuctionHubService : IAuctionHubService
@@ -84,6 +85,14 @@ public class AuctionHubService : IAuctionHubService
     public Task AuctionMessage(int auctionId,string message)
     => Room(auctionId).SendAsync("AuctionMessage", new { message });
     
+    
+
     public Task BroadcastTimerTick(int auctionId, double secondsRemaining)
         => Room(auctionId).SendAsync("TimerTick", new { auctionId, secondsRemaining });
+
+    public Task BroadcastProductDeleted(int auctionId)
+        => Room(auctionId).SendAsync("AuctionAborted", new { auctionId, reason = "Product deleted by owner" });
+
+    public Task BroadcastProductUnverified(int auctionId)
+        => Room(auctionId).SendAsync("AuctionUnverified", new { auctionId, reason = "Product un-verified during live auction" });
 }

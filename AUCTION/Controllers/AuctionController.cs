@@ -154,9 +154,7 @@ public class AuctionController : ControllerBase
     }
 }
 
-// ── Bid Controller ────────────────────────────────────────────────────────────
 
-// ── Watchlist Controller ──────────────────────────────────────────────────────
 
 [ApiController]
 [Route("api/auctions")]
@@ -168,7 +166,6 @@ public class WatchlistController : ControllerBase
     public WatchlistController(IWatchlistService watchlistService)
         => _watchlistService = watchlistService;
 
-    /// POST /api/auctions/{id}/watch
     [HttpPost("{auctionId:int}/watch")]
     public async Task<IActionResult> Watch(int auctionId)
     {
@@ -179,7 +176,6 @@ public class WatchlistController : ControllerBase
             : ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode));
     }
 
-    /// DELETE /api/auctions/{id}/watch
     [HttpDelete("{auctionId:int}/watch")]
     public async Task<IActionResult> Unwatch(int auctionId)
     {
@@ -190,7 +186,6 @@ public class WatchlistController : ControllerBase
             : ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode));
     }
 
-    /// GET /api/auctions/watched
     [HttpGet("watched")]
     public async Task<IActionResult> GetWatched()
     {
@@ -206,7 +201,7 @@ public class WatchlistController : ControllerBase
 
 [ApiController]
 [Route("api/admin/auctions")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "ADMIN")]
 public class AdminAuctionController : ControllerBase
 {
     private readonly IAuctionService _auctionService;
@@ -214,7 +209,6 @@ public class AdminAuctionController : ControllerBase
     public AdminAuctionController(IAuctionService auctionService)
         => _auctionService = auctionService;
 
-    /// GET /api/admin/auctions  — all auctions with full metadata
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] AuctionFilterRequest filter)
     {
@@ -224,7 +218,6 @@ public class AdminAuctionController : ControllerBase
             : ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode));
     }
 
-    /// PATCH /api/admin/auctions/{id}/force-close
     [HttpPatch("{auctionId:int}/force-close")]
     public async Task<IActionResult> ForceClose(int auctionId)
     {

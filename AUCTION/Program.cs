@@ -3,6 +3,7 @@ using AUCTION.Consumers;
 using AUCTION.Data;
 using AUCTION.Data.Repositories;
 using AUCTION.Data.Repositories.Interfaces;
+using AUCTION.ExceptionHandler;
 using AUCTION.Hubs;
 using AUCTION.Services;
 using AUCTION.Services.Interfaces;
@@ -11,6 +12,7 @@ using FluentValidation;
 using MassTransit;
 using Messaging.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -42,8 +44,8 @@ builder.Services.AddScoped<IWatchlistService, WatchlistService>();
 // ── SignalR ───────────────────────────────────────────────────────────────────
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IAuctionHubService, AuctionHubService>();
-builder.Services.AddValidatorsFromAssemblyContaining<AuctionFilterRequestValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<UpdateAuctionRequestValidator>();
+// BUG FIX: All three AddValidatorsFromAssemblyContaining calls scan the SAME assembly
+// (AUCTION project), so validators were being registered 3x. One call is sufficient.
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAuctionRequestValidator>();
 
 
@@ -52,7 +54,7 @@ builder.Services.AddMassTransit(x =>
     // ── Consumers (messages we receive from other services) ───────────────────
     x.AddConsumer<ProductVerifiedConsumer>();
     x.AddConsumer<ProductUnverifiedConsumer>();
-    x.AddConsumer<ProductDeletedConsumer>();
+    x.AddConsumer<ProductDeleteConsumer>();
 
     x.UsingRabbitMq((ctx, cfg) =>
     {
@@ -71,27 +73,8 @@ builder.Services.AddMassTransit(x =>
             TimeSpan.FromSeconds(15),
             TimeSpan.FromSeconds(30)));
 
-        // ── Receive endpoints (queues we consume from) ────────────────────────
+        
 
-        // Listens for ProductVerified published by VerifyService
-        cfg.ReceiveEndpoint("auction-product-verified", e =>
-        {
-            e.ConfigureConsumer<ProductVerifiedConsumer>(ctx);
-        });
-
-        // Listens for ProductUnverified published by VerifyService
-        cfg.ReceiveEndpoint("auction-product-unverified", e =>
-        {
-            e.ConfigureConsumer<ProductUnverifiedConsumer>(ctx);
-        });
-
-        // Listens for ProductDeleted published by ProductService
-        cfg.ReceiveEndpoint("auction-product-deleted", e =>
-        {
-            e.ConfigureConsumer<ProductDeletedConsumer>(ctx);
-        });
-
-        // Automatically configure all other topology from registered consumers
         cfg.ConfigureEndpoints(ctx);
     });
 });
@@ -106,14 +89,13 @@ var jwtKey = builder.Configuration["Jwt:Key"]
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+      
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer           = false,
             ValidateAudience         = false,
             ValidateLifetime         = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer              = builder.Configuration["Jwt:Issuer"],
-            ValidAudience            = builder.Configuration["Jwt:Audience"],
+            ValidateIssuerSigningKey = false,
             IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
 
@@ -132,17 +114,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-
-// ── CORS (required for SignalR + browser clients) ─────────────────────────────
+builder.Services.AddExceptionHandler<GlobalHandler>();
+// ── CORS (required for SignalR + browser clients — allows ANY frontend origin) ─
 builder.Services.AddCors(opt =>
     opt.AddPolicy("AllowFrontend", policy =>
         policy
-            .WithOrigins(
-                builder.Configuration.GetSection("Cors:AllowedOrigins")
-                       .Get<string[]>() ?? new[] { "http://localhost:3000" })
+            .SetIsOriginAllowed(_ => true)   // allow any origin (dev + prod frontends)
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials()));
+            .AllowCredentials()));             // required for SignalR WebSocket auth
 
 // ── Swagger ───────────────────────────────────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();
@@ -171,7 +151,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
+builder.Services.AddProblemDetails();
 builder.Services.AddControllers();
 
 var app = builder.Build();
@@ -191,6 +171,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
+app.UseStatusCodePages();
+app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
@@ -198,7 +180,7 @@ app.MapControllers();
 // ── SignalR hub ───────────────────────────────────────────────────────────────
 app.MapHub<AuctionHub>("/hubs/auction");
 
-app.Run();
+app.Run("http://localhost:5001");
 
 // Needed for WebApplicationFactory in integration tests
 public partial class Program { }

@@ -37,7 +37,7 @@
     <PackageReference Include="xunit" Version="2.9.3" />
 
     <!-- Shared contracts (reference your Messaging.Contracts project) -->
-    <!-- <ProjectReference Include="..\Messaging.Contracts\Messaging.Contracts.csproj" /> -->
+    <ProjectReference Include="..\Messaging.Contracts\Messaging.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

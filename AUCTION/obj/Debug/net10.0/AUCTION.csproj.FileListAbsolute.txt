@@ -173,3 +173,5 @@ D:\Codes_pracitce\PROJECT\tuesday\AUCTION\obj\Debug\net10.0\refint\AUCTION.dll
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\obj\Debug\net10.0\AUCTION.pdb
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\obj\Debug\net10.0\AUCTION.genruntimeconfig.cache
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\obj\Debug\net10.0\ref\AUCTION.dll
+D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\Messaging.Contracts.dll
+D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\Messaging.Contracts.pdb

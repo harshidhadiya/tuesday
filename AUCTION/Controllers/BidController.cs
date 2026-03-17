@@ -10,7 +10,9 @@ namespace AUCTION.Controllers;
 
 
 [ApiController]
-[Route("api/[controller]/{auctionId:int}/bids")]
+// BUG FIX: [controller] resolves to "bid", making the route "api/bid/{auctionId}/bids".
+// The correct route is "api/auctions/{auctionId}/bids" consistent with all other auction routes.
+[Route("api/auctions/{auctionId:int}/bids")]
 [Authorize]
 public class BidController : ControllerBase
 {
@@ -54,7 +56,6 @@ public class BidController : ControllerBase
             : ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode));
     }
 
-    /// GET /api/auctions/{id}/bids/mine  — the logged-in user's own bids
     [HttpGet("mine")]
     public async Task<IActionResult> GetMine(int auctionId)
     {

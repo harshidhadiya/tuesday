@@ -203,19 +203,36 @@ public class AuctionService : IAuctionService
         }
         return ServiceResult<List<AuctionResponse>>.Ok(result);
     }
-
-    // ── Internal: called by scheduler ────────────────────────────────────────
+// called by AuctionScheduleJob
 
     public async Task<ServiceResult<bool>> StartAuctionAsync(int auctionId)
     {
-        var auction = await _auctionRepo.GetByIdAsync(auctionId);
+
+        var auction = await _auctionRepo.GetByIdWithBidsAsync(auctionId);
         if (auction == null) return ServiceResult<bool>.NotFound();
-        if (auction.Status != AuctionStatus.Upcoming)
+        // BUG FIX #1: Was using || which made this condition always true (a status
+        // can never be both Upcoming AND not Upcoming at the same time). Changed to &&
+        // so we reject only when the status is neither Upcoming nor UnVerified.
+        if (auction.Status != AuctionStatus.Upcoming && auction.Status != AuctionStatus.UnVerified)
             return ServiceResult<bool>.Fail("Auction is not in upcoming state");
 
+        // BUG FIX #2: Was checking for Cancelled (which can never reach here after the
+        // guard above). Correct intent: if the auction was previously UnVerified and is
+        // now being re-started, restore the Redis highest-bid cache from DB bids.
+        if (auction.Status == AuctionStatus.UnVerified)
+        {
+            var highestBid = auction.Bids.OrderByDescending(b => b.Amount).FirstOrDefault();
+            if (highestBid != null)
+                await _redis.SetHighestBidAsync(auction.Id, new HighestBidCacheDto
+                {
+                    Amount   = highestBid.Amount,
+                    BidId    = highestBid.Id,
+                    PlacedAt = highestBid.PlacedAt,
+                    UserId   = highestBid.UserId
+                });
+        }
         auction.Status = AuctionStatus.Live;
         auction.UpdatedAt = DateTime.UtcNow;
-
         await _auctionRepo.UpdateAsync(auction);
         await _auctionRepo.SaveChangesAsync();
 
@@ -223,7 +240,7 @@ public class AuctionService : IAuctionService
             auction.Id, auction.ProductId, auction.EndDate));
 
         await _hub.BroadcastAuctionStarted(auctionId);
-
+       
         _logger.LogInformation("Auction {AuctionId} started", auctionId);
         return ServiceResult<bool>.Ok(true);
     }
@@ -234,6 +251,8 @@ public class AuctionService : IAuctionService
         if (auction == null) return ServiceResult<WinnerResponse>.NotFound();
         if (auction.Status != AuctionStatus.Live)
             return ServiceResult<WinnerResponse>.Fail("Auction is not live");
+
+        
 
         var highestBid = await _bidRepo.GetHighestBidAsync(auctionId);
 
@@ -297,26 +316,35 @@ public class AuctionService : IAuctionService
 
 
     //  this is used for the handling delete things by services okay
-    public async Task ProductDeleteHandling(int ProductId)
+    public async Task ProductUnverifyHandling(int productId, int adminId)
     {
-        var AuctionDetail = await _auctionRepo.GetbyProductId(ProductId);
+        var auctionDetail = await _auctionRepo.GetbyProductId(productId);
 
-        if (AuctionDetail == null)
-        {
+        if (auctionDetail == null || auctionDetail.CreatedByVerifyId != adminId)
             return;
+
+        if (auctionDetail.Status == AuctionStatus.Live)
+        {
+            // Close the auction first before un-verifying
+            await CloseAuctionAsync(auctionDetail.Id);
+            await _hub.BroadcastProductUnverified(auctionDetail.Id);
         }
 
-        if (AuctionDetail.Status == AuctionStatus.Live)
-        {
-            await this.CloseAuctionAsync(AuctionDetail.Id);
-        }
-        AuctionDetail.UpdatedAt = DateTime.Now;
-        AuctionDetail.Status = AuctionStatus.Ended;
+        // BUG FIX #3: Was using DateTime.Now (local time). Must use DateTime.UtcNow
+        // to stay consistent with the rest of the codebase and avoid timezone bugs.
+        auctionDetail.StartDate  = DateTime.UtcNow;
+        auctionDetail.EndDate    = DateTime.UtcNow;
+        auctionDetail.UpdatedAt  = DateTime.UtcNow;
+        auctionDetail.Status     = AuctionStatus.UnVerified;
+
+        // BUG FIX #4: Was calling SaveChangesAsync without calling UpdateAsync first.
+        // Without UpdateAsync the EF change-tracker may not mark the entity as Modified,
+        // so the UPDATE statement would never be sent to the database.
+        await _auctionRepo.UpdateAsync(auctionDetail);
         await _auctionRepo.SaveChangesAsync();
     }
 
 
-    // ── Mappers ───────────────────────────────────────────────────────────────
 
     private static AuctionResponse MapToResponse(
         Auction auction, HighestBidCacheDto? highest, int bidCount) => new()
@@ -400,9 +428,32 @@ public class AuctionService : IAuctionService
         return response;
     }
 
+
+
+    // this is the used by the consumer when the aucition started 
+    public async Task forceFullyclosed(int productId, int userId)
+    {
+        var auction = await _auctionRepo.GetbyProductId(productId);
+        if (auction == null || auction.CreatedByUserId != userId)
+            return;
+
+        // BUG FIX #5: Must broadcast BEFORE deleting from Redis / DB so that the
+        // SignalR message is sent while the auction data is still available.
+        if (auction.Status == AuctionStatus.Live)
+            await _hub.BroadcastProductDeleted(auction.Id);
+
+        await _redis.DeleteAuctionCacheAsync(auction.Id);
+
+        // removeAuction() is synchronous (Remove() + return Entity) — no need to await
+        // its return value. We just call it and then SaveChangesAsync to persist.
+        _auctionRepo.removeAuction(auction);
+        await _auctionRepo.SaveChangesAsync();
+    }
     private static string MaskUserId(int userId)
     {
         var s = userId.ToString();
         return s.Length <= 2 ? "***" : $"{s[0]}***{s[^1]}";
     }
+
+    
 }
