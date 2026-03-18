@@ -9,11 +9,14 @@ namespace USER.Data.Dto.Response
         public String Address { get; set; }
         public String imageUrl { get; set; }
         public String Role { get; set; }
-       
     }
     public class OwnDetail:UserDetail
     {
         public String token { get; set; }
+    }
+    public class AdminDetail:UserDetail
+    {
+        public RequestDetailDto ?obj { get; set; }
     }
    
 }

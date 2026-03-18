@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using ADMIN.Data.Dto;
+using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using USER.CloudinaryService;
@@ -71,11 +72,13 @@ namespace USER.Controllers
 
         [HttpPatch("profile")]
         [Authorize]
-        public async Task<ActionResult> ChangeProfile(changeProfileDto docs)
+        public async Task<ActionResult> ChangeProfile([FromForm]changeProfileDto docs)
         {
             var userId = getMyId(HttpContext);
             if (userId == null)
                 return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 400));
+
+            logger.LogInformation(docs.Address);
             var responce = await _userService.ChangeProfileAsync((int)userId, docs);
             // I changed this: if (responce.Success) was returning a bad response even on success. Changed to if (!responce.Success)
             if (!responce.Success)

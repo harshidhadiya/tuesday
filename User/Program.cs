@@ -31,6 +31,7 @@ builder.Services.AddScoped<IadminLogin,AdminLogin>();
 builder.Services.AddOptions<RabbitMqOptions>()
     .Bind(builder.Configuration.GetSection("RabbitMq"))
     .ValidateOnStart();
+    builder.Services.AddScoped<IHttpRequestCommon,HttpRequestCommon>();
 
 builder.Services.AddMassTransit(x =>
 {

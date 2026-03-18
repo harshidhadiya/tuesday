@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using ADMIN.Data.Dto;
 using ADMIN.DTOs.Responses;
+using ADMIN.Model;
 using ADMIN.Repositories;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
@@ -194,6 +197,8 @@ namespace ADMIN.Services
                 request.VerifiedByAdmin = false;
                 request.VerifierId = 0;
                 request.VerifiedAt = null;
+                request.RightToAdd = false;
+                request.RightsGrantedAt = null;
 
                 await _repository.UpdateRequestAsync(request);
 
@@ -268,12 +273,16 @@ namespace ADMIN.Services
             }
         }
 
-        public async Task<ServiceResult<List<RequestDetailResponse>>> GetVerifiedRequestsAsync()
+        public async Task<ServiceResult<List<RequestDetailResponse>>> GetVerifiedRequestsAsync(int id = 0)
         {
+            List<RequestTable> response = new List<RequestTable>();
             try
             {
-                var verifiedRequests = await _repository.GetVerifiedRequestsAsync();
-                var responseDtos = _mapper.Map<List<RequestDetailResponse>>(verifiedRequests);
+                if (id == 0)
+                    response = await _repository.GetVerifiedRequestsAsync();
+                else
+                    response = await _repository.GetRequestsByVerifierIdAsync(id);
+                var responseDtos = _mapper.Map<List<RequestDetailResponse>>(response);
                 return ServiceResult<List<RequestDetailResponse>>.Ok(responseDtos, $"Retrieved {responseDtos.Count} verified request(s)");
             }
             catch (Exception ex)
@@ -282,6 +291,24 @@ namespace ADMIN.Services
                 return ServiceResult<List<RequestDetailResponse>>.Error("An error occurred while retrieving verified requests", 500);
             }
         }
+        public async Task<ServiceResult<List<RequestDetailResponse>>> getAllFilterRequest(Filter filter)
+        {
+            if(filter.mineId==0)
+            return ServiceResult<List<RequestDetailResponse>>.Error("Your Id Is Not Found");
+            var existUser=await _repository.GetRequestByUserIdAsync(filter.mineId);
+            if (existUser==null)
+            {
+                return ServiceResult<List<RequestDetailResponse>>.NotFound("Your Current Id related Request we couldn't Find out");
+            }
+            var response=await _repository.getFilteredData(filter);
+
+            if (response==null || response.Count()==0)
+            {
+               return ServiceResult<List<RequestDetailResponse>>.Ok(new List<RequestDetailResponse>(),"Not Any Relate Filter Data Found");
+            }
+            return ServiceResult<List<RequestDetailResponse>>.Ok(_mapper.Map<List<RequestDetailResponse>>(response),"successfully Retrived Data");
+        }
+
 
         public async Task<ServiceResult<object>> GetDashboardAsync()
         {
@@ -289,7 +316,7 @@ namespace ADMIN.Services
             {
                 var pendingCount = await _repository.GetPendingCountAsync();
                 var verifiedCount = await _repository.GetVerifiedCountAsync();
-                
+
                 return ServiceResult<object>.Ok(new
                 {
                     pendingCount,

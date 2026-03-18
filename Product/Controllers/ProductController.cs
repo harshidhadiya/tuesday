@@ -98,9 +98,9 @@ namespace PRODUCT.Controllers
             }
             return Ok(ApiResponse<ProductDto>.SuccessResponse(updatedProduct.Data!, updatedProduct.Message, 200));
         }
-        [HttpGet("all")]
+        [HttpPost("all")]
         [Authorize(Roles = "SELLER,USER,ADMIN")]
-        public async Task<IActionResult> getallProducts([FromQuery] ProductAll query)
+        public async Task<IActionResult> getallProducts([FromBody] ProductAll query)
         {
             int? id = getId(HttpContext);
             if (id == null)

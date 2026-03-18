@@ -1,5 +1,6 @@
 using ADMIN.Data.Dto;
 using AutoMapper;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,8 @@ namespace USER.Data.Interfaces
                     token = token.getToken(existUser.Name, user.Role.ToUpperInvariant(), existUser.Id.ToString()), 
                     Name = existUser.Name, 
                     Id = existUser.Id,  
+                    email=existUser.Email,
+                    Role=existUser.Role
                 },"User Loged In Success Fully"));
         }
     }
@@ -63,18 +66,20 @@ namespace USER.Data.Interfaces
         public  readonly ItokenGeneration token;
         public  PasswordHasher<object> hash; private readonly MACUTIONDB _db;
         public  IMapper mapper;
+        private readonly IHttpRequestCommon httpRequestCommon;
         public AdminLogin(
             ILogger<AdminLogin> logger,
             PasswordHasher<object> hash,
             ItokenGeneration token,
             MACUTIONDB db,
-            IMapper mapper,IHttpClientFactory httpClientFactory)
+            IMapper mapper,IHttpClientFactory httpClientFactory,IHttpRequestCommon httpRequestCommon)
         {
             this._logger = logger;
             this.hash = hash;
             this.token = token;
             this._db = db;
             this.mapper = mapper;
+            this.httpRequestCommon=httpRequestCommon;
         }
         public async Task<ActionResult> Login(UserLoginDto user, HttpClient httpClient)
         {
@@ -99,36 +104,36 @@ namespace USER.Data.Interfaces
             }
             try
             {
-                var responce = await httpClient.GetAsync($"/api/admin-request/details/{existUser.Id}");
-                
-                // Read the response content once
-                // I changed this: Updated ApiResponse<object> to ApiResponse<RequestDetailDto> according to actual Admin endpoint response
-                var content = await responce.Content.ReadFromJsonAsync<ApiResponse<RequestDetailDto>>();
-                
-                // Check if response is successful
-                if (!responce.IsSuccessStatusCode)
+
+                var result = await httpRequestCommon.GetRequestDetailsAsync(existUser.Id);
+             
+                if(result.Success == false)
                 {
-                    return new ObjectResult(new { message = content?.Message ?? $"Request failed: {responce.StatusCode}", errors = content?.Errors })
+                    switch(result.StatusCode)
                     {
-                        StatusCode = content?.StatusCode > 0 ? content.StatusCode : (int)responce.StatusCode
-                    };
+                        case 400:
+                            return new BadRequestObjectResult(new { msg = result.Message });
+                        case 401:
+                            return new UnauthorizedObjectResult(new { msg = result.Message });
+                        case 404:
+                            return new NotFoundObjectResult(new { msg = result.Message });
+                        case 500:
+                            return new StatusCodeResult(500);
+                        default:
+                            return new BadRequestObjectResult(new { msg = result.Message });
+                    }   
                 }
+                
 
-                if (content?.Data == null)
-                {
-                    return new BadRequestObjectResult(new { msg = content?.Message ?? "Verification details are missing from the response." });
-                }
-
-                if (!content.Data.VerifiedByAdmin)
-                {
-                    return new BadRequestObjectResult(new { msg = "Your admin account has not been verified yet. Please wait for verification." });
-                }
+                
                 return new OkObjectResult(ApiResponse<object>.SuccessResponse(new 
                 { 
                     token = token.getToken(existUser.Name, user.Role.ToUpperInvariant(), existUser.Id.ToString()), 
                     Name = existUser.Name, 
                     Id = existUser.Id, 
-                    RequestObj = content?.Data 
+                    email=existUser.Email,
+                    RequestObj = result.Data ,
+                    Role=existUser.Role
                 },"User Loged In Success Fully"));
             }
             catch (Exception ex)

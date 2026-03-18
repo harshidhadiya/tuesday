@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ADMIN.Data.Dto;
 using ADMIN.Model;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,7 +51,40 @@ namespace ADMIN.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+        public async Task<List<RequestTable>> getFilteredData(Filter filter)
+        {
+            var data = _db.REQUESTS.AsNoTracking().AsQueryable();
 
+            // Email filter
+            if (!string.IsNullOrWhiteSpace(filter.email))
+                data = data.Where(x => EF.Functions.Like(x.Email, $"%{filter.email}%"));
+
+            // From date
+            if (filter.From.HasValue)
+                data = data.Where(x => x.VerifiedAt >= filter.From.Value);
+
+            // To date (FIXED)
+            if (filter.To.HasValue)
+            {
+                var toDate = filter.To.Value.Date.AddDays(1);
+                data = data.Where(x => x.VerifiedAt < toDate);
+            }
+            if(filter.pending)
+             data=data.Where(x=>!x.VerifiedByAdmin);
+             else
+             data=data.Where(x=>x.VerifiedByAdmin);
+            // Mine filter
+            if (filter.mine)
+                data = data.Where(x => x.VerifierId == filter.mineId);
+
+            // Name filter
+            if (!string.IsNullOrWhiteSpace(filter.name))
+                data = data.Where(x => EF.Functions.Like(x.Name, $"%{filter.name}%"));
+            
+            return await data.Skip((filter.page-1)*filter.pageSize).Take(filter.pageSize).ToListAsync();
+
+
+        }
         public async Task<int> GetPendingCountAsync()
         {
             return await _db.REQUESTS.CountAsync(r => !r.VerifiedByAdmin);

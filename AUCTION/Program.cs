@@ -21,7 +21,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Database (PostgreSQL) ─────────────────────────────────────────────────────
+// ── Database (sql server) ─────────────────────────────────────────────────────
 builder.Services.AddDbContext<AuctionDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

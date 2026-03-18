@@ -27,7 +27,7 @@ namespace USER.Validation
                 .EmailAddress().WithMessage("Email format is not valid");
 
             RuleFor(x => x.Phone)
-                .NotEmpty().WithMessage("Mobile number is required");
+                .NotEmpty().WithMessage("Mobile number is required").MaximumLength(12).MinimumLength(10).WithMessage("You have to make sure you entered the correct number");
 
             RuleFor(x => x.Address)
                 .NotEmpty().WithMessage("Address is required");

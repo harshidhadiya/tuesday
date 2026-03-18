@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ADMIN.Data.Dto;
 using ADMIN.Model;
 
 namespace ADMIN.Repositories
@@ -13,5 +14,6 @@ namespace ADMIN.Repositories
         Task<List<RequestTable>> GetVerifiedRequestsAsync();
         Task<int> GetPendingCountAsync();
         Task<int> GetVerifiedCountAsync();
+        Task<List<RequestTable>> getFilteredData(Filter filter);
     }
 }

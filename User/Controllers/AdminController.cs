@@ -60,6 +60,7 @@ namespace USER.Controllers
         [HttpPost("signup")]
         public async Task<ActionResult> requestSignup(UserCreateDto request)
         {
+            logger.LogInformation("entered here also ");
             // this is comes from in the userservices
             var responce = await _userService.CreateUserAsync(request);
             // I changed this: if (responce.Success) was returning a bad response even on success. Changed to if (!responce.Success)
@@ -88,6 +89,19 @@ namespace USER.Controllers
 
 
             return Ok(ApiResponse<List<verifiedAdminResponse>>.SuccessResponse(response.Data!, response.Message, response.StatusCode));
+        }
+
+        [HttpGet("profile")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<ActionResult> GetProfile(int ?userid=null)
+        {
+            var userId = userid ?? getMyId(HttpContext);
+            if (userId == null)
+                return BadRequest(ApiResponse<AdminDetail>.ErrorResponse("Token Not Valid Format", 400));
+            var response = await _userAdminService.GetProfileAsync((int)userId);
+            if (!response.Success)
+                return badResponce(response.Message, response.StatusCode, "GetProfile");
+            return Ok(ApiResponse<AdminDetail>.SuccessResponse(response.Data!, response.Message, response.StatusCode));
         }
 
         [HttpGet("pending")]

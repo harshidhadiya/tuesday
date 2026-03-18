@@ -19,7 +19,7 @@ namespace ADMIN.Controllers
         {
             _requestService = requestService;
         }
-
+        //  THIS IS THE DIRECTLY USED HERE 
         [HttpGet("verify/{RequestId:int}")]
         [TypeFilter(typeof(VerifyFilter))]
         public async Task<IActionResult> VerifyRequest(int RequestId)
@@ -89,11 +89,28 @@ namespace ADMIN.Controllers
         }
 
         [HttpGet("verified")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetVerifiedRequests()
+        
+        public async Task<IActionResult> GetVerifiedRequests(bool mine = false,int page=1,int pagesize=10)
         {
-            var response = await _requestService.GetVerifiedRequestsAsync();
+            int id=0;
+            if(mine)
+            {
+                if (!int.TryParse(HttpContext.Items["id"]?.ToString(), out int userid))
+                return BadRequest(ApiResponse<object>.ErrorResponse("Invalid user ID in context", 400));
+                id=userid;
+            }
+            var response = await _requestService.GetVerifiedRequestsAsync(id);
             return ToActionResult(response);
+        }
+        [HttpPost ("filter")]
+        public async Task<IActionResult> GetFilterdData([FromBody] Filter filter)
+        {
+             if (!int.TryParse(HttpContext.Items["id"]?.ToString(), out int userid))
+                return BadRequest(ApiResponse<object>.ErrorResponse("Invalid user ID in context", 401));
+
+            filter.mineId=userid;
+            var data= await _requestService.getAllFilterRequest(filter);
+            return ToActionResult(data);     
         }
 
         [HttpGet("dashboard")]
