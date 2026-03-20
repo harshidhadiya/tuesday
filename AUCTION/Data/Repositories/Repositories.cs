@@ -21,10 +21,11 @@ public class AuctionRepository : IAuctionRepository
     public async Task<(List<Auction> Items, int Total)> GetAllAsync(AuctionFilterRequest filter)
     {
         var q = _ctx.Auctions.AsQueryable();
-
+        if(filter.mine)q=q.Where(x=>x.CreatedByUserId==filter.mineid);
         if (filter.Status.HasValue)   q = q.Where(x => x.Status == filter.Status.Value);
         if (filter.MinPrice.HasValue) q = q.Where(x => x.StartingPrice >= filter.MinPrice.Value);
         if (filter.MaxPrice.HasValue) q = q.Where(x => x.StartingPrice <= filter.MaxPrice.Value);
+        if(!string.IsNullOrWhiteSpace(filter.name)) q=q.Where(x=>EF.Functions.Like(x.ProductName,$"%{filter.name}%"));
 
         var total = await q.CountAsync();
         var items = await q

@@ -31,7 +31,8 @@ public sealed class createVerifyObjConsumer(
             SellerId = context.Message.SellerId,
             ProductName = context.Message.ProductName,
             isProductVerified = false,
-            Description = "Pending admin verification."
+            Description = "Pending admin verification.",
+            Product_description=context.Message.description
         };
 
         await dbContext.VERIFY_PRODUCTS.AddAsync(addVerify);

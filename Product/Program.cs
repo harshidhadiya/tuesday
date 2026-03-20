@@ -17,6 +17,7 @@ using PRODUCT.Mapper;
 using PRODUCT.Repository;
 using MassTransit;
 using CloudinaryService;
+using PRODUCT.Messaging.Consumers;
 
 
 
@@ -76,7 +77,9 @@ builder.Services.AddAutoMapper(typeof(Mapping));
 builder.Services.AddMassTransit(x =>
 {
     x.SetKebabCaseEndpointNameFormatter();
-    x.AddConsumersFromNamespaceContaining<PRODUCT.Messaging.Consumers.ProductVerifiedConsumer>();
+    x.AddConsumersFromNamespaceContaining<ProductVerifiedConsumer>();
+    x.AddConsumer<ProductUnverifiedConsumer>();
+    x.AddConsumer<ProductAddAuctionConsumer>();
     x.UsingRabbitMq((context, cnf) =>
     {
         var options=context.GetService<IOptions<RabbitMqOptions>>().Value;

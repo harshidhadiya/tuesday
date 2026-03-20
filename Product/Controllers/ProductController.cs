@@ -80,10 +80,11 @@ namespace PRODUCT.Controllers
         [Authorize(Roles = "SELLER,USER")]
         public async Task<IActionResult> updateproduct(int productId, [FromForm] ProductUpdate product)
         {
+            
             int? id = getId(HttpContext);
             if (id == null)
                 return BadRequest(ApiResponse<Object>.ErrorResponse("Your Id is not valid in the token", 400));
-
+            
             product.id = productId;
             var updatedProduct = await service.updateProduct(product, (int)id);
             if (!updatedProduct.Success)
@@ -157,6 +158,7 @@ namespace PRODUCT.Controllers
 
             return Ok(ApiResponse<ProductDto>.SuccessResponse(data.Data!, data.Message, 200));
         }
+        
 
     }
 }

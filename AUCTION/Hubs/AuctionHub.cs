@@ -82,10 +82,10 @@ public class AuctionHubService : IAuctionHubService
 
     public Task BroadcastEndingSoon(int auctionId, int minutesRemaining)
         => Room(auctionId).SendAsync("AuctionEndingSoon", new { auctionId, minutesRemaining });
-    public Task AuctionMessage(int auctionId,string message)
+    public Task AuctionMessage(int auctionId, string message)
     => Room(auctionId).SendAsync("AuctionMessage", new { message });
-    
-    
+
+
 
     public Task BroadcastTimerTick(int auctionId, double secondsRemaining)
         => Room(auctionId).SendAsync("TimerTick", new { auctionId, secondsRemaining });
@@ -95,4 +95,19 @@ public class AuctionHubService : IAuctionHubService
 
     public Task BroadcastProductUnverified(int auctionId)
         => Room(auctionId).SendAsync("AuctionUnverified", new { auctionId, reason = "Product un-verified during live auction" });
+}
+
+
+
+public interface IUserHubService
+{
+    Task BroadCastCreatMessage(int userId, string message);
+}
+
+public class UserHubService(IHubContext<AuctionHub> _hub) : IUserHubService
+{
+
+
+    public IClientProxy client(string userId) => _hub.Clients.Client(userId);
+    public Task BroadCastCreatMessage(int userId, string message) => client(userId.ToString()).SendAsync("GeneralAuction", "Message");
 }

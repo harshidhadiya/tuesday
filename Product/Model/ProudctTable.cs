@@ -14,5 +14,6 @@ namespace PRODUCT.Model
         public ICollection<ImageTable>? images { get; set; } = new List<ImageTable>();
         public DateTime? AuctionStartTime { get; set; }
         public DateTime? AuctionEndTime { get; set; }
+
     }
 }

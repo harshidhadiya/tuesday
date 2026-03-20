@@ -33,6 +33,9 @@ public class AuctionFilterRequest
     public decimal?       MaxPrice { get; set; }
     public int            Page     { get; set; } = 1;
     public int            PageSize { get; set; } = 20;
+    public string? name{get;set;}
+    public bool mine{get;set;}=false;
+    public int mineid{get;set;}=0;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

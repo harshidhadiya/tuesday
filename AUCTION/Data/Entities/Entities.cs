@@ -1,6 +1,6 @@
 namespace AUCTION.Data.Entities;
 
-public enum AuctionStatus { Upcoming, Live, Ended, Cancelled ,UnVerified}
+public enum AuctionStatus { Upcoming, Live, Ended, Cancelled ,UnVerified,Verified}
 public enum BidStatus     { Active, Outbid, Won, Lost }
 
 public class Auction
@@ -9,6 +9,8 @@ public class Auction
 
     // Links to your ProductService — the verified product's ID
     public int ProductId { get; set; }
+    public string ProductName{get;set;}
+    public string Description{get;set;}
 
     // The verify_id from your VerifyService
     public int CreatedByVerifyId { get; set; }
@@ -20,12 +22,12 @@ public class Auction
     public decimal StartingPrice { get; set; }
     public decimal? ReservePrice { get; set; }
     public decimal MinBidIncrement { get; set; } = 1.00m;
-
+    
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
 
     public AuctionStatus Status { get; set; } = AuctionStatus.Upcoming;
-
+    
     public int? WinnerBidId { get; set; }
     public int? WinnerUserId { get; set; }
     public decimal? FinalPrice { get; set; }

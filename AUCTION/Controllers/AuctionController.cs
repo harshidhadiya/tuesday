@@ -27,9 +27,11 @@ public class AuctionController : ControllerBase
 
     /// GET /api/auctions?Status=Live&Page=1&PageSize=20
     [HttpGet]
-    [AllowAnonymous]
+    [Authorize(Roles ="USER,ADMIN,SELLER")]
     public async Task<IActionResult> GetAll([FromQuery] AuctionFilterRequest filter)
     {
+        var userId=ClaimsHelper.GetUserId(User);
+        filter.mineid=userId;
         var result = await _auctionService.GetAllAuctionsAsync(filter);
         return StatusCode(result.StatusCode, result.Success
             ? ApiResponse<PagedResponse<AuctionResponse>>.SuccessResponse(result.Data!)
@@ -66,10 +68,9 @@ public class AuctionController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateAuctionRequest request)
     {
-        if (!ClaimsHelper.IsVerified(User))
-            return StatusCode(403, ApiResponse<object>.ErrorResponse(
-                "Only verified users can create auctions", 403));
+   
 
+        var userId = ClaimsHelper.GetUserId(User);
         var client = factory.CreateClient("api_gateway");
 
         var responseData = await client.GetAsync($"/api/verify/status/{request.ProductId}");
@@ -94,8 +95,8 @@ public class AuctionController : ControllerBase
             return BadRequest(ApiResponse<AuctionResponse>.ErrorResponse(
                 "Verification response invalid", 400));
         }
-
-        var userId = ClaimsHelper.GetUserId(User);
+        if(verifyData.Data.user_id!=userId)
+        return Unauthorized(ApiResponse<object>.ErrorResponse("sorry but you are not owner of this product",403));
 
         var verifyId = verifyData.Data.VerifierId;
         if (verifyId == null)

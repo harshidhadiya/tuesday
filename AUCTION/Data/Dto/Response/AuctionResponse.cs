@@ -15,6 +15,8 @@ public class AuctionResponse
     public int      TotalBids         { get; set; }
     public double?  TimeRemainingSeconds { get; set; }
     public DateTime CreatedAt         { get; set; }
+    public string ?productName{get;set;}
+    public string ?productDescription{get;set;}
 }
 
 public class AuctionDetailResponse : AuctionResponse
@@ -75,4 +77,6 @@ public class HighestBidCacheDto
         public int? VerifierId { get; set; }
         public DateTime? VerifiedTime { get; set; }
         public string? Description { get; set; }
+        public int? user_id{get;set;}
+        
     }

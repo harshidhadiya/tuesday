@@ -1,35 +1,25 @@
+using AUCTION.Data.Repositories.Interfaces;
+using AUCTION.Services.Interfaces;
 using MassTransit;
 using Messaging.Contracts;
 
 namespace AUCTION.Consumers;
 
 
-public class ProductVerifiedConsumer : IConsumer<ProductVerified>
+public class ProductVerifiedConsumer(IAuctionRepository _repo) : IConsumer<ProductVerified>
 {
-    private readonly ILogger<ProductVerifiedConsumer> _logger;
-
-    public ProductVerifiedConsumer(ILogger<ProductVerifiedConsumer> logger)
-        => _logger = logger;
-
-    public Task Consume(ConsumeContext<ProductVerified> context)
+    public async Task Consume(ConsumeContext<ProductVerified> context)
     {
-        var msg = context.Message;
-        _logger.LogInformation(
-            "Product {ProductId} has been verified — auctions can now be created for it",
-            msg.ProductId);
-
-        // Extension point: store a local set of verified product IDs in Redis
-        // so CreateAuction can validate ProductId without calling VerifyService over HTTP.
-        // e.g. await _redis.SetAsync($"verified_product:{msg.ProductId}", "1");
-
-        return Task.CompletedTask;
+        var auction=await _repo.GetbyProductId(context.Message.ProductId);
+        if(auction==null)
+        return ;
+        auction.Status=Data.Entities.AuctionStatus.Verified;
+        await _repo.UpdateAsync(auction);
+        await _repo.SaveChangesAsync();
     }
 }
 
-/// <summary>
-/// Listens for ProductUnverified from your VerifyService.
-/// When a product is un-verified, we should close any live auctions for it.
-/// </summary>
+
 public class ProductUnverifiedConsumer : IConsumer<ProductUnverified>
 {
     private readonly Data.Repositories.Interfaces.IAuctionRepository _auctionRepo;

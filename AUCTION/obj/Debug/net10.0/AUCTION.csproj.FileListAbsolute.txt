@@ -5,6 +5,8 @@ D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\AUCTION.deps.json
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\AUCTION.runtimeconfig.json
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\AUCTION.dll
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\AUCTION.pdb
+D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\AutoMapper.dll
+D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\Azure.Core.dll
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\Azure.Identity.dll
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\FluentAssertions.dll
@@ -149,6 +151,8 @@ D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\runtimes\win\lib\net
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
+D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\Messaging.Contracts.dll
+D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\Messaging.Contracts.pdb
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\obj\Debug\net10.0\AUCTION.csproj.AssemblyReference.cache
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\obj\Debug\net10.0\rpswa.dswa.cache.json
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\obj\Debug\net10.0\AUCTION.GeneratedMSBuildEditorConfig.editorconfig
@@ -173,5 +177,3 @@ D:\Codes_pracitce\PROJECT\tuesday\AUCTION\obj\Debug\net10.0\refint\AUCTION.dll
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\obj\Debug\net10.0\AUCTION.pdb
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\obj\Debug\net10.0\AUCTION.genruntimeconfig.cache
 D:\Codes_pracitce\PROJECT\tuesday\AUCTION\obj\Debug\net10.0\ref\AUCTION.dll
-D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\Messaging.Contracts.dll
-D:\Codes_pracitce\PROJECT\tuesday\AUCTION\bin\Debug\net10.0\Messaging.Contracts.pdb

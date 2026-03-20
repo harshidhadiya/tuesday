@@ -20,5 +20,7 @@ namespace VERIFY.Model
        public string ProductName { get; set; } = string.Empty;
        public string ?Description {get; set; } = string.Empty;
        public bool isProductVerified { get; set;}
+       public string Product_description{get;set;}
+       
     }
 }

@@ -39,6 +39,10 @@ namespace AUCTION.Migrations
                     b.Property<int>("CreatedByVerifyId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
@@ -55,6 +59,10 @@ namespace AUCTION.Migrations
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("ReservePrice")
                         .HasPrecision(18, 2)

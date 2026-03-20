@@ -49,8 +49,8 @@ namespace PRODUCT.Repository
 
            
 
-            if (query.productId != null && query.mine)
-                products = products.Where(x => x.Id == query.productId);
+            if (query.mine)
+                products = products.Where(x => x.user_id == query.id);
 
             if (!string.IsNullOrEmpty(query.searchName))
                 products = products.Where(x => x.product_name.Contains(query.searchName));
@@ -69,7 +69,8 @@ namespace PRODUCT.Repository
 
             if (query.verified)
                 products = products.Where(x => x.isVerified == true);
-
+            if(query.productId!=null)
+               products=products.Where(x=>x.Id==query.productId);
           
 
             products = products

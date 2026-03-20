@@ -6,6 +6,7 @@ using VERIFY.Model;
 using VERIFY.Repositories;
 using MassTransit;
 using Messaging.Contracts;
+using AutoMapper;
 
 namespace VERIFY.Services
 {
@@ -16,17 +17,19 @@ namespace VERIFY.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly ILogger<VerifyService> _logger;
+        private readonly IMapper mapper;
 
         public VerifyService(
             IVerifyRepository repository,
             IHttpClientFactory httpClientFactory,
             IPublishEndpoint publishEndpoint,
-            ILogger<VerifyService> logger)
+            ILogger<VerifyService> logger,IMapper mapper)
         {
             _repository = repository;
             _httpClientFactory = httpClientFactory;
             _publishEndpoint = publishEndpoint;
             _logger = logger;
+            this.mapper=mapper;
         }
 
         public async Task<ServiceResult<object>> VerifyProductAsync(int adminId, VerifyProductRequest request)
@@ -53,8 +56,8 @@ namespace VERIFY.Services
             {
                 existing.VerifierId = adminId;
                 existing.VerifiedTime = DateTime.UtcNow;
-                existing.ProductName = request.ProductName;
                 existing.isProductVerified = true;
+                existing.Description=request.description;
 
                 if (string.IsNullOrWhiteSpace(existing.Description))
                 {
@@ -62,21 +65,6 @@ namespace VERIFY.Services
                 }
 
                 _repository.Update(existing);
-            }
-            else
-            {
-                var entity = new VerifyProductTable
-                {
-                    ProductId = request.ProductId,
-                    SellerId = request.SellerId,
-                    VerifierId = adminId,
-                    VerifiedTime = DateTime.UtcNow,
-                    ProductName = request.ProductName,
-                    isProductVerified = true,
-                    Description = "Product verified by admin."
-                };
-
-                await _repository.AddAsync(entity);
             }
 
             await _repository.SaveChangesAsync();
@@ -91,9 +79,9 @@ namespace VERIFY.Services
         }
 
 
-        public async Task<ServiceResult<object>> UnverifyProductAsync(int adminId, int productId, string? description)
+        public async Task<ServiceResult<object>> UnverifyProductAsync(int adminId, ProductUnverify product)
         {
-            if (productId <= 0)
+            if (product.productId <= 0)
             {
                 return ServiceResult<object>.Fail("Invalid product id.");
             }
@@ -104,7 +92,7 @@ namespace VERIFY.Services
                 return ServiceResult<object>.Forbidden("Admin does not have verify permission.");
             }
 
-            var record = await _repository.GetByProductIdAsync(productId);
+            var record = await _repository.GetByProductIdAsync(product.productId);
             if (record == null)
             {
                 return ServiceResult<object>.NotFound("Verification record not found for this product");
@@ -114,25 +102,25 @@ namespace VERIFY.Services
             {
                 _logger.LogWarning(
                     "Admin {AdminId} attempted to unverify product {ProductId} verified by another admin {VerifierId}",
-                    adminId, productId, record.VerifierId);
+                    adminId, product.productId, record.VerifierId);
                 return ServiceResult<object>.Forbidden("You can only unverify products that you verified.");
             }
 
             record.isProductVerified = false;
             record.VerifiedTime = DateTime.UtcNow;
-            record.Description = !string.IsNullOrWhiteSpace(description)
-                ? description
+            record.Description = !string.IsNullOrWhiteSpace(product.description)
+                ? product.description
                 : "Product unverification requested by admin.";
 
             _repository.Update(record);
             await _repository.SaveChangesAsync();
 
             await _publishEndpoint.Publish(new ProductUnverified(
-                ProductId: productId,
+                ProductId: product.productId,
                 AdminId: adminId));
 
             return ServiceResult<object>.Ok(
-                new { ProductId = productId },
+                new { ProductId = product.productId },
                 "Product unverification completed and auction cleared if scheduled");
         }
 
@@ -153,7 +141,7 @@ namespace VERIFY.Services
                     {
                         ProductId = productId,
                         IsVerified = false,
-                        Description = null
+                        Description = null,
                     },
                     "Product is not verified");
             }
@@ -165,7 +153,8 @@ namespace VERIFY.Services
                     IsVerified = record.isProductVerified,
                     VerifierId = record.VerifierId,
                     VerifiedTime = record.VerifiedTime,
-                    Description = record.Description
+                    Description = record.Description,
+                    user_id=record.SellerId
                 },
                 "Product verification status retrieved successfully");
         }
@@ -309,6 +298,33 @@ namespace VERIFY.Services
             }
         }
 
+        // this i added for the univerasal product fetching okay 
+        public  async Task<ServiceResult<List<FilterResponse>>> getUniverSalVerified(FilterVerify filter)
+        {
+            var data=await _repository.GetFilterdProduct(filter);
+      
+            return  ServiceResult<List<FilterResponse>>.Ok(data==null || data.Count()<=0 ? new List<FilterResponse>():mapper.Map<List<FilterResponse>>(data),data==null || data.Count()<=0 ?"there is nothing Found":"product detail retrived successfully");
+
+        }
+        // for the creating event base auctions 
+        public async Task<ServiceResult<object>> CreatAuctionEvent(CreateAuctionRequest request,int userId)
+        {
+            var product=await _repository.GetByProductIdAsync(request.ProductId);
+            if(product==null)
+            return ServiceResult<object>.NotFound("Your Product Id Relate We are Not Find Out Product");
+
+            if(product.SellerId!=userId)
+            return ServiceResult<object>.Forbidden("Your Not Owner of this Product");
+
+            if(!product.isProductVerified)
+            return ServiceResult<object>.Forbidden("Your Product pending verification remaining ");
+           await _publishEndpoint.Publish(new AuctionCreatedFromVerifyService(ProductId:product.ProductId,StartingPrice:request.StartingPrice,ReservePrice:request.ReservePrice
+           ,MinBidIncrement:request.MinBidIncrement,StartDate:request.StartDate,EndDate:request.EndDate,userId:userId,verifierId:product.VerifierId!.Value,ProductName:product.ProductName,Description:product.Product_description));
+            _logger.LogInformation("send successfully");
+           return ServiceResult<object>.Ok(new (),"AuctionCreation Request Send SuccessFully");
+
+        }
+
 
         private async Task<List<ProductSummary>> GetAllProductsFromProductServiceAsync(string? authorizationHeader)
         {
@@ -347,6 +363,7 @@ namespace VERIFY.Services
         }
 
         private async Task<UserSummary?> GetUserFromUserServiceAsync(int? userId)
+
         {
             if (userId == null || userId <= 0)
             {
@@ -374,5 +391,7 @@ namespace VERIFY.Services
                 return null;
             }
         }
+
+        
     }
 }

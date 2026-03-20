@@ -1,4 +1,6 @@
+using System.Numerics;
 using Microsoft.EntityFrameworkCore;
+using VERIFY.Data.Dto;
 using VERIFY.Model;
 
 namespace VERIFY.Repositories
@@ -54,7 +56,20 @@ namespace VERIFY.Repositories
         {
             _db.VERIFY_PRODUCTS.Update(entity);
         }
+        public async Task<List<VerifyProductTable>> GetFilterdProduct(FilterVerify filter)
+        {
+            var data=_db.VERIFY_PRODUCTS.AsQueryable();
+            if(filter.pending && !filter.verified)
+                data=data.Where(x=>!x.isProductVerified);
+            if(filter.mine)
+                data=data.Where(x=>x.VerifierId==filter.verifierId);
+            if(filter.verified && !filter.pending)
+                data=data.Where(x=>x.isProductVerified);
+            if (!string.IsNullOrWhiteSpace(filter.name))
+                data=data.Where(x=>x.ProductName!=null && EF.Functions.Like(x.ProductName,$"%{filter.name}%"));
 
+            return await data.Skip((filter.page-1)*filter.pagesize).Take(filter.pagesize).ToListAsync();
+        }
         public async Task SaveChangesAsync()
         {
             await _db.SaveChangesAsync();

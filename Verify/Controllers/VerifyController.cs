@@ -5,6 +5,8 @@ using VERIFY.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Verify.Messaging.Events;
+using VERIFY.Data.Dto;
+using RabbitMQ.Client;
 
 namespace VERIFY.Controllers
 {
@@ -14,10 +16,10 @@ namespace VERIFY.Controllers
     public class VerifyController : ControllerBase
     {
         private readonly IVerifyService _verifyService;
-
-        public VerifyController( IVerifyService verifyService)
+        ILogger<VerifyController> logger;
+        public VerifyController(IVerifyService verifyService,ILogger<VerifyController> logger)
         {
-            
+             this.logger=logger;
             _verifyService = verifyService;
         }
 
@@ -34,6 +36,9 @@ namespace VERIFY.Controllers
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> VerifyProduct([FromBody] VerifyProductRequest request)
         {
+            logger.LogInformation("productid"+request.ProductId);
+            logger.LogInformation("sellerid"+request.SellerId);
+            logger.LogInformation("description"+request.description);
             var adminId = GetCurrentUserId();
             if (adminId == null)
                 return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
@@ -43,15 +48,15 @@ namespace VERIFY.Controllers
         }
 
 
-        [HttpDelete("product/{productId:int}")]
+        [HttpPatch("product")]
         [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> UnverifyProduct(int productId, [FromBody] string? description = null)
+        public async Task<IActionResult> UnverifyProduct([FromBody] ProductUnverify product)
         {
             var adminId = GetCurrentUserId();
             if (adminId == null)
                 return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
 
-            var result = await _verifyService.UnverifyProductAsync(adminId.Value, productId, description);
+            var result = await _verifyService.UnverifyProductAsync(adminId.Value, product);
             return ToActionResult(result);
         }
 
@@ -97,8 +102,37 @@ namespace VERIFY.Controllers
             var result = await _verifyService.GetUnverifiedProductsAsync(adminId.Value, searchName, authHeader, page, size);
             return ToActionResult(result);
         }
+        // this will help ful for the fetching the product right like verified and unverified all of that htings
+        [HttpPost("products")]
+        [Authorize(Roles ="ADMIN")]
+        public async Task<IActionResult> GetProductsUniversal(FilterVerify filter)
+        {
+            logger.LogInformation(filter.name);
+            var adminId = GetCurrentUserId();
+            if (adminId == null)
+                return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
+                filter.verifierId=adminId.Value;
+            var result=await _verifyService.getUniverSalVerified(filter);
+            return ToActionResult(result);
+        }
+        
 
-       
+        // THis endpoint is used for the event based creation of the auction 
+        [HttpPost("auction")]
+        [Authorize(Roles ="SELLER,USER")]
+        public async Task<IActionResult> createAuctions(CreateAuctionRequest request)
+        {
+            logger.LogInformation("entered her okay ");
+            var userId=GetCurrentUserId();
+            if(userId == null)
+                   return BadRequest(ApiResponse<object>.ErrorResponse("Invalid user id in context.", 400));
+           var result=await _verifyService.CreatAuctionEvent(request,userId.Value);
+
+            return ToActionResult(result);
+        }
+
+
+
         [NonAction]
         private IActionResult ToActionResult<T>(ServiceResult<T> result)
         {

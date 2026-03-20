@@ -14,8 +14,6 @@ namespace PRODUCT.Data.Dto.Request
         public DateTime ?date { get; set; }=null;
         public DateTime? AuctionStartTime { get; set; }=null;
         public DateTime? AuctionEndTime { get; set; }=null;
-       
-
     }
 
 }

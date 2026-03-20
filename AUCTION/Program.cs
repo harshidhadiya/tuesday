@@ -5,6 +5,7 @@ using AUCTION.Data.Repositories;
 using AUCTION.Data.Repositories.Interfaces;
 using AUCTION.ExceptionHandler;
 using AUCTION.Hubs;
+using AUCTION.Mapping;
 using AUCTION.Services;
 using AUCTION.Services.Interfaces;
 using AUCTION.Validation;
@@ -12,6 +13,7 @@ using FluentValidation;
 using MassTransit;
 using Messaging.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -43,18 +45,21 @@ builder.Services.AddScoped<IWatchlistService, WatchlistService>();
 
 // ── SignalR ───────────────────────────────────────────────────────────────────
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider,CustomUserIdProvider>();
 builder.Services.AddScoped<IAuctionHubService, AuctionHubService>();
+builder.Services.AddScoped<IUserHubService,UserHubService>();
 // BUG FIX: All three AddValidatorsFromAssemblyContaining calls scan the SAME assembly
 // (AUCTION project), so validators were being registered 3x. One call is sufficient.
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAuctionRequestValidator>();
-
+builder.Services.AddAutoMapper(typeof(Mapper));
 
 builder.Services.AddMassTransit(x =>
 {
     // ── Consumers (messages we receive from other services) ───────────────────
-    x.AddConsumer<ProductVerifiedConsumer>();
     x.AddConsumer<ProductUnverifiedConsumer>();
     x.AddConsumer<ProductDeleteConsumer>();
+    x.AddConsumer<AuctionCreateConsumer>();
+    x.AddConsumer<ProductVerifiedConsumer>();
 
     x.UsingRabbitMq((ctx, cfg) =>
     {
@@ -179,6 +184,7 @@ app.MapControllers();
 
 // ── SignalR hub ───────────────────────────────────────────────────────────────
 app.MapHub<AuctionHub>("/hubs/auction");
+
 
 app.Run("http://localhost:5001");
 

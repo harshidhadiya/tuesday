@@ -1,3 +1,4 @@
+using VERIFY.Data.Dto;
 using VERIFY.Model;
 
 namespace VERIFY.Repositories
@@ -22,7 +23,7 @@ namespace VERIFY.Repositories
 
         /// <summary>Mark an existing verification record as updated.</summary>
         void Update(VerifyProductTable entity);
-
+        Task<List<VerifyProductTable>> GetFilterdProduct(FilterVerify filter);
         /// <summary>Save all pending changes to the database.</summary>
         Task SaveChangesAsync();
     }

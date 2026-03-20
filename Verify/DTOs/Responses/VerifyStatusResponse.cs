@@ -7,5 +7,6 @@ namespace VERIFY.DTOs.Responses
         public int? VerifierId { get; set; }
         public DateTime? VerifiedTime { get; set; }
         public string? Description { get; set; }
+        public int ?user_id{get;set;}
     }
 }

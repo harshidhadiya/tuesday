@@ -6,6 +6,7 @@ using AUCTION.Hubs;
 using AUCTION.Services.Interfaces;
 using MassTransit;
 using Messaging.Contracts;
+using Microsoft.AspNetCore.Components;
 
 namespace AUCTION.Services;
 
@@ -65,7 +66,7 @@ public class AuctionService : IAuctionService
         {
             var highest = await _redis.GetHighestBidAsync(a.Id);
             var bidCount = await _bidRepo.GetBidCountAsync(a.Id);
-            responses.Add(MapToResponse(a, highest, bidCount));
+            responses.Add(MapToResponse(a, highest, bidCount,filter.mineid));
         }
 
         return ServiceResult<PagedResponse<AuctionResponse>>.Ok(new PagedResponse<AuctionResponse>
@@ -78,7 +79,7 @@ public class AuctionService : IAuctionService
     }
 
     //  Create auction 
-    
+    // right now we are making the auction by the masstransit okay 
     public async Task<ServiceResult<AuctionResponse>> CreateAuctionAsync(
         CreateAuctionRequest request, int userId, int verifyId)
     {
@@ -139,11 +140,13 @@ public class AuctionService : IAuctionService
         if (request.StartDate.HasValue) auction.StartDate = request.StartDate.Value;
         if (request.EndDate.HasValue) auction.EndDate = request.EndDate.Value;
         auction.UpdatedAt = DateTime.UtcNow;
+        if(request.StartDate.HasValue || request.EndDate.HasValue)
+        await _publish.Publish (new ProductAddAuctionDate(productId:auction.ProductId,StartDate:auction.StartDate,EndDate:auction.EndDate));
 
         await _auctionRepo.UpdateAsync(auction);
         await _auctionRepo.SaveChangesAsync();
 
-        return ServiceResult<AuctionResponse>.Ok(MapToResponse(auction, null, bidCount));
+        return ServiceResult<AuctionResponse>.Ok(MapToResponse(auction, null, bidCount,userId));
     }
 
     //  Cancel auction 
@@ -183,7 +186,7 @@ public class AuctionService : IAuctionService
         {
             var highest = await _redis.GetHighestBidAsync(a.Id);
             var bidCount = await _bidRepo.GetBidCountAsync(a.Id);
-            result.Add(MapToResponse(a, highest, bidCount));
+            result.Add(MapToResponse(a, highest, bidCount,userId));
         }
         return ServiceResult<List<AuctionResponse>>.Ok(result);
     }
@@ -336,7 +339,8 @@ public class AuctionService : IAuctionService
         auctionDetail.EndDate    = DateTime.UtcNow;
         auctionDetail.UpdatedAt  = DateTime.UtcNow;
         auctionDetail.Status     = AuctionStatus.UnVerified;
-
+        await _publish.Publish(new ProductAddAuctionDate(productId:auctionDetail.ProductId,StartDate:null,EndDate:null));
+        
         // BUG FIX #4: Was calling SaveChangesAsync without calling UpdateAsync first.
         // Without UpdateAsync the EF change-tracker may not mark the entity as Modified,
         // so the UPDATE statement would never be sent to the database.
@@ -347,23 +351,25 @@ public class AuctionService : IAuctionService
 
 
     private static AuctionResponse MapToResponse(
-        Auction auction, HighestBidCacheDto? highest, int bidCount) => new()
+        Auction auction, HighestBidCacheDto? highest, int bidCount,int ownId=0) => new()
         {
             Id = auction.Id,
             ProductId = auction.ProductId,
             CreatedByUserId = auction.CreatedByUserId,
             StartingPrice = auction.StartingPrice,
-            ReservePrice = auction.ReservePrice,
+            ReservePrice = ownId==auction.CreatedByUserId?auction.ReservePrice:null,
             MinBidIncrement = auction.MinBidIncrement,
             StartDate = auction.StartDate,
             EndDate = auction.EndDate,
             Status = auction.Status.ToString(),
-            CurrentHighestBid = highest?.Amount ?? auction.StartingPrice,
+            CurrentHighestBid = highest?.Amount ?? auction.StartingPrice, 
             TotalBids = bidCount,
             TimeRemainingSeconds = auction.Status == AuctionStatus.Live
                                 ? (auction.EndDate - DateTime.UtcNow).TotalSeconds
                                 : null,
-            CreatedAt = auction.CreatedAt
+            CreatedAt = auction.CreatedAt,
+            productDescription=auction.Description,
+            productName=auction.ProductName
         };
 
     private static AuctionDetailResponse MapToDetail(
@@ -379,6 +385,8 @@ public class AuctionService : IAuctionService
             ReservePrice = auction.ReservePrice,
             MinBidIncrement = auction.MinBidIncrement,
             StartDate = auction.StartDate,
+            productDescription=auction.Description,
+            productName=auction.ProductName,
             EndDate = auction.EndDate,
             Status = auction.Status.ToString(),
             CurrentHighestBid = highest?.Amount ?? auction.StartingPrice,

@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "sgqa9HdD3ms=",
+  "dgSpecHash": "DN6qD6BZFg4=",
   "success": true,
   "projectFilePath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\AUCTION\\AUCTION.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
+    "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
     "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",
     "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\fluentassertions\\8.8.0\\fluentassertions.8.8.0.nupkg.sha512",
@@ -86,6 +88,18 @@
       "warningLevel": 1,
       "filePath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\AUCTION\\AUCTION.csproj",
       "libraryId": "Microsoft.AspNetCore.SignalR",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'AutoMapper' 12.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x",
+      "projectPath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\AUCTION\\AUCTION.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Codes_pracitce\\PROJECT\\tuesday\\AUCTION\\AUCTION.csproj",
+      "libraryId": "AutoMapper",
       "targetGraphs": [
         "net10.0"
       ]

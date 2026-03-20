@@ -13,6 +13,7 @@ using VERIFY.Services;
 using VERIFY.Validation;
 using MassTransit;
 using Microsoft.Extensions.Options;
+using VERIFY.Mapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,7 +68,7 @@ builder.Services.AddAuthentication(options =>
 
 
 
-builder.Services.AddValidatorsFromAssemblyContaining<verifyProductValidator>();
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 builder.Services.AddFluentValidationAutoValidation();
 
 builder.Services.AddAuthorization();
@@ -76,7 +77,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(option =>
         option.JsonSerializerOptions.UnmappedMemberHandling =
             System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow);
-
+builder.Services.AddAutoMapper(typeof(Mappin));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

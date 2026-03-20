@@ -14,7 +14,9 @@ public sealed record AdminRegistrationRequested(
 public sealed record ProductCreatedForVerification(
     int ProductId,
     int SellerId,
-    string ProductName);
+    string ProductName, string description);
+
+public sealed record ProductUpdateForVerification(int ProductId, string? name = null, string? descripiton = null);
 
 /// <summary>Published by ProductService when a product is deleted by its owner or admin.</summary>
 public sealed record ProductDeleted(
@@ -101,3 +103,26 @@ public sealed record AuctionCancelled(
     int AuctionId,
     int ProductId,
     string Reason);
+
+// this is used for the creating the auction based on the event calling 
+
+public sealed record AuctionCreatedFromVerifyService(
+     int ProductId,
+     decimal StartingPrice,
+     decimal? ReservePrice,
+     decimal MinBidIncrement,
+     DateTime StartDate,
+     DateTime EndDate,
+     int userId,
+     int verifierId,
+     string ProductName,
+     string Description
+);
+
+// this below is used for the when the you are trying to do like when auction created in the product table u can show case this thing right 
+
+public sealed record ProductAddAuctionDate(
+    int productId,
+    DateTime ?StartDate,
+    DateTime ?EndDate
+);

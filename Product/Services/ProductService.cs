@@ -43,7 +43,7 @@ namespace PRODUCT.Services
             await _publishEndpoint.Publish(new ProductCreatedForVerification(
                 ProductId: response.Id,
                 SellerId: (int)response.user_id!,
-                ProductName: response.product_name));
+                ProductName: response.product_name,description:response.product_description??"No Description"));
 
             var result = mapper.Map<ProductDto>(response);
             return ServiceResult<ProductDto>.Ok(result, "User create Successfully");
@@ -78,6 +78,7 @@ namespace PRODUCT.Services
                 return ServiceResult<ProductDto>.Forbidden("You are not owner of this Product");
 
 
+            (string? description,string ?name)=(null,null);
             if (product.AuctionStartTime != null && product.AuctionEndTime != null && product.AuctionEndTime > product.AuctionStartTime && product.AuctionStartTime > DateTime.Now)
             {
                 if (!data.isVerified)
@@ -89,18 +90,27 @@ namespace PRODUCT.Services
                 data.AuctionStartTime = product.AuctionStartTime;
                 data.AuctionEndTime = product.AuctionEndTime;
             }
-            if (product.description != null && product.description != "")
+            if (product.description != null && product.description != ""){
                 data.product_description = product.description;
+                description=product.description;
+                }
             if (product.date != null && product.date >= DateTime.Now)
                 data.Buy_Date = (DateTime)product.date;
 
             if (product.ids != null && product.images != null && product.ids.Count() > 0 && product.images.Count() > 0)
             {
                 data.images = await updateImages(product.images, product.ids, data.images);
-
+       
             }
-
+            if (!string.IsNullOrWhiteSpace(product.name))
+            {
+                
+                name=product.name;
+            }
             var response = await repository.Update(data);
+
+            if((description!=null || name!=null)&& response!=null)
+            await _publishEndpoint.Publish(new ProductUpdateForVerification(product.id,descripiton:description,name:name));
 
             return ServiceResult<ProductDto>.Ok(mapper.Map<ProductDto>(response), "product updated successfully");
         }

@@ -25,6 +25,7 @@ namespace VERIFY.Model.Constrains_on_table
             builder.HasIndex(data => data.ProductId)
                 .IsUnique();
             builder.Property(data => data.Description).HasMaxLength(100);
+            builder.Property(data=>data.Product_description).HasMaxLength(900);
         }
     }
 }
