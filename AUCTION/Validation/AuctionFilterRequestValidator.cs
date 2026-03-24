@@ -31,5 +31,10 @@ public class AuctionFilterRequestValidator : AbstractValidator<AuctionFilterRequ
         RuleFor(x => x)
             .Must(x => !x.MinPrice.HasValue || !x.MaxPrice.HasValue || x.MinPrice <= x.MaxPrice)
             .WithMessage("MinPrice cannot be greater than MaxPrice.");
+
+        RuleFor(x => x.FilterStartDate)
+            .LessThanOrEqualTo(x => x.FilterEndDate)
+            .When(x => x.FilterStartDate.HasValue && x.FilterEndDate.HasValue)
+            .WithMessage("FilterStartDate cannot be greater than FilterEndDate.");
     }
 }}

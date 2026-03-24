@@ -1,0 +1,89 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Run All",
+        "dependsOn": [
+          "ADMIN",
+          "APIGateway",
+          "User",
+          "AUCTION",
+          "Verify",
+          "PRODUCT"
+        ],
+        "dependsOrder": "parallel"
+      },
+      {
+        "label": "ADMIN",
+        "type": "shell",
+        "command": "dotnet run",
+        "options": { "cwd": "ADMIN" },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "group": "services",
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "APIGateway",
+        "type": "shell",
+        "command": "dotnet run",
+        "options": { "cwd": "APIGateway" },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "group": "services",
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "User",
+        "type": "shell",
+        "command": "dotnet run",
+        "options": { "cwd": "User" },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "group": "services",
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "AUCTION",
+        "type": "shell",
+        "command": "dotnet run",
+        "options": { "cwd": "AUCTION" },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "group": "services",
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "Verify",
+        "type": "shell",
+        "command": "dotnet run",
+        "options": { "cwd": "Verify" },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "group": "services",
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "PRODUCT",
+        "type": "shell",
+        "command": "dotnet run",
+        "options": { "cwd": "PRODUCT" },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "group": "services",
+          "panel": "shared"
+        }
+      }
+    ]
+  }

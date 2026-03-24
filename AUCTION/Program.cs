@@ -11,10 +11,8 @@ using AUCTION.Services.Interfaces;
 using AUCTION.Validation;
 using FluentValidation;
 using MassTransit;
-using Messaging.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -50,7 +48,7 @@ builder.Services.AddScoped<IAuctionHubService, AuctionHubService>();
 builder.Services.AddScoped<IUserHubService,UserHubService>();
 // BUG FIX: All three AddValidatorsFromAssemblyContaining calls scan the SAME assembly
 // (AUCTION project), so validators were being registered 3x. One call is sufficient.
-builder.Services.AddValidatorsFromAssemblyContaining<CreateAuctionRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateAuctionRequestValidator>();
 builder.Services.AddAutoMapper(typeof(Mapper));
 
 builder.Services.AddMassTransit(x =>
@@ -60,6 +58,7 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<ProductDeleteConsumer>();
     x.AddConsumer<AuctionCreateConsumer>();
     x.AddConsumer<ProductVerifiedConsumer>();
+    x.AddConsumer<ProductUpdateConsumer>();
 
     x.UsingRabbitMq((ctx, cfg) =>
     {
@@ -159,6 +158,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddProblemDetails();
 builder.Services.AddControllers();
 
+builder.Services.AddHealthChecks();
 var app = builder.Build();
 
 // ── Auto-migrate on startup ───────────────────────────────────────────────────
@@ -175,6 +175,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.MapHealthChecks("/health");
 app.UseCors("AllowFrontend");
 app.UseStatusCodePages();
 app.UseExceptionHandler();
@@ -185,8 +186,7 @@ app.MapControllers();
 // ── SignalR hub ───────────────────────────────────────────────────────────────
 app.MapHub<AuctionHub>("/hubs/auction");
 
-
-app.Run("http://localhost:5001");
+app.Run();
 
 // Needed for WebApplicationFactory in integration tests
 public partial class Program { }

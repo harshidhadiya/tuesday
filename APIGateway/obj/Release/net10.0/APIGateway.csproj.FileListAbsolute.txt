@@ -1,0 +1,1 @@
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/APIGateway/obj/Release/net10.0/APIGateway.csproj.AssemblyReference.cache

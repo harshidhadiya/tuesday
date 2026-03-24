@@ -7,21 +7,24 @@ namespace AUCTION.Services;
 
 public class WatchlistService : IWatchlistService
 {
-    private readonly IAuctionRepository   _auctionRepo;
+    private readonly IAuctionRepository _auctionRepo;
     private readonly IWatchlistRepository _watchlistRepo;
-    private readonly IBidRepository       _bidRepo;
-    private readonly IRedisService        _redis;
+    private readonly IBidRepository _bidRepo;
+    private readonly IRedisService _redis;
+    private readonly ILogger<WatchlistService> _logger;
 
     public WatchlistService(
         IAuctionRepository auctionRepo,
         IWatchlistRepository watchlistRepo,
         IBidRepository bidRepo,
-        IRedisService redis)
+        IRedisService redis,
+        ILogger<WatchlistService> logger)
     {
-        _auctionRepo   = auctionRepo;
+        _auctionRepo = auctionRepo;
         _watchlistRepo = watchlistRepo;
-        _bidRepo       = bidRepo;
-        _redis         = redis;
+        _bidRepo = bidRepo;
+        _redis = redis;
+        _logger = logger;
     }
 
     public async Task<ServiceResult<bool>> WatchAuctionAsync(int auctionId, int userId)
@@ -55,33 +58,94 @@ public class WatchlistService : IWatchlistService
     public async Task<ServiceResult<List<AuctionResponse>>> GetWatchedAuctionsAsync(int userId)
     {
         var entries = await _watchlistRepo.GetByUserIdAsync(userId);
-        var result  = new List<AuctionResponse>();
+        var result = new List<AuctionResponse>();
+
+        // 1. Get current Indian Standard Time
+      
 
         foreach (var w in entries)
         {
-            var highest  = await _redis.GetHighestBidAsync(w.AuctionId);
+            var highest = await GetHighestBidWithFallbackAsync(w.AuctionId);
             var bidCount = await _bidRepo.GetBidCountAsync(w.AuctionId);
 
             result.Add(new AuctionResponse
             {
-                Id                   = w.Auction.Id,
-                ProductId            = w.Auction.ProductId,
-                CreatedByUserId      = w.Auction.CreatedByUserId,
-                StartingPrice        = w.Auction.StartingPrice,
-                ReservePrice         = w.Auction.ReservePrice,
-                MinBidIncrement      = w.Auction.MinBidIncrement,
-                StartDate            = w.Auction.StartDate,
-                EndDate              = w.Auction.EndDate,
-                Status               = w.Auction.Status.ToString(),
-                CurrentHighestBid    = highest?.Amount ?? w.Auction.StartingPrice,
-                TotalBids            = bidCount,
+                Id = w.Auction.Id,
+                ProductId = w.Auction.ProductId,
+                CreatedByUserId = w.Auction.CreatedByUserId,
+                StartingPrice = w.Auction.StartingPrice,
+                ReservePrice = w.Auction.CreatedByUserId==userId?w.Auction.ReservePrice:null,
+                MinBidIncrement = w.Auction.MinBidIncrement,
+                StartDate = w.Auction.StartDate,
+                EndDate = w.Auction.EndDate,
+                Status = w.Auction.Status.ToString(),
+                CurrentHighestBid = highest?.Amount ?? w.Auction.StartingPrice,
+                TotalBids = bidCount,
+                productName=w.Auction.ProductName,
+                productDescription=w.Auction.Description,
+
+                // 2. Calculate remaining seconds using Indian Time
                 TimeRemainingSeconds = w.Auction.Status == AuctionStatus.Live
-                                        ? (w.Auction.EndDate - DateTime.UtcNow).TotalSeconds
+                                        ? (w.Auction.EndDate - TimeHelper.Now()).TotalSeconds
                                         : null,
-                CreatedAt            = w.Auction.CreatedAt
+
+                CreatedAt = w.Auction.CreatedAt
             });
         }
-
+        if(result.Count()!=0)
+        result=result.OrderBy(x=>x.StartDate).ToList();
         return ServiceResult<List<AuctionResponse>>.Ok(result);
+    }
+
+    // BACKUP MECHANISM: Get highest bid from Redis, fallback to Database if Redis fails
+    private async Task<HighestBidCacheDto?> GetHighestBidWithFallbackAsync(int auctionId)
+    {
+        try
+        {
+            // Try Redis first (fast cache)
+            var redisResult = await _redis.GetHighestBidAsync(auctionId);
+            if (redisResult != null)
+                return redisResult;
+
+            // If Redis is empty, fallback to database
+            _logger.LogInformation("Highest bid not found in Redis for auction {AuctionId}. Falling back to database.", auctionId);
+            var dbBid = await _bidRepo.GetHighestBidAsync(auctionId);
+            
+            if (dbBid != null)
+            {
+                // Repopulate Redis cache for future requests
+                var cacheDto = new HighestBidCacheDto
+                {
+                    Amount = dbBid.Amount,
+                    BidId = dbBid.Id,
+                    PlacedAt = dbBid.PlacedAt,
+                    UserId = dbBid.UserId
+                };
+                
+                await _redis.SetHighestBidAsync(auctionId, cacheDto);
+                return cacheDto;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            // If Redis operation fails, fall back to database
+            _logger.LogWarning(ex, "Redis GetHighestBidAsync failed for auction {AuctionId}. Falling back to database.", auctionId);
+            var dbBid = await _bidRepo.GetHighestBidAsync(auctionId);
+            
+            if (dbBid != null)
+            {
+                return new HighestBidCacheDto
+                {
+                    Amount = dbBid.Amount,
+                    BidId = dbBid.Id,
+                    PlacedAt = dbBid.PlacedAt,
+                    UserId = dbBid.UserId
+                };
+            }
+
+            return null;
+        }
     }
 }

@@ -1,5 +1,3 @@
-using System.Net.Http;
-using System.Threading.Tasks;
 using ADMIN.Data.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -75,22 +73,6 @@ namespace USER.Controllers
             return await _adminLogin.Login(user, _httpClient);
         }
 
-        [HttpGet("verified")]
-        [Authorize(Roles = "ADMIN")]
-        public async Task<ActionResult> GetAllVerifiedRequests([FromQuery] int page = 1, [FromQuery] int size = 10)
-        {
-            var userId = getMyId(HttpContext);
-            if (userId == null)
-                return BadRequest(ApiResponse<verifiedAdminResponse>.ErrorResponse("Token Not Valid Format", 400));
-            var response = await _userAdminService.GetAllVerifiedRequestsAsync((int)userId, page, size);
-            // I changed this: if (response.Success) was returning a bad response even on success. Changed to if (!response.Success)
-            if (!response.Success)
-                return badResponce(response.Message, response.StatusCode, "GetAllVerifiedRequests");
-
-
-            return Ok(ApiResponse<List<verifiedAdminResponse>>.SuccessResponse(response.Data!, response.Message, response.StatusCode));
-        }
-
         [HttpGet("profile")]
         [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult> GetProfile(int ?userid=null)
@@ -104,17 +86,5 @@ namespace USER.Controllers
             return Ok(ApiResponse<AdminDetail>.SuccessResponse(response.Data!, response.Message, response.StatusCode));
         }
 
-        [HttpGet("pending")]
-        [Authorize(Roles = "ADMIN")]
-        public async Task<ActionResult> GetAllPendingRequests([FromQuery] int page = 1, [FromQuery] int size = 10)
-        {
-
-            var response = await _userAdminService.GetAllPendingRequestsAsync(page, size);
-            if (!response.Success)
-                return badResponce(response.Message, response.StatusCode, "GetAllPendingRequests");
-
-
-            return Ok(ApiResponse<List<pendingVerificationResponse>>.SuccessResponse(response.Data!, response.Message));
-        }
     }
 }

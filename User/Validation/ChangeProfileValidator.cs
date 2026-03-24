@@ -27,10 +27,7 @@ namespace USER.Validation
                 .When(x => !string.IsNullOrWhiteSpace(x.Address))
                 .WithMessage("Address must be less than 200 characters");
 
-            RuleFor(x => x.ProfilePicture)
-                .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
-                .When(x => !string.IsNullOrWhiteSpace(x.ProfilePicture))
-                .WithMessage("ProfilePicture must be a valid URL");
+          
 
             RuleFor(x => x.Password)
                 .MinimumLength(8)

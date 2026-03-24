@@ -7,11 +7,34 @@ using AutoMapper;
 using MassTransit;
 using Messaging.Contracts;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
 
 namespace AUCTION.Consumers
 {
-    public class AuctionCreateConsumer(IAuctionRepository _repo,IMapper mapper,IUserHubService userHub,IPublishEndpoint publish,ILogger<AuctionCreateConsumer> logger) : IConsumer<AuctionCreatedFromVerifyService>
+    public class AuctionCreateConsumer : IConsumer<AuctionCreatedFromVerifyService>
+{
+    private readonly IAuctionRepository _repo;
+    private readonly IMapper mapper;
+    private readonly IUserHubService userHub;
+    private readonly IPublishEndpoint publish;
+    private readonly ILogger<AuctionCreateConsumer> logger;
+    private readonly AuctionDbContext ctx;
+
+    public AuctionCreateConsumer(
+        IAuctionRepository repo,
+        IMapper mapper,
+        IUserHubService userHub,
+        IPublishEndpoint publish,
+        ILogger<AuctionCreateConsumer> logger,
+        AuctionDbContext ctx)
     {
+        this._repo = repo;
+        this.mapper = mapper;
+        this.userHub = userHub;
+        this.publish = publish;
+        this.logger = logger;
+        this.ctx = ctx;
+    }
        
         public async Task Consume(ConsumeContext<AuctionCreatedFromVerifyService> context)
         {
@@ -33,6 +56,8 @@ namespace AUCTION.Consumers
                 exist.ReservePrice=context.Message.ReservePrice;
                 exist.StartingPrice=context.Message.StartingPrice;
                 exist.Status=AuctionStatus.Upcoming;
+                ctx.Bids.RemoveRange(exist.Bids);
+                exist.Bids.Clear();
                 await _repo.UpdateAsync(exist);
                 await _repo.SaveChangesAsync();
                 await publish.Publish(new ProductAddAuctionDate(productId:context.Message.ProductId,StartDate:context.Message.StartDate,EndDate:context.Message.EndDate));

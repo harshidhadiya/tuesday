@@ -26,6 +26,7 @@ public class AuctionDetailResponse : AuctionResponse
     public int                WatcherCount   { get; set; }
     public long               LiveViewerCount { get; set; }
     public WinnerResponse?    Winner         { get; set; }
+    public bool win{get;set;}=false;
 }
 
 public class BidResponse

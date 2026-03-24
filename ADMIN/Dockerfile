@@ -1,12 +1,18 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-WORKDIR /App
-COPY *.csproj .
-RUN dotnet restore
+WORKDIR /src
 
+# Copy project files and restore
+COPY ["ADMIN/ADMIN.csproj", "ADMIN/"]
+COPY ["Messaging.Contracts/Messaging.Contracts.csproj", "Messaging.Contracts/"]
+RUN dotnet restore "ADMIN/ADMIN.csproj"
+
+# Copy source and build
 COPY . .
-RUN dotnet publish -c Release -o /publish
+WORKDIR "/src/ADMIN"
+RUN dotnet publish "ADMIN.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 
-WORKDIR /App
-COPY --from=build /publish .
-ENTRYPOINT [ "dotnet","ADMIN.dll" ]
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "ADMIN.dll"]

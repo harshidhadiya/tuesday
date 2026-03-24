@@ -1,5 +1,4 @@
 using System.Text;
-using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MACUTION.Middleware;
@@ -13,11 +12,12 @@ using PRODUCT.GlobalErrorHandler;
 using PRODUCT.Model;
 using PRODUCT.Validation;
 using PRODUCT.Services;
-using PRODUCT.Mapper;
 using PRODUCT.Repository;
 using MassTransit;
 using CloudinaryService;
 using PRODUCT.Messaging.Consumers;
+using AutoMapper;
+using PRODUCT.Mapper;
 
 
 
@@ -30,6 +30,9 @@ builder.Services.AddScoped<Irepository,Repository>();
 builder.Services.AddValidatorsFromAssemblyContaining<ProductRequestValidation>();
 builder.Services.AddValidatorsFromAssemblyContaining<ProductUpdateValidation>();
 builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddOptions<RabbitMqOptions>()
+    .Bind(builder.Configuration.GetSection("RabbitMq"))
+    .ValidateOnStart();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyPolicy", policy =>
@@ -94,7 +97,9 @@ builder.Services.AddMassTransit(x =>
 });
 
 builder.Services.AddScoped<ClodinaryService>();
+builder.Services.AddHealthChecks();
 var app = builder.Build();
+app.MapHealthChecks("/health");
 Console.WriteLine(DateTime.Now);
 app.UseCors("MyPolicy");
 app.UseExceptionHandler();

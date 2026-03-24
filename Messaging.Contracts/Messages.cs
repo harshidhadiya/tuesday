@@ -126,3 +126,8 @@ public sealed record ProductAddAuctionDate(
     DateTime ?StartDate,
     DateTime ?EndDate
 );
+
+public sealed record AdminUpdate(
+    int AdminId,
+    string? Name = null,
+    string? Email = null);

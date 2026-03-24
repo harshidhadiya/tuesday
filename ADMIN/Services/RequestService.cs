@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +7,6 @@ using ADMIN.DTOs.Responses;
 using ADMIN.Model;
 using ADMIN.Repositories;
 using AutoMapper;
-using Microsoft.Extensions.Logging;
 
 namespace ADMIN.Services
 {
@@ -310,25 +307,6 @@ namespace ADMIN.Services
         }
 
 
-        public async Task<ServiceResult<object>> GetDashboardAsync()
-        {
-            try
-            {
-                var pendingCount = await _repository.GetPendingCountAsync();
-                var verifiedCount = await _repository.GetVerifiedCountAsync();
-
-                return ServiceResult<object>.Ok(new
-                {
-                    pendingCount,
-                    verifiedCount,
-                    message = "Admin request dashboard for showcase"
-                }, "Request dashboard");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving request dashboard");
-                return ServiceResult<object>.Error("An error occurred while retrieving dashboard", 500);
-            }
-        }
+       
     }
 }

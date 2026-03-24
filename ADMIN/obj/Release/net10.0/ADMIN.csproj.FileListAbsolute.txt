@@ -1,0 +1,9 @@
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/ADMIN/obj/Release/net10.0/ADMIN.csproj.AssemblyReference.cache
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/ADMIN/obj/Release/net10.0/rpswa.dswa.cache.json
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/ADMIN/obj/Release/net10.0/ADMIN.GeneratedMSBuildEditorConfig.editorconfig
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/ADMIN/obj/Release/net10.0/ADMIN.AssemblyInfoInputs.cache
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/ADMIN/obj/Release/net10.0/ADMIN.AssemblyInfo.cs
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/ADMIN/obj/Release/net10.0/ADMIN.csproj.CoreCompileInputs.cache
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/ADMIN/obj/Release/net10.0/ADMIN.MvcApplicationPartsAssemblyInfo.cs
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/ADMIN/obj/Release/net10.0/ADMIN.MvcApplicationPartsAssemblyInfo.cache
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/ADMIN/obj/Release/net10.0/ADMIN.sourcelink.json

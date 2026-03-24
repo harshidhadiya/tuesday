@@ -1,4 +1,5 @@
 using AUCTION.Data.Dto.Request;
+using AUCTION.Data.Entities;
 using FluentValidation;
 
 namespace AUCTION.Validation
@@ -7,6 +8,7 @@ namespace AUCTION.Validation
     {
         public UpdateAuctionRequestValidator()
         {
+              
             RuleFor(x => x.StartingPrice)
                 .GreaterThan(0)
                 .When(x => x.StartingPrice.HasValue)
@@ -23,7 +25,7 @@ namespace AUCTION.Validation
                 .WithMessage("Minimum bid increment must be greater than 0.");
 
             RuleFor(x => x.StartDate)
-                .GreaterThan(DateTime.UtcNow)
+                .GreaterThan(TimeHelper.Now())
                 .When(x => x.StartDate.HasValue)
                 .WithMessage("Start date must be in the future.");
 

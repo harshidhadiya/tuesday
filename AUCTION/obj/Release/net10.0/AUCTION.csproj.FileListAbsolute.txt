@@ -1,0 +1,9 @@
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/AUCTION/obj/Release/net10.0/AUCTION.csproj.AssemblyReference.cache
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/AUCTION/obj/Release/net10.0/rpswa.dswa.cache.json
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/AUCTION/obj/Release/net10.0/AUCTION.GeneratedMSBuildEditorConfig.editorconfig
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/AUCTION/obj/Release/net10.0/AUCTION.AssemblyInfoInputs.cache
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/AUCTION/obj/Release/net10.0/AUCTION.AssemblyInfo.cs
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/AUCTION/obj/Release/net10.0/AUCTION.csproj.CoreCompileInputs.cache
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/AUCTION/obj/Release/net10.0/AUCTION.MvcApplicationPartsAssemblyInfo.cs
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/AUCTION/obj/Release/net10.0/AUCTION.MvcApplicationPartsAssemblyInfo.cache
+/home/harshid/Project_Practice/_net/Microservice_2/tuesday/AUCTION/obj/Release/net10.0/AUCTION.sourcelink.json

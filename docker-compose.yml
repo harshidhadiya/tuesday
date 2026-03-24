@@ -1,97 +1,213 @@
 services:
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: microservice-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservices-network
+    command: redis-server --appendonly yes
+
+  # RabbitMQ
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: microservice3-rabbitmq
+    container_name: microservice-rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - microservices-network
+
+  # Admin Service
+  admin:
+    build:
+      context: .
+      dockerfile: ADMIN/Dockerfile
+    container_name: admin-service
+    ports:
+      - "5087:5087"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5087
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AdminDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__VirtualHost: /
+      RabbitMq__UserName: guest
+      RabbitMq__Password: guest
+      Jwt__Key: "harshidHADIYAHOWAREYOUDFSDFSDSDFGS"
+    depends_on:
+      - rabbitmq
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # User Service
+  user:
+    build:
+      context: .
+      dockerfile: User/Dockerfile
+    container_name: user-service
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=UserDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__VirtualHost: /
+      RabbitMq__UserName: guest
+      RabbitMq__Password: guest
+      Microservice__Request_admin_url: "http://admin:5087"
+      Jwt__Key: "harshidHADIYAHOWAREYOUDFSDFSDSDFGS"
+    depends_on:
+      - rabbitmq
+      - admin
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Product Service
+  product:
+    build:
+      context: .
+      dockerfile: Product/Dockerfile
+    container_name: product-service
+    ports:
+      - "5088:5088"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5088
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=ProductDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__VirtualHost: /
+      RabbitMq__UserName: guest
+      RabbitMq__Password: guest
+      Microservice__Verify_url: "http://verify:5089"
+      Microservice__User_url: "http://user:8080"
+      Microservice__Request_admin_url: "http://admin:5087"
+      Jwt__Key: "harshidHADIYAHOWAREYOUDFSDFSDSDFGS"
+    depends_on:
+      - rabbitmq
+      - admin
+      - user
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Verify Service
   verify:
-    build: ./Verify
+    build:
+      context: .
+      dockerfile: Verify/Dockerfile
+    container_name: verify-service
     ports:
       - "5089:5089"
-    container_name: VerifyService
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
     environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5089
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=UserDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__VirtualHost: /
+      RabbitMq__UserName: guest
+      RabbitMq__Password: guest
       Microservice__Request_admin_url: "http://admin:5087"
       Microservice__Product_url: "http://product:5088"
       Microservice__User_url: "http://user:8080"
-      ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=UserDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
-      RabbitMq__HostName: rabbitmq
-      RabbitMq__ExchangeName: product
-      ASPNETCORE_URLS: http://+:5089
-      ASPNETCORE_ENVIRONMENT: Development
-  product:
-    build: ./Product
-    ports:
-      - "5088:5088"
-    container_name: ProductService
+      Jwt__Key: "harshidHADIYAHOWAREYOUDFSDFSDSDFGS"
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-    environment:
-      Microservice__Request_admin_url: "http://admin:5087"
-      Microservice__Verify_url: "http://verify:5089"
-      Microservice__User_url: "http://user:8080"
-      ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=ProductDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
-      RabbitMq__HostName: rabbitmq
-      ASPNETCORE_URLS: http://+:5088
-      ASPNETCORE_ENVIRONMENT: Development
-  user:
-    build: ./User
+      - rabbitmq
+      - admin
+      - product
+      - user
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Auction Service
+  auction:
+    build:
+      context: .
+      dockerfile: AUCTION/Dockerfile
+    container_name: auction-service
     ports:
-      - "8080:8080"
-    container_name: UserService
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - "5001:5001"
     environment:
-      ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=UserDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
-      RabbitMq__HostName: rabbitmq
-      Microservice__Request_admin_url: "http://admin:5087"
-      ASPNETCORE_URLS: http://+:8080
       ASPNETCORE_ENVIRONMENT: Development
-  admin:
-    build: ./ADMIN
-    ports:
-      - "5087:5087"
-    container_name: AdminService
+      ASPNETCORE_URLS: http://+:5001
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AuctionDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
+      Redis__ConnectionString: "redis:6379"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__VHost: "/"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
+      Jwt__Key: "harshidHADIYAHOWAREYOUDFSDFSDSDFGS"
+      Microservice__api_gate_way: "http://apigateway:5000"
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-    environment:
-      ConnectionStrings__DefaultConnection: "Server=host.docker.internal,1433;Database=AdminDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
-      RabbitMq__HostName: rabbitmq
-      ASPNETCORE_URLS: http://+:5087
-      ASPNETCORE_ENVIRONMENT: Development
+      - rabbitmq
+      - redis
+      - admin
+      - user
+      - product
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # API Gateway
   apigateway:
-    build: ./APIGateway
+    build:
+      context: .
+      dockerfile: APIGateway/Dockerfile
+    container_name: api-gateway
     ports:
       - "5000:5000"
-    container_name: ApiGateway
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
     environment:
-      ReverseProxy__Clusters__userCluster__Destinations__d1__Address: "http://user:8080/"
-      ReverseProxy__Clusters__adminCluster__Destinations__d1__Address: "http://user:8080/"
-      ReverseProxy__Clusters__productCluster__Destinations__d1__Address: "http://product:5088/"
-      ReverseProxy__Clusters__verifyCluster__Destinations__d1__Address: "http://verify:5089/"
-      ReverseProxy__Clusters__requestCluster__Destinations__d1__Address: "http://admin:5087"
-      ReverseProxy__Clusters__adminProductCluster__Destinations__d1__Address: "http://admin:5087/"
-      ASPNETCORE_URLS: http://+:5000
       ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5000
+      ReverseProxy__Clusters__userCluster__Destinations__d1__Address: "http://user:8080/"
+
+      ReverseProxy__Clusters__adminCluster__Destinations__d1__Address: "http://user:8080/"
+
+      ReverseProxy__Clusters__requestCluster__Destinations__d1__Address: "http://admin:5087/"
+
+      ReverseProxy__Clusters__adminProductCluster__Destinations__d1__Address: "http://admin:5087/"
+
+      ReverseProxy__Clusters__productCluster__Destinations__d1__Address: "http://product:5088/"
+
+      ReverseProxy__Clusters__verifyCluster__Destinations__d1__Address: "http://verify:5089/"
+
+      ReverseProxy__Clusters__auctionCluster__Destinations__d1__Address: "http://auction:5001/"
+
+      ReverseProxy__Clusters__hubCluster__Destinations__d1__Address: "http://auction:5001/"
+
+      ReverseProxy__Clusters__watchListCluster__Destinations__d1__Address: "http://auction:5001/"
+      Microservice__Admin: "http://admin:5087"
+      Microservice__User: "http://user:8080"
+      Microservice__Product: "http://product:5088"
+      Microservice__Verify: "http://verify:5089"
+      Jwt__Key: "harshidHADIYAHOWAREYOUDFSDFSDSDFGS"
+    depends_on:
+      - admin
+      - user
+      - product
+      - verify
+      - auction
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+networks:
+  microservices-network:
+    driver: bridge
 
 volumes:
   rabbitmq_data:
+  redis_data:

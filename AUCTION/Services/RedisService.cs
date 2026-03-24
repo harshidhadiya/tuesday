@@ -14,6 +14,8 @@ public interface IRedisService
     Task DecrementViewerCountAsync(int auctionId);
     Task<long> GetViewerCountAsync(int auctionId);
     Task DeleteAuctionCacheAsync(int auctionId);
+    Task<bool>  setContaining(int auctionId,string userId,TimeSpan expiry);
+    Task<bool> DeleteContaining(int auctionId,string userId);
 }
 
 public class RedisService : IRedisService
@@ -39,7 +41,10 @@ public class RedisService : IRedisService
     public async Task<bool> SetBidLockAsync(int auctionId, int userId, TimeSpan expiry)
         => await _db.StringSetAsync(
                $"auction:{auctionId}:lock:{userId}", "1", expiry, When.NotExists);
-
+ 
+    public async Task<bool> setContaining(int auctionId,string userId,TimeSpan expiry)=>await _db.StringSetAsync(
+               $"auction:{auctionId}:lock:{userId}", "1", expiry, When.NotExists);
+               
     public async Task ReleaseBidLockAsync(int auctionId, int userId)
         => await _db.KeyDeleteAsync($"auction:{auctionId}:lock:{userId}");
 
@@ -60,4 +65,5 @@ public class RedisService : IRedisService
         await _db.KeyDeleteAsync($"auction:{auctionId}:highest_bid");
         await _db.KeyDeleteAsync($"auction:{auctionId}:viewers");
     }
+    public async Task<bool> DeleteContaining(int auctionId,string userId)=> await _db.KeyDeleteAsync($"auction:{auctionId}:lock:{userId}");
 }

@@ -10,7 +10,6 @@ using VERIFY.Messaging;
 using VERIFY.Model;
 using VERIFY.Repositories;
 using VERIFY.Services;
-using VERIFY.Validation;
 using MassTransit;
 using Microsoft.Extensions.Options;
 using VERIFY.Mapper;
@@ -106,7 +105,9 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
+builder.Services.AddHealthChecks();
 var app = builder.Build();
+app.MapHealthChecks("/health");
 
 app.UseCors("MyPolicy");
 app.UseAuthentication();

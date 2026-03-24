@@ -6,8 +6,6 @@ using AUCTION.Hubs;
 using AUCTION.Services.Interfaces;
 using MassTransit;
 using Messaging.Contracts;
-using Microsoft.AspNetCore.SignalR;
-
 namespace AUCTION.Services;
 
 public class BidService : IBidService
@@ -15,7 +13,7 @@ public class BidService : IBidService
     private readonly IAuctionRepository _auctionRepo;
     private readonly IBidRepository _bidRepo;
     private readonly IRedisService _redis;
-    private readonly IPublishEndpoint _publish;     
+    private readonly IPublishEndpoint _publish;
     private readonly IAuctionHubService _hub;
     private readonly ILogger<BidService> _logger;
 
@@ -28,11 +26,11 @@ public class BidService : IBidService
         ILogger<BidService> logger)
     {
         _auctionRepo = auctionRepo;
-        _bidRepo     = bidRepo;
-        _redis       = redis;
-        _publish     = publish;
-        _hub         = hub;
-        _logger      = logger;
+        _bidRepo = bidRepo;
+        _redis = redis;
+        _publish = publish;
+        _hub = hub;
+        _logger = logger;
     }
 
     public async Task<ServiceResult<BidResponse>> PlaceBidAsync(
@@ -58,9 +56,9 @@ public class BidService : IBidService
             if (auction.CreatedByUserId == userId)
                 return ServiceResult<BidResponse>.Forbidden("You cannot bid on your own auction");
 
-            // 5. Validate amount against current highest bid (served from Redis cache)
-            var currentHighest = await _redis.GetHighestBidAsync(auctionId);
-            var minimumBid     = currentHighest != null
+            // 5. Validate amount against current highest bid (with Redis fallback to DB)
+            var currentHighest = await GetHighestBidWithFallbackAsync(auctionId);
+            var minimumBid = currentHighest != null
                 ? currentHighest.Amount + auction.MinBidIncrement
                 : auction.StartingPrice;
 
@@ -72,9 +70,9 @@ public class BidService : IBidService
             var newBid = new Bid
             {
                 AuctionId = auctionId,
-                UserId    = userId,
-                Amount    = request.Amount,
-                Status    = BidStatus.Active,
+                UserId = userId,
+                Amount = request.Amount,
+                Status = BidStatus.Active,
                 IpAddress = ipAddress
             };
             await _bidRepo.AddAsync(newBid);
@@ -86,7 +84,7 @@ public class BidService : IBidService
             if (currentHighest != null)
             {
                 previousBidderId = currentHighest.UserId;
-                previousAmount   = currentHighest.Amount;
+                previousAmount = currentHighest.Amount;
 
                 var prevBid = await _bidRepo.GetByIdAsync(currentHighest.BidId);
                 if (prevBid != null)
@@ -101,26 +99,41 @@ public class BidService : IBidService
             // 8. Update Redis cache with new highest bid
             await _redis.SetHighestBidAsync(auctionId, new HighestBidCacheDto
             {
-                BidId    = newBid.Id,
-                UserId   = userId,
-                Amount   = request.Amount,
+                BidId = newBid.Id,
+                UserId = userId,
+                Amount = request.Amount,
                 PlacedAt = newBid.PlacedAt
             });
 
-            
+
 
             // 9. Auto-extend: if bid placed in last 2 minutes, extend by 2 more minutes
-            if (auction.EndDate - DateTime.UtcNow <= TimeSpan.FromMinutes(2) && auction.Extension <= auction.maxExtension)
+            // 1. Get the current Indian Time
+            
+
+            // 2. Perform the logic using indianNow
+            if (auction.EndDate - TimeHelper.Now() <= TimeSpan.FromMinutes(2) && auction.Extension <= auction.maxExtension)
             {
-                auction.EndDate   = auction.EndDate.AddMinutes(2);
-                auction.UpdatedAt = DateTime.UtcNow;
+                // Extend the end date by 2 minutes
+                auction.EndDate = auction.EndDate.AddMinutes(2);
+
+                // Set UpdatedAt to current Indian Time
+                auction.UpdatedAt = TimeHelper.Now();
+
                 auction.Extension++;
+
                 await _auctionRepo.UpdateAsync(auction);
                 await _auctionRepo.SaveChangesAsync();
-                await _hub.BroadcastTimerTick(auction.Id,(auction.EndDate - DateTime.UtcNow).TotalSeconds);
-                await _hub.AuctionMessage(auction.Id,"Bid Placed Last 2 minituse auction is Extende by 2 minitues More");
-                _logger.LogInformation("Auction {AuctionId} auto-extended by 2 minutes", auctionId);
+
+                // Broadcast the new remaining seconds based on Indian Time
+                double remainingSeconds = (auction.EndDate - TimeHelper.Now()).TotalSeconds;
+                await _hub.BroadcastTimerTick(auction.Id, remainingSeconds);
+
+                await _hub.AuctionMessage(auction.Id, "Bid Placed in last 2 minutes. Auction extended by 2 minutes!");
+
+                _logger.LogInformation("Auction {AuctionId} auto-extended by 2 minutes at {Time}", auction.Id, TimeHelper.Now());
             }
+
 
             // 10. Publish event via MassTransit → RabbitMQ
             await _publish.Publish(new AuctionBidPlaced(
@@ -135,11 +148,11 @@ public class BidService : IBidService
             // 11. Broadcast to all users in the auction room via SignalR
             await _hub.BroadcastBidPlaced(auctionId, new
             {
-                bidId        = newBid.Id,
+                bidId = newBid.Id,
                 maskedBidder = MaskUserId(userId),
-                amount       = request.Amount,
-                placedAt     = newBid.PlacedAt,
-                newEndDate   = auction.EndDate
+                amount = request.Amount,
+                placedAt = newBid.PlacedAt,
+                newEndDate = auction.EndDate
             });
 
             _logger.LogInformation("Bid {BidId} placed: {Amount} on auction {AuctionId} by user {UserId}",
@@ -147,12 +160,12 @@ public class BidService : IBidService
 
             return ServiceResult<BidResponse>.Created(new BidResponse
             {
-                Id           = newBid.Id,
-                AuctionId    = auctionId,
+                Id = newBid.Id,
+                AuctionId = auctionId,
                 MaskedBidder = MaskUserId(userId),
-                Amount       = request.Amount,
-                Status       = BidStatus.Active.ToString(),
-                PlacedAt     = newBid.PlacedAt
+                Amount = request.Amount,
+                Status = BidStatus.Active.ToString(),
+                PlacedAt = newBid.PlacedAt
             }, "Bid placed successfully");
         }
         finally
@@ -163,29 +176,30 @@ public class BidService : IBidService
     }
 
     public async Task<ServiceResult<PagedResponse<BidResponse>>> GetBidHistoryAsync(
-        int auctionId, int page, int pageSize)
+        int auctionId, int page, int pageSize,bool mine,int userId)
     {
         var auction = await _auctionRepo.GetByIdAsync(auctionId);
         if (auction == null)
             return ServiceResult<PagedResponse<BidResponse>>.NotFound();
 
-        var bids  = await _bidRepo.GetByAuctionIdAsync(auctionId, page, pageSize);
+        var bids = await _bidRepo.GetByAuctionIdAsync(auctionId, page, pageSize);
         var total = await _bidRepo.GetBidCountAsync(auctionId);
-
+        if(mine)
+        bids =  bids.Where(x=>x.UserId==userId).ToList();
         return ServiceResult<PagedResponse<BidResponse>>.Ok(new PagedResponse<BidResponse>
         {
             Items = bids.Select(b => new BidResponse
             {
-                Id           = b.Id,
-                AuctionId    = b.AuctionId,
+                Id = b.Id,
+                AuctionId = b.AuctionId,
                 MaskedBidder = MaskUserId(b.UserId),
-                Amount       = b.Amount,
-                Status       = b.Status.ToString(),
-                PlacedAt     = b.PlacedAt
+                Amount = b.Amount,
+                Status = b.Status.ToString(),
+                PlacedAt = b.PlacedAt
             }).ToList(),
             TotalCount = total,
-            Page       = page,
-            PageSize   = pageSize
+            Page = page,
+            PageSize = pageSize
         });
     }
 
@@ -195,49 +209,61 @@ public class BidService : IBidService
         if (auction == null)
             return ServiceResult<HighestBidCacheDto?>.NotFound();
 
-        var cached = await _redis.GetHighestBidAsync(auctionId);
-
-        // Cache miss → fall back to DB and repopulate cache
-        if (cached == null)
-        {
-            var dbBid = await _bidRepo.GetHighestBidAsync(auctionId);
-            if (dbBid != null)
-            {
-                cached = new HighestBidCacheDto
-                {
-                    BidId    = dbBid.Id,
-                    UserId   = dbBid.UserId,
-                    Amount   = dbBid.Amount,
-                    PlacedAt = dbBid.PlacedAt
-                };
-                await _redis.SetHighestBidAsync(auctionId, cached);
-            }
-        }
-
+        var cached = await GetHighestBidWithFallbackAsync(auctionId);
         return ServiceResult<HighestBidCacheDto?>.Ok(cached);
     }
 
-    public async Task<ServiceResult<List<MyBidResponse>>> GetMyBidsAsync(int auctionId, int userId)
+
+    // BACKUP MECHANISM: Get highest bid from Redis, fallback to Database if Redis fails or empty
+    private async Task<HighestBidCacheDto?> GetHighestBidWithFallbackAsync(int auctionId)
     {
-        var auction = await _auctionRepo.GetByIdAsync(auctionId);
-        if (auction == null)
-            return ServiceResult<List<MyBidResponse>>.NotFound();
+        try
+        {
+            // Try Redis first (fast cache)
+            var redisResult = await _redis.GetHighestBidAsync(auctionId);
+            if (redisResult != null)
+                return redisResult;
 
-        var bids    = await _bidRepo.GetByUserAndAuctionAsync(userId, auctionId);
-        var highest = await _redis.GetHighestBidAsync(auctionId);
-
-        return ServiceResult<List<MyBidResponse>>.Ok(
-            bids.Select(b => new MyBidResponse
+            // If Redis is empty, fallback to database
+            _logger.LogInformation("Highest bid not found in Redis for auction {AuctionId}. Falling back to database.", auctionId);
+            var dbBid = await _bidRepo.GetHighestBidAsync(auctionId);
+            
+            if (dbBid != null)
             {
-                Id                = b.Id,
-                AuctionId         = b.AuctionId,
-                UserId            = b.UserId,
-                MaskedBidder      = MaskUserId(b.UserId),
-                Amount            = b.Amount,
-                Status            = b.Status.ToString(),
-                PlacedAt          = b.PlacedAt,
-                IsCurrentlyWinning = highest?.UserId == userId && b.Amount == highest?.Amount
-            }).ToList());
+                // Repopulate Redis cache for future requests
+                var cacheDto = new HighestBidCacheDto
+                {
+                    BidId = dbBid.Id,
+                    UserId = dbBid.UserId,
+                    Amount = dbBid.Amount,
+                    PlacedAt = dbBid.PlacedAt
+                };
+                
+                await _redis.SetHighestBidAsync(auctionId, cacheDto);
+                return cacheDto;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            // If Redis operation fails, fall back to database
+            _logger.LogWarning(ex, "Redis GetHighestBidAsync failed for auction {AuctionId}. Falling back to database.", auctionId);
+            var dbBid = await _bidRepo.GetHighestBidAsync(auctionId);
+            
+            if (dbBid != null)
+            {
+                return new HighestBidCacheDto
+                {
+                    BidId = dbBid.Id,
+                    UserId = dbBid.UserId,
+                    Amount = dbBid.Amount,
+                    PlacedAt = dbBid.PlacedAt
+                };
+            }
+
+            return null;
+        }
     }
 
     private static string MaskUserId(int userId)

@@ -1,4 +1,4 @@
-using AUCTION.Data.Entities;
+using System.Collections.Concurrent;
 using AUCTION.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -8,6 +8,7 @@ namespace AUCTION.Hubs;
 [Authorize]
 public class AuctionHub : Hub
 {
+    private static readonly ConcurrentDictionary<string, ConcurrentDictionary<int, byte>> _connectionViewers = new();
     private readonly IRedisService _redis;
     private readonly ILogger<AuctionHub> _logger;
 
@@ -17,34 +18,83 @@ public class AuctionHub : Hub
         _logger = logger;
     }
 
-    // Client calls this when they open an auction page
+    // Client calls this when they open an auction page (counts as a viewer)
     public async Task JoinAuction(string auctionId)
     {
-
         if (!int.TryParse(auctionId, out var id)) return;
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"auction_{auctionId}");
-        await _redis.IncrementViewerCountAsync(id);
-        var count = await _redis.GetViewerCountAsync(id);
-        await Clients.Group($"auction_{auctionId}").SendAsync("ViewerCountUpdated", count);
 
-        _logger.LogInformation("User {User} joined auction room {AuctionId}", Context.UserIdentifier, auctionId);
+        // 1. Add to group to receive all events
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"auction_{auctionId}");
+
+        // 2. Increment global viewer count only if this connection isn't already a viewer for this ID
+        var connectionsViewed = _connectionViewers.GetOrAdd(Context.ConnectionId, _ => new ConcurrentDictionary<int, byte>());
+        if (connectionsViewed.TryAdd(id, 1))
+        {
+            await _redis.IncrementViewerCountAsync(id);
+            var count = await _redis.GetViewerCountAsync(id);
+            await Clients.Group($"auction_{auctionId}").SendAsync("ViewerCountUpdated", count);
+            _logger.LogInformation("Connection {ConnectionId} (User {User}) JOINED as viewer for auction {AuctionId}. New count: {Count}", 
+                Context.ConnectionId, Context.UserIdentifier, auctionId, count);
+        }
     }
 
-    // Client calls this when they leave the auction page
+    public async Task ListenToAuction(string auctionId)
+    {
+        if (!int.TryParse(auctionId, out var id)) return;
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"auctiondetail_{auctionId}");
+        _logger.LogInformation("Connection {ConnectionId} (User {User}) is now LISTENING to auction {AuctionId}", 
+            Context.ConnectionId, Context.UserIdentifier, auctionId);
+    }
+
+    // Client calls this when they leave the detail page but might still have dashboard open (Listen mode)
+    public async Task StopViewing(string auctionId)
+    {
+        if (!int.TryParse(auctionId, out var id)) return;
+
+        if (_connectionViewers.TryGetValue(Context.ConnectionId, out var viewed) && viewed.TryRemove(id, out _))
+        {
+            await _redis.DecrementViewerCountAsync(id);
+            var count = await _redis.GetViewerCountAsync(id);
+            await Clients.Group($"auction_{auctionId}").SendAsync("ViewerCountUpdated", count);
+            _logger.LogInformation("Connection {ConnectionId} STOPPED VIEWING auction {AuctionId}. Still listening in group. New count: {Count}", 
+                Context.ConnectionId, auctionId, count);
+        }
+    }
+
+    // Client calls this when they leave the auction detail page
     public async Task LeaveAuction(string auctionId)
     {
         if (!int.TryParse(auctionId, out var id)) return;
 
+        // 1. Remove from group
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"auction_{auctionId}");
-        await _redis.DecrementViewerCountAsync(id);
 
-        var count = await _redis.GetViewerCountAsync(id);
-        await Clients.Group($"auction_{auctionId}").SendAsync("ViewerCountUpdated", count);
+        // 2. Decrement global count if they were marked as a viewer
+        if (_connectionViewers.TryGetValue(Context.ConnectionId, out var viewed) && viewed.TryRemove(id, out _))
+        {
+            await _redis.DecrementViewerCountAsync(id);
+            var count = await _redis.GetViewerCountAsync(id);
+            await Clients.Group($"auction_{auctionId}").SendAsync("ViewerCountUpdated", count);
+            _logger.LogInformation("Connection {ConnectionId} LEFT viewer status for auction {AuctionId}. New count: {Count}", 
+                Context.ConnectionId, auctionId, count);
+        }
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        _logger.LogInformation("Client disconnected: {ConnectionId}", Context.ConnectionId);
+        // Automatically decrement counts for any auctions this connection was "Joined" to
+        if (_connectionViewers.TryRemove(Context.ConnectionId, out var viewedAuctions))
+        {
+            foreach (var id in viewedAuctions.Keys)
+            {
+                await _redis.DecrementViewerCountAsync(id);
+                var count = await _redis.GetViewerCountAsync(id);
+                await Clients.Group($"auction_{id}").SendAsync("ViewerCountUpdated", count);
+                _logger.LogInformation("Connection {ConnectionId} DISCONNECTED. Automatically decremented count for auction {AuctionId}. New count: {Count}", 
+                    Context.ConnectionId, id, count);
+            }
+        }
+
         await base.OnDisconnectedAsync(exception);
     }
 }
@@ -61,6 +111,7 @@ public interface IAuctionHubService
     Task AuctionMessage(int auctionId, string message);
     Task BroadcastProductDeleted(int auctionId);
     Task BroadcastProductUnverified(int auctionId);
+    Task BroadcastAuctionUpdated(int auctionId, object data);
 }
 
 public class AuctionHubService : IAuctionHubService
@@ -70,12 +121,14 @@ public class AuctionHubService : IAuctionHubService
 
     private IClientProxy Room(int auctionId)
         => _hub.Clients.Group($"auction_{auctionId}");
+        
+    private IClientProxy Room1(int auctionId)=>_hub.Clients.Group($"auctiondetail_{auctionId}");
 
     public Task BroadcastBidPlaced(int auctionId, object data)
         => Room(auctionId).SendAsync("BidPlaced", data);
 
     public Task BroadcastAuctionStarted(int auctionId)
-        => Room(auctionId).SendAsync("AuctionStarted", new { auctionId });
+        => Room1(auctionId).SendAsync("AuctionStarted", new { auctionId });
 
     public Task BroadcastAuctionClosed(int auctionId, object data)
         => Room(auctionId).SendAsync("AuctionClosed", data);
@@ -85,7 +138,8 @@ public class AuctionHubService : IAuctionHubService
     public Task AuctionMessage(int auctionId, string message)
     => Room(auctionId).SendAsync("AuctionMessage", new { message });
 
-
+    public Task BroadcastAuctionUpdated(int auctionId, object data)
+        => Room(auctionId).SendAsync("AuctionUpdated", data);
 
     public Task BroadcastTimerTick(int auctionId, double secondsRemaining)
         => Room(auctionId).SendAsync("TimerTick", new { auctionId, secondsRemaining });

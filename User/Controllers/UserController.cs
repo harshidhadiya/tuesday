@@ -1,6 +1,6 @@
-using System.Threading.Tasks;
 using ADMIN.Data.Dto;
 using MassTransit;
+using Messaging.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using USER.CloudinaryService;
@@ -18,16 +18,18 @@ namespace USER.Controllers
         private readonly IUserService _userService;
         private readonly IsellerLogin _loginInterface;
         private readonly ILogger<UserController> logger;
-        public UserController(IUserService userService, IsellerLogin loginInterface, ILogger<UserController> logger,ClodinaryService clodinary)
+        private readonly IPublishEndpoint publish;
+        public UserController(IUserService userService, IsellerLogin loginInterface, ILogger<UserController> logger, ClodinaryService clodinary, IPublishEndpoint publish)
         {
             _userService = userService;
             this.logger = logger;
             _loginInterface = loginInterface;
-            this.clodinary=clodinary;
+            this.clodinary = clodinary;
+            this.publish = publish;
         }
 
         [NonAction]
-         public ActionResult badResponce(string message, int code, string methodName)
+        public ActionResult badResponce(string message, int code, string methodName)
         {
             logger.LogWarning($"{message} comes from {methodName}");
 
@@ -43,7 +45,7 @@ namespace USER.Controllers
                     return StatusCode(500, ApiResponse<object>.ErrorResponse("Internal Server Error"));
             }
         }
-           [NonAction]
+        [NonAction]
         public int? getMyId(HttpContext context)
         {
             var id1 = HttpContext.Items["id"];
@@ -53,7 +55,7 @@ namespace USER.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<ActionResult> CreateUser([FromForm]UserCreateDto user)
+        public async Task<ActionResult> CreateUser([FromForm] UserCreateDto user)
         {
             var responce = await _userService.CreateUserAsync(user);
             // I changed this: if (responce.Success) was returning a bad response even on success. Changed to if (!responce.Success)
@@ -72,7 +74,7 @@ namespace USER.Controllers
 
         [HttpPatch("profile")]
         [Authorize]
-        public async Task<ActionResult> ChangeProfile([FromForm]changeProfileDto docs)
+        public async Task<ActionResult> ChangeProfile([FromForm] changeProfileDto docs)
         {
             var userId = getMyId(HttpContext);
             if (userId == null)
@@ -80,11 +82,23 @@ namespace USER.Controllers
 
             logger.LogInformation(docs.Address);
             var responce = await _userService.ChangeProfileAsync((int)userId, docs);
+            string? name = null, email = null;
+            if (!string.IsNullOrWhiteSpace(docs.Email))
+                email = docs.Email;
+            if (!string.IsNullOrWhiteSpace(docs.Name))
+                name = docs.Name;
+
+
+
             // I changed this: if (responce.Success) was returning a bad response even on success. Changed to if (!responce.Success)
             if (!responce.Success)
                 return badResponce(responce.Message, responce.StatusCode, "CreateUser"); // Note: Method name here says CreateUser but it's ChangeProfile in original code.
+            if ((name != null || email != null) && responce?.Data?.Role == "ADMIN")
+                await publish.Publish(new AdminUpdate(
+                      AdminId: userId.Value, Name: name, Email: email
+                  ));
 
-            return Ok(ApiResponse<object>.SuccessResponse(responce.Data!, responce.Message));
+            return Ok(ApiResponse<object>.SuccessResponse(responce?.Data!, responce?.Message!));
         }
 
         [HttpGet("profile/{id:int}")]
@@ -102,7 +116,7 @@ namespace USER.Controllers
 
             return Ok(ApiResponse<object>.SuccessResponse(responce.Data!, responce.Message, responce.StatusCode));
         }
-        
+
 
 
 

@@ -2,8 +2,8 @@ using AutoMapper;
 using USER.Model;
 using USER.Data.Dto;
 using Microsoft.AspNetCore.Identity;
-using Name;
 using USER.Data.Dto.Response;
+using Name;
 namespace USER.MAPPER
 {
     public class MappingProfile : Profile

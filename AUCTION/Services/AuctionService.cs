@@ -6,12 +6,11 @@ using AUCTION.Hubs;
 using AUCTION.Services.Interfaces;
 using MassTransit;
 using Messaging.Contracts;
-using Microsoft.AspNetCore.Components;
-
 namespace AUCTION.Services;
 
 public class AuctionService : IAuctionService
 {
+  
     private readonly IAuctionRepository _auctionRepo;
     private readonly IBidRepository _bidRepo;
     private readonly IWatchlistRepository _watchlistRepo;
@@ -40,19 +39,19 @@ public class AuctionService : IAuctionService
 
     //  Get single auction (with live Redis state) 
 
-    public async Task<ServiceResult<AuctionDetailResponse>> GetAuctionAsync(int auctionId)
+    public async Task<ServiceResult<AuctionDetailResponse>> GetAuctionAsync(int auctionId,int userID)
     {
         var auction = await _auctionRepo.GetByIdWithBidsAsync(auctionId);
         if (auction == null)
             return ServiceResult<AuctionDetailResponse>.NotFound("Auction not found");
 
-        var highest = await _redis.GetHighestBidAsync(auctionId);
+        var highest = await GetHighestBidWithFallbackAsync(auctionId);
         var bidCount = await _bidRepo.GetBidCountAsync(auctionId);
         var watcherCount = await _watchlistRepo.GetWatcherCountAsync(auctionId);
         var viewerCount = await _redis.GetViewerCountAsync(auctionId);
 
         return ServiceResult<AuctionDetailResponse>.Ok(
-            MapToDetail(auction, highest, bidCount, watcherCount, viewerCount));
+            MapToDetail(auction, highest, bidCount, watcherCount, viewerCount,auction.CreatedByUserId==userID || auction.WinnerUserId.HasValue && auction.WinnerUserId==userID));
     }
 
     //  Get all auctions (paged + filtered) 
@@ -64,7 +63,7 @@ public class AuctionService : IAuctionService
         var responses = new List<AuctionResponse>();
         foreach (var a in items)
         {
-            var highest = await _redis.GetHighestBidAsync(a.Id);
+            var highest = await GetHighestBidWithFallbackAsync(a.Id);
             var bidCount = await _bidRepo.GetBidCountAsync(a.Id);
             responses.Add(MapToResponse(a, highest, bidCount,filter.mineid));
         }
@@ -78,42 +77,6 @@ public class AuctionService : IAuctionService
         });
     }
 
-    //  Create auction 
-    // right now we are making the auction by the masstransit okay 
-    public async Task<ServiceResult<AuctionResponse>> CreateAuctionAsync(
-        CreateAuctionRequest request, int userId, int verifyId)
-    {
-       
-        var auction = new Auction
-        {
-            ProductId = request.ProductId,
-            CreatedByUserId = userId,
-            CreatedByVerifyId = verifyId,
-            StartingPrice = request.StartingPrice,
-            ReservePrice = request.ReservePrice,
-            MinBidIncrement = request.MinBidIncrement,
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
-            Status = AuctionStatus.Upcoming
-        };
-
-        await _auctionRepo.AddAsync(auction);
-        await _auctionRepo.SaveChangesAsync();
-
-        // Publish via MassTransit → RabbitMQ
-        await _publish.Publish(new AuctionCreated(
-            auction.Id,
-            auction.ProductId,
-            userId,
-            auction.StartingPrice,
-            auction.StartDate,
-            auction.EndDate));
-
-        _logger.LogInformation("Auction {AuctionId} created by user {UserId}", auction.Id, userId);
-
-        return ServiceResult<AuctionResponse>.Created(
-            MapToResponse(auction, null, 0), "Auction created successfully");
-    }
 
     //  Update auction (only before it goes live) 
 
@@ -127,22 +90,23 @@ public class AuctionService : IAuctionService
         if (auction.CreatedByUserId != userId)
             return ServiceResult<AuctionResponse>.Forbidden("You can only edit your own auctions");
 
-        if (auction.Status != AuctionStatus.Upcoming)
+        if (auction.Status != AuctionStatus.Upcoming && auction.Status != AuctionStatus.Ended && auction.Status!=AuctionStatus.Verified && auction.Status!=AuctionStatus.Cancelled)
             return ServiceResult<AuctionResponse>.Fail("Cannot edit an auction that has already started");
 
         var bidCount = await _bidRepo.GetBidCountAsync(auctionId);
         if (bidCount > 0 && request.StartingPrice.HasValue)
             return ServiceResult<AuctionResponse>.Fail("Cannot change starting price after bids have been placed");
-
+        if(auction.Status is AuctionStatus.Verified or AuctionStatus.Cancelled && (request.StartDate.HasValue ||auction.StartDate>TimeHelper.Now())) auction.Status=AuctionStatus.Upcoming;
         if (request.StartingPrice.HasValue) auction.StartingPrice = request.StartingPrice.Value;
         if (request.ReservePrice.HasValue) auction.ReservePrice = request.ReservePrice.Value;
         if (request.MinBidIncrement.HasValue) auction.MinBidIncrement = request.MinBidIncrement.Value;
         if (request.StartDate.HasValue) auction.StartDate = request.StartDate.Value;
         if (request.EndDate.HasValue) auction.EndDate = request.EndDate.Value;
-        auction.UpdatedAt = DateTime.UtcNow;
-        if(request.StartDate.HasValue || request.EndDate.HasValue)
+        auction.UpdatedAt = TimeHelper.Now();
+        if(request.StartDate.HasValue || request.EndDate.HasValue){
+        await _hub.BroadcastAuctionUpdated(auctionId, new { StartDate = auction.StartDate, EndDate = auction.EndDate,status=auction.Status.ToString() });
         await _publish.Publish (new ProductAddAuctionDate(productId:auction.ProductId,StartDate:auction.StartDate,EndDate:auction.EndDate));
-
+}
         await _auctionRepo.UpdateAsync(auction);
         await _auctionRepo.SaveChangesAsync();
 
@@ -163,13 +127,13 @@ public class AuctionService : IAuctionService
             return ServiceResult<bool>.Fail("Cannot cancel an auction that is live or already ended");
 
         auction.Status = AuctionStatus.Cancelled;
-        auction.UpdatedAt = DateTime.UtcNow;
-
+        auction.UpdatedAt = TimeHelper.Now();
         await _auctionRepo.UpdateAsync(auction);
         await _auctionRepo.SaveChangesAsync();
 
         await _publish.Publish(new AuctionCancelled(
             auction.Id, auction.ProductId, "Cancelled by owner"));
+            await _publish.Publish (new ProductAddAuctionDate(productId:auction.ProductId,StartDate:null,EndDate:null));
 
         await _hub.BroadcastAuctionClosed(auctionId, new { status = "cancelled" });
 
@@ -184,46 +148,47 @@ public class AuctionService : IAuctionService
         var result = new List<AuctionResponse>();
         foreach (var a in auctions)
         {
-            var highest = await _redis.GetHighestBidAsync(a.Id);
+            var highest = await GetHighestBidWithFallbackAsync(a.Id);
             var bidCount = await _bidRepo.GetBidCountAsync(a.Id);
             result.Add(MapToResponse(a, highest, bidCount,userId));
         }
         return ServiceResult<List<AuctionResponse>>.Ok(result);
     }
 
-    public async Task<ServiceResult<List<AuctionResponse>>> GetMyParticipatedAuctionsAsync(int userId)
+    public async Task<ServiceResult<PagedResponse<AuctionResponse>>> GetMyParticipatedAuctionsAsync(int userId, AuctionFilterRequest filter)
     {
-        var bids = await _bidRepo.GetByUserIdAsync(userId);
-        var auctionIds = bids.Select(b => b.AuctionId).Distinct();
-        var result = new List<AuctionResponse>();
-        foreach (var id in auctionIds)
+        var (items, total) = await _bidRepo.GetParticipatedAuctionsAsync(userId, filter);
+
+        var responses = new List<AuctionResponse>();
+        foreach (var a in items)
         {
-            var auction = await _auctionRepo.GetByIdAsync(id);
-            if (auction == null) continue;
-            var highest = await _redis.GetHighestBidAsync(auction.Id);
-            var bidCount = await _bidRepo.GetBidCountAsync(auction.Id);
-            result.Add(MapToResponse(auction, highest, bidCount));
+            var highest = await GetHighestBidWithFallbackAsync(a.Id);
+            var bidCount = await _bidRepo.GetBidCountAsync(a.Id);
+            responses.Add(MapToResponse(a, highest, bidCount, userId));
         }
-        return ServiceResult<List<AuctionResponse>>.Ok(result);
+
+        return ServiceResult<PagedResponse<AuctionResponse>>.Ok(new PagedResponse<AuctionResponse>
+        {
+            Items = responses,
+            TotalCount = total,
+            Page = filter.Page,
+            PageSize = filter.PageSize
+        });
     }
 // called by AuctionScheduleJob
+
 
     public async Task<ServiceResult<bool>> StartAuctionAsync(int auctionId)
     {
 
         var auction = await _auctionRepo.GetByIdWithBidsAsync(auctionId);
         if (auction == null) return ServiceResult<bool>.NotFound();
-        // BUG FIX #1: Was using || which made this condition always true (a status
-        // can never be both Upcoming AND not Upcoming at the same time). Changed to &&
-        // so we reject only when the status is neither Upcoming nor UnVerified.
-        if (auction.Status != AuctionStatus.Upcoming && auction.Status != AuctionStatus.UnVerified)
+      
+        if (auction.Status != AuctionStatus.Upcoming)
             return ServiceResult<bool>.Fail("Auction is not in upcoming state");
 
-        // BUG FIX #2: Was checking for Cancelled (which can never reach here after the
-        // guard above). Correct intent: if the auction was previously UnVerified and is
-        // now being re-started, restore the Redis highest-bid cache from DB bids.
-        if (auction.Status == AuctionStatus.UnVerified)
-        {
+       
+        
             var highestBid = auction.Bids.OrderByDescending(b => b.Amount).FirstOrDefault();
             if (highestBid != null)
                 await _redis.SetHighestBidAsync(auction.Id, new HighestBidCacheDto
@@ -233,9 +198,9 @@ public class AuctionService : IAuctionService
                     PlacedAt = highestBid.PlacedAt,
                     UserId   = highestBid.UserId
                 });
-        }
+        
         auction.Status = AuctionStatus.Live;
-        auction.UpdatedAt = DateTime.UtcNow;
+        auction.UpdatedAt = TimeHelper.Now();
         await _auctionRepo.UpdateAsync(auction);
         await _auctionRepo.SaveChangesAsync();
 
@@ -260,7 +225,7 @@ public class AuctionService : IAuctionService
         var highestBid = await _bidRepo.GetHighestBidAsync(auctionId);
 
         auction.Status = AuctionStatus.Ended;
-        auction.UpdatedAt = DateTime.UtcNow;
+        auction.UpdatedAt = TimeHelper.Now();
 
         WinnerResponse? winner = null;
 
@@ -283,7 +248,7 @@ public class AuctionService : IAuctionService
                     AuctionId = auctionId,
                     WinnerUserId = highestBid.UserId,
                     FinalPrice = highestBid.Amount,
-                    ClosedAt = DateTime.UtcNow
+                    ClosedAt = TimeHelper.Now()
                 };
 
                 await _publish.Publish(new AuctionWinnerDeclared(
@@ -302,7 +267,7 @@ public class AuctionService : IAuctionService
             auction.WinnerUserId,
             auction.FinalPrice,
             auction.WinnerUserId.HasValue,
-            DateTime.UtcNow));
+            TimeHelper.Now()));
 
         await _hub.BroadcastAuctionClosed(auctionId,
             winner ?? (object)new { auctionId, status = "ended_no_winner" });
@@ -335,9 +300,9 @@ public class AuctionService : IAuctionService
 
         // BUG FIX #3: Was using DateTime.Now (local time). Must use DateTime.UtcNow
         // to stay consistent with the rest of the codebase and avoid timezone bugs.
-        auctionDetail.StartDate  = DateTime.UtcNow;
-        auctionDetail.EndDate    = DateTime.UtcNow;
-        auctionDetail.UpdatedAt  = DateTime.UtcNow;
+        auctionDetail.StartDate  = TimeHelper.Now();
+        auctionDetail.EndDate    = TimeHelper.Now();
+        auctionDetail.UpdatedAt  = TimeHelper.Now();
         auctionDetail.Status     = AuctionStatus.UnVerified;
         await _publish.Publish(new ProductAddAuctionDate(productId:auctionDetail.ProductId,StartDate:null,EndDate:null));
         
@@ -365,7 +330,7 @@ public class AuctionService : IAuctionService
             CurrentHighestBid = highest?.Amount ?? auction.StartingPrice, 
             TotalBids = bidCount,
             TimeRemainingSeconds = auction.Status == AuctionStatus.Live
-                                ? (auction.EndDate - DateTime.UtcNow).TotalSeconds
+                                ? (auction.EndDate - TimeHelper.Now()).TotalSeconds
                                 : null,
             CreatedAt = auction.CreatedAt,
             productDescription=auction.Description,
@@ -374,7 +339,7 @@ public class AuctionService : IAuctionService
 
     private static AuctionDetailResponse MapToDetail(
         Auction auction, HighestBidCacheDto? highest,
-        int bidCount, int watcherCount, long viewerCount)
+        int bidCount, int watcherCount, long viewerCount,bool flag=false)
     {
         var response = new AuctionDetailResponse
         {
@@ -392,7 +357,7 @@ public class AuctionService : IAuctionService
             CurrentHighestBid = highest?.Amount ?? auction.StartingPrice,
             TotalBids = bidCount,
             TimeRemainingSeconds = auction.Status == AuctionStatus.Live
-                                    ? (auction.EndDate - DateTime.UtcNow).TotalSeconds
+                                    ? (auction.EndDate - TimeHelper.Now()).TotalSeconds
                                     : null,
             CreatedAt = auction.CreatedAt,
             WatcherCount = watcherCount,
@@ -412,8 +377,10 @@ public class AuctionService : IAuctionService
             };
         }
 
-        if (auction.WinnerUserId.HasValue && auction.FinalPrice.HasValue)
+        if (auction.WinnerUserId.HasValue && auction.FinalPrice.HasValue )
         {
+        response.win=true;
+        if(flag)
             response.Winner = new WinnerResponse
             {
                 AuctionId = auction.Id,
@@ -436,7 +403,57 @@ public class AuctionService : IAuctionService
         return response;
     }
 
+    // BACKUP MECHANISM: Get highest bid from Redis, fallback to Database if Redis fails
+    private async Task<HighestBidCacheDto?> GetHighestBidWithFallbackAsync(int auctionId)
+    {
+        try
+        {
+            // Try Redis first (fast cache)
+            var redisResult = await _redis.GetHighestBidAsync(auctionId);
+            if (redisResult != null)
+                return redisResult;
 
+            // If Redis is empty, fallback to database
+            _logger.LogInformation("Highest bid not found in Redis for auction {AuctionId}. Falling back to database.", auctionId);
+            var dbBid = await _bidRepo.GetHighestBidAsync(auctionId);
+            
+            if (dbBid != null)
+            {
+                // Repopulate Redis cache for future requests
+                var cacheDto = new HighestBidCacheDto
+                {
+                    Amount = dbBid.Amount,
+                    BidId = dbBid.Id,
+                    PlacedAt = dbBid.PlacedAt,
+                    UserId = dbBid.UserId
+                };
+                
+                await _redis.SetHighestBidAsync(auctionId, cacheDto);
+                return cacheDto;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            // If Redis operation fails, fall back to database
+            _logger.LogWarning(ex, "Redis GetHighestBidAsync failed for auction {AuctionId}. Falling back to database.", auctionId);
+            var dbBid = await _bidRepo.GetHighestBidAsync(auctionId);
+            
+            if (dbBid != null)
+            {
+                return new HighestBidCacheDto
+                {
+                    Amount = dbBid.Amount,
+                    BidId = dbBid.Id,
+                    PlacedAt = dbBid.PlacedAt,
+                    UserId = dbBid.UserId
+                };
+            }
+
+            return null;
+        }
+    }
 
     // this is the used by the consumer when the aucition started 
     public async Task forceFullyclosed(int productId, int userId)
@@ -454,7 +471,7 @@ public class AuctionService : IAuctionService
 
         // removeAuction() is synchronous (Remove() + return Entity) — no need to await
         // its return value. We just call it and then SaveChangesAsync to persist.
-        _auctionRepo.removeAuction(auction);
+       await _auctionRepo.removeAuction(auction);
         await _auctionRepo.SaveChangesAsync();
     }
     private static string MaskUserId(int userId)

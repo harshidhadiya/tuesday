@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
 using ADMIN.Data.Dto;
-using ADMIN.DTOs.Responses;
 using ADMIN.Middleware.EndPointfilters;
 using ADMIN.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -72,36 +70,10 @@ namespace ADMIN.Controllers
             return ToActionResult(response);
         }
 
-        [HttpGet("user/{userId}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetUserRequests(int userId)
-        {
-            var response = await _requestService.GetUserRequestsAsync(userId);
-            return ToActionResult(response);
-        }
-
-        [HttpGet("pending")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetPendingRequests()
-        {
-            var response = await _requestService.GetPendingRequestsAsync();
-            return ToActionResult(response);
-        }
-
-        [HttpGet("verified")]
+   
         
-        public async Task<IActionResult> GetVerifiedRequests(bool mine = false,int page=1,int pagesize=10)
-        {
-            int id=0;
-            if(mine)
-            {
-                if (!int.TryParse(HttpContext.Items["id"]?.ToString(), out int userid))
-                return BadRequest(ApiResponse<object>.ErrorResponse("Invalid user ID in context", 400));
-                id=userid;
-            }
-            var response = await _requestService.GetVerifiedRequestsAsync(id);
-            return ToActionResult(response);
-        }
+
+      
         [HttpPost ("filter")]
         public async Task<IActionResult> GetFilterdData([FromBody] Filter filter)
         {
@@ -113,13 +85,6 @@ namespace ADMIN.Controllers
             return ToActionResult(data);     
         }
 
-        [HttpGet("dashboard")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetDashboard()
-        {
-            var response = await _requestService.GetDashboardAsync();
-            return ToActionResult(response);
-        }
 
         private IActionResult ToActionResult<T>(ServiceResult<T> result)
         {

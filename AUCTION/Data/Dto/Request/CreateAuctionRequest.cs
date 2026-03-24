@@ -31,11 +31,14 @@ public class AuctionFilterRequest
     public AuctionStatus? Status   { get; set; }
     public decimal?        MinPrice { get; set; }
     public decimal?       MaxPrice { get; set; }
+    public DateTime? FilterStartDate { get; set; }
+    public DateTime? FilterEndDate { get; set; }
     public int            Page     { get; set; } = 1;
     public int            PageSize { get; set; } = 20;
     public string? name{get;set;}
     public bool mine{get;set;}=false;
     public int mineid{get;set;}=0;
+    public int? productId{get;set;}=null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

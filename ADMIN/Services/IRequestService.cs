@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using ADMIN.Data.Dto;
 using ADMIN.DTOs.Responses;
-using Microsoft.AspNetCore.Mvc;
 
 namespace ADMIN.Services
 {
@@ -16,7 +13,6 @@ namespace ADMIN.Services
         Task<ServiceResult<List<RequestDetailResponse>>> GetUserRequestsAsync(int userId);
         Task<ServiceResult<List<RequestDetailResponse>>> GetPendingRequestsAsync();
         Task<ServiceResult<List<RequestDetailResponse>>> GetVerifiedRequestsAsync(int id);
-        Task<ServiceResult<object>> GetDashboardAsync();
         Task<ServiceResult<List<RequestDetailResponse>>> getAllFilterRequest(Filter filter);
     }
 }

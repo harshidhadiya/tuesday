@@ -1,3 +1,4 @@
+using AUCTION.Data.Entities;
 using AUCTION.Data.Repositories.Interfaces;
 using AUCTION.Hubs;
 using AUCTION.Services.Interfaces;
@@ -63,20 +64,22 @@ public class AuctionSchedulerJob : BackgroundService
         }
 
         var endingSoon = await auctionRepo.GetLiveAuctionsEndingSoonAsync(5);
+           
         foreach (var auction in endingSoon)
         {
-            var minutesLeft = (int)Math.Ceiling((auction.EndDate - DateTime.UtcNow).TotalMinutes);
+
+            var minutesLeft = (int)Math.Ceiling((auction.EndDate - TimeHelper.Now()).TotalMinutes);
 
             await publish.Publish(new AuctionEndingSoon(
                 auction.Id, auction.EndDate, minutesLeft));
 
             await hub.BroadcastEndingSoon(auction.Id, minutesLeft);
-            // BUG FIX: Was using DateTime.Now (local time). Use DateTime.UtcNow to match
-            // all other time comparisons in the codebase.
-            await hub.BroadcastTimerTick(auction.Id, (auction.EndDate - DateTime.UtcNow).TotalSeconds);
+           
+            await hub.BroadcastTimerTick(auction.Id, (auction.EndDate - TimeHelper.Now()).TotalSeconds);
             _logger.LogInformation(
                 "Auction {AuctionId} ending in {Minutes} minutes", auction.Id, minutesLeft);
         }
+            _logger.LogInformation("this is the time {time}",TimeHelper.Now());
 
         var (liveAuctions, _) = await auctionRepo.GetAllAsync(
             new Data.Dto.Request.AuctionFilterRequest
@@ -87,7 +90,8 @@ public class AuctionSchedulerJob : BackgroundService
 
         foreach (var auction in liveAuctions)
         {
-            var remaining = auction.EndDate - DateTime.UtcNow;
+           
+            var remaining = auction.EndDate - TimeHelper.Now();
             if (remaining > TimeSpan.Zero )
                 await hub.BroadcastTimerTick(auction.Id, remaining.TotalSeconds);
         }
