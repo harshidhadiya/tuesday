@@ -26,6 +26,9 @@ public class PlaceBidRequest
     public decimal Amount { get; set; }
 }
 
+
+
+
 public class AuctionFilterRequest
 {
     public AuctionStatus? Status   { get; set; }
@@ -39,6 +42,23 @@ public class AuctionFilterRequest
     public bool mine{get;set;}=false;
     public int mineid{get;set;}=0;
     public int? productId{get;set;}=null;
+}
+
+public class WatchListFilterRequest
+{
+    public string? name{get;set;}
+    public DateTime ?startDate{get;set;}
+    public DateTime ?endDate{get;set;}
+    public AuctionStatus ?status{get;set;}
+    public int page{get;set;}=1;
+    public int size{get;set;}=10;
+    public bool isdashBoardPage{get;set;}=false;
+}
+
+
+public class ParticipatedFilter : AuctionFilterRequest
+{
+    public bool win {get;set;}=false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 namespace AUCTION.Data.Entities;
 
-public enum AuctionStatus { Upcoming, Live, Ended, Cancelled ,UnVerified,Verified}
+public enum AuctionStatus { Upcoming, Live, Ended, Cancelled ,UnVerified,Verified,Failed}
 public enum BidStatus     { Active, Outbid, Won, Lost }
 public static class TimeHelper
 {

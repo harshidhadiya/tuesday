@@ -1,3 +1,4 @@
+using AUCTION.Data.Dto.Request;
 using AUCTION.Data.Dto.Response;
 using AUCTION.Data.Entities;
 using AUCTION.Data.Repositories.Interfaces;
@@ -55,9 +56,9 @@ public class WatchlistService : IWatchlistService
         return ServiceResult<bool>.Ok(true, "Removed from watchlist");
     }
 
-    public async Task<ServiceResult<List<AuctionResponse>>> GetWatchedAuctionsAsync(int userId)
+    public async Task<ServiceResult<List<AuctionResponse>>> GetWatchedAuctionsAsync(int userId,WatchListFilterRequest filter)
     {
-        var entries = await _watchlistRepo.GetByUserIdAsync(userId);
+        var entries = await _watchlistRepo.GetByUserIdAsync(userId,filter);
         var result = new List<AuctionResponse>();
 
         // 1. Get current Indian Standard Time

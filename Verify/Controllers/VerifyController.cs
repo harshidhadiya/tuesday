@@ -69,7 +69,7 @@ namespace VERIFY.Controllers
             return ToActionResult(result);
         }
 
-
+//  not used right now not used in the ai 
         [HttpGet("my-products")]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> GetProductsVerifiedByMe([FromQuery] string? searchName = null, [FromQuery] int page = 1, [FromQuery] int size = 10)

@@ -10,7 +10,7 @@ public interface IAuctionService
     Task<ServiceResult<AuctionResponse>> UpdateAuctionAsync(int auctionId, UpdateAuctionRequest request, int userId);
     Task<ServiceResult<bool>> CancelAuctionAsync(int auctionId, int userId);
     Task<ServiceResult<List<AuctionResponse>>> GetMyCreatedAuctionsAsync(int userId);
-    Task<ServiceResult<PagedResponse<AuctionResponse>>> GetMyParticipatedAuctionsAsync(int userId, AuctionFilterRequest filter);
+    Task<ServiceResult<PagedResponse<AuctionResponse>>> GetMyParticipatedAuctionsAsync(int userId, ParticipatedFilter filter);
 
     // Internal — called by the scheduler background job only
     Task<ServiceResult<bool>> StartAuctionAsync(int auctionId);
@@ -32,5 +32,5 @@ public interface IWatchlistService
 {
     Task<ServiceResult<bool>> WatchAuctionAsync(int auctionId, int userId);
     Task<ServiceResult<bool>> UnwatchAuctionAsync(int auctionId, int userId);
-    Task<ServiceResult<List<AuctionResponse>>> GetWatchedAuctionsAsync(int userId);
+    Task<ServiceResult<List<AuctionResponse>>> GetWatchedAuctionsAsync(int userId,WatchListFilterRequest filter);
 }

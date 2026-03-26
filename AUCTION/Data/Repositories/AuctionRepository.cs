@@ -1,6 +1,7 @@
 using AUCTION.Data.Dto.Request;
 using AUCTION.Data.Entities;
 using AUCTION.Data.Repositories.Interfaces;
+using Azure;
 using Microsoft.EntityFrameworkCore;
 namespace AUCTION.Data.Repositories;
 
@@ -10,12 +11,13 @@ public class AuctionRepository : IAuctionRepository
     public AuctionRepository(AuctionDbContext ctx) => _ctx = ctx;
 
     private DateTime IndianNow => TimeZoneInfo.ConvertTimeFromUtc(
-        DateTime.UtcNow, 
+        DateTime.UtcNow,
         TimeZoneInfo.FindSystemTimeZoneById("Asia/Kolkata"));
 
     public Task<Auction?> GetByIdAsync(int id)
         => _ctx.Auctions.FirstOrDefaultAsync(x => x.Id == id);
-
+    public Task<Auction?> GetByIdAsyncWithWatchList(int id)
+      => _ctx.Auctions.Include(x => x.Watchlists).FirstOrDefaultAsync(x => x.Id == id);
     public Task<Auction?> GetByIdWithBidsAsync(int id)
         => _ctx.Auctions
                .Include(x => x.Bids.OrderByDescending(b => b.Amount).Take(10))
@@ -23,14 +25,15 @@ public class AuctionRepository : IAuctionRepository
 
     public async Task<(List<Auction> Items, int Total)> GetAllAsync(AuctionFilterRequest filter)
     {
+
         var q = _ctx.Auctions.AsQueryable();
         if (filter.mine) q = q.Where(x => x.CreatedByUserId == filter.mineid);
         if (filter.Status.HasValue) q = q.Where(x => x.Status == filter.Status.Value);
         if (filter.MinPrice.HasValue) q = q.Where(x => x.StartingPrice >= filter.MinPrice.Value);
         if (filter.MaxPrice.HasValue) q = q.Where(x => x.StartingPrice <= filter.MaxPrice.Value);
-        if(filter.productId.HasValue) q=q.Where(x=>x.ProductId==filter.productId);
+        if (filter.productId.HasValue) q = q.Where(x => x.ProductId == filter.productId);
         if (!string.IsNullOrWhiteSpace(filter.name)) q = q.Where(x => EF.Functions.Like(x.ProductName, $"%{filter.name}%"));
-       
+
         var total = await q.CountAsync();
         var items = await q
             .OrderBy(x => x.StartDate)
@@ -48,7 +51,7 @@ public class AuctionRepository : IAuctionRepository
     }
 
     public Task<List<Auction>> GetByUserIdAsync(int userId)
-        => _ctx.Auctions.Where(x => x.CreatedByUserId == userId).OrderBy(X=>X.StartDate).ToListAsync();
+        => _ctx.Auctions.Where(x => x.CreatedByUserId == userId).OrderBy(X => X.StartDate).ToListAsync();
 
     public Task<List<Auction>> GetLiveAuctionsDueToCloseAsync()
         => _ctx.Auctions
@@ -70,19 +73,19 @@ public class AuctionRepository : IAuctionRepository
                              && x.EndDate <= threshold)
                    .ToListAsync();
     }
-    public async Task<Auction?> getHighestBidder(int auctionId)
-    {
-        return await _ctx.Auctions
-                   .Include(x => x.Bids.OrderByDescending(b => b.Amount).Take(1))
-                   .Where(x => x.Id == auctionId).FirstOrDefaultAsync();
-    }
+   
 
     public async Task AddAsync(Auction auction) => await _ctx.Auctions.AddAsync(auction);
     public Task UpdateAsync(Auction auction) { _ctx.Auctions.Update(auction); return Task.CompletedTask; }
+    public Task UpdateRangeAsync(IEnumerable<Auction> auctions)
+    {
+        _ctx.Auctions.UpdateRange(auctions);
+        return Task.CompletedTask;
+    } 
     public Task SaveChangesAsync() => _ctx.SaveChangesAsync();
 
     public async Task<Auction?> GetbyProductId(int productId)
-        => await _ctx.Auctions.Include(x=>x.Bids).Where(x => x.ProductId == productId).FirstOrDefaultAsync();
+        => await _ctx.Auctions.Include(x => x.Bids).Where(x => x.ProductId == productId).FirstOrDefaultAsync();
 }
 
 public class BidRepository : IBidRepository
@@ -93,46 +96,51 @@ public class BidRepository : IBidRepository
     public Task<Bid?> GetByIdAsync(int id)
         => _ctx.Bids.FirstOrDefaultAsync(x => x.Id == id);
 
-    public Task<List<Bid>> GetByAuctionIdAsync(int auctionId, int page, int pageSize)
-        => _ctx.Bids
-               .Where(x => x.AuctionId == auctionId)
-               .OrderByDescending(x => x.PlacedAt)
-               .Skip((page - 1) * pageSize)
-               .Take(pageSize)
-               .ToListAsync();
-
-    public Task<List<Bid>> GetByUserAndAuctionAsync(int userId, int auctionId)
-        => _ctx.Bids
-               .Where(x => x.UserId == userId && x.AuctionId == auctionId)
-               .OrderByDescending(x => x.PlacedAt)
-               .ToListAsync();
-
-    public Task<List<Bid>> GetByUserIdAsync(int userId)
-        => _ctx.Bids
-               .Include(x => x.Auction)
-               .Where(x => x.UserId == userId)
-               .OrderByDescending(x => x.PlacedAt)
-               .ToListAsync();
-
-    public async Task<(List<Auction> Items, int Total)> GetParticipatedAuctionsAsync(int userId, AuctionFilterRequest filter)
+    public async Task<List<Bid>> GetByAuctionIdAsync(int auctionId, int page, int pageSize, bool mine, int userId)
     {
-        var q = _ctx.Bids
+        var data = _ctx.Bids
+                 .Where(x => x.AuctionId == auctionId).AsQueryable();
+        if (mine)
+            data = data.Where(x => x.UserId == userId);
+        return await data.OrderByDescending(x => x.PlacedAt)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .ToListAsync();
+    }
+
+   
+
+    public async Task<(List<Auction> Items, int Total)> GetParticipatedAuctionsAsync(int userId, ParticipatedFilter filter)
+    {
+        IQueryable<Auction> q;
+        if (filter.win)
+        {
+            q = _ctx.Bids
+               .Where(x => x.UserId == userId && x.Status == BidStatus.Won)
+               .Select(x => x.Auction)
+               .Distinct()
+               .AsQueryable();
+        }
+        else
+        {
+            q = _ctx.Bids
             .Where(x => x.UserId == userId)
             .Select(x => x.Auction)
             .Distinct()
             .AsQueryable();
+        }
 
         // Apply filters
-        if (filter.Status.HasValue) 
+        if (filter.Status.HasValue)
             q = q.Where(x => x.Status == filter.Status.Value);
-        
-        if (filter.MinPrice.HasValue) 
+
+        if (filter.MinPrice.HasValue)
             q = q.Where(x => x.StartingPrice >= filter.MinPrice.Value);
-        
-        if (filter.MaxPrice.HasValue) 
+
+        if (filter.MaxPrice.HasValue)
             q = q.Where(x => x.StartingPrice <= filter.MaxPrice.Value);
-        
-        if (!string.IsNullOrWhiteSpace(filter.name)) 
+
+        if (!string.IsNullOrWhiteSpace(filter.name))
             q = q.Where(x => EF.Functions.Like(x.ProductName, $"%{filter.name}%"));
 
         if (filter.FilterStartDate.HasValue)
@@ -153,7 +161,7 @@ public class BidRepository : IBidRepository
 
     public Task<Bid?> GetHighestBidAsync(int auctionId)
         => _ctx.Bids
-               .Where(x => x.AuctionId == auctionId && x.Status == BidStatus.Active)
+               .Where(x => x.AuctionId == auctionId)
                .OrderByDescending(x => x.Amount)
                .FirstOrDefaultAsync();
 
@@ -178,12 +186,28 @@ public class WatchlistRepository : IWatchlistRepository
 
     public Task<Watchlist?> GetAsync(int userId, int auctionId)
         => _ctx.Watchlists.FirstOrDefaultAsync(x => x.UserId == userId && x.AuctionId == auctionId);
-// i changed here if there is any error comes resolve here okay so do this complete fast 
-    public Task<List<Watchlist>> GetByUserIdAsync(int userId)
-        => _ctx.Watchlists.Include(x => x.Auction).Where(x => x.UserId == userId).OrderBy(x=>x.Auction.StartDate).ToListAsync();
+    // i changed here if there is any error comes resolve here okay so do this complete fast 
+    public async Task<List<Watchlist>> GetByUserIdAsync(int userId, WatchListFilterRequest filter)
+    {
+        var list = _ctx.Watchlists.AsQueryable();
 
-    public Task<List<int>> GetWatcherUserIdsAsync(int auctionId)
-        => _ctx.Watchlists.Where(x => x.AuctionId == auctionId).Select(x => x.UserId).ToListAsync();
+        list = list.Include(x => x.Auction).Where(x => x.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(filter.name))
+            list = list.Where(x => EF.Functions.Like(x.Auction.ProductName, $"%{filter.name}%"));
+
+        if (filter.endDate.HasValue)
+            list = list.Where(x => x.Auction.StartDate <= filter.endDate);
+
+        if (filter.status.HasValue)
+            list = list.Where(x => x.Auction.Status == filter.status);
+
+        if (filter.isdashBoardPage)
+            list = list.Where(x => x.Auction.Status == AuctionStatus.Live || x.Auction.Status == AuctionStatus.Upcoming);
+
+        return await list.Skip((filter.page - 1) * filter.size).Take(filter.size).ToListAsync();
+
+    }
 
     public Task<int> GetWatcherCountAsync(int auctionId)
         => _ctx.Watchlists.CountAsync(x => x.AuctionId == auctionId);

@@ -131,3 +131,4 @@ public sealed record AdminUpdate(
     int AdminId,
     string? Name = null,
     string? Email = null);
+

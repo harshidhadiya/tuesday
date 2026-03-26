@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using AUCTION.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.TagHelpers.Cache;
 using Microsoft.AspNetCore.SignalR;
 
 namespace AUCTION.Hubs;
@@ -50,7 +51,6 @@ public class AuctionHub : Hub
     public async Task StopViewing(string auctionId)
     {
         if (!int.TryParse(auctionId, out var id)) return;
-
         if (_connectionViewers.TryGetValue(Context.ConnectionId, out var viewed) && viewed.TryRemove(id, out _))
         {
             await _redis.DecrementViewerCountAsync(id);
@@ -112,6 +112,7 @@ public interface IAuctionHubService
     Task BroadcastProductDeleted(int auctionId);
     Task BroadcastProductUnverified(int auctionId);
     Task BroadcastAuctionUpdated(int auctionId, object data);
+    Task SendAddObject(int userid,object data);
 }
 
 public class AuctionHubService : IAuctionHubService
@@ -121,6 +122,8 @@ public class AuctionHubService : IAuctionHubService
 
     private IClientProxy Room(int auctionId)
         => _hub.Clients.Group($"auction_{auctionId}");
+    private IClientProxy user(int userid)
+    =>_hub.Clients.User(userid.ToString());
         
     private IClientProxy Room1(int auctionId)=>_hub.Clients.Group($"auctiondetail_{auctionId}");
 
@@ -149,6 +152,9 @@ public class AuctionHubService : IAuctionHubService
 
     public Task BroadcastProductUnverified(int auctionId)
         => Room(auctionId).SendAsync("AuctionUnverified", new { auctionId, reason = "Product un-verified during live auction" });
+
+    public Task SendAddObject(int userid, object data)
+    =>user(userid).SendAsync("GetWatchListDetail",data);
 }
 
 

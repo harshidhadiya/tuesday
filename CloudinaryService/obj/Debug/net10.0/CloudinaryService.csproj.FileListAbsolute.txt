@@ -37,3 +37,16 @@ D:/Codes_pracitce/PROJECT/tuesday/CloudinaryService/obj/Debug/net10.0/ref/Cloudi
 /home/harshid/Project_Practice/_net/Microservice_2/tuesday/CloudinaryService/obj/Debug/net10.0/refint/CloudinaryService.dll
 /home/harshid/Project_Practice/_net/Microservice_2/tuesday/CloudinaryService/obj/Debug/net10.0/CloudinaryService.pdb
 /home/harshid/Project_Practice/_net/Microservice_2/tuesday/CloudinaryService/obj/Debug/net10.0/ref/CloudinaryService.dll
+D:\Codes_pracitce\last\tuesday\CloudinaryService\bin\Debug\net10.0\CloudinaryService.deps.json
+D:\Codes_pracitce\last\tuesday\CloudinaryService\bin\Debug\net10.0\CloudinaryService.dll
+D:\Codes_pracitce\last\tuesday\CloudinaryService\bin\Debug\net10.0\CloudinaryService.pdb
+D:\Codes_pracitce\last\tuesday\CloudinaryService\obj\Debug\net10.0\CloudinaryService.csproj.AssemblyReference.cache
+D:\Codes_pracitce\last\tuesday\CloudinaryService\obj\Debug\net10.0\CloudinaryService.GeneratedMSBuildEditorConfig.editorconfig
+D:\Codes_pracitce\last\tuesday\CloudinaryService\obj\Debug\net10.0\CloudinaryService.AssemblyInfoInputs.cache
+D:\Codes_pracitce\last\tuesday\CloudinaryService\obj\Debug\net10.0\CloudinaryService.AssemblyInfo.cs
+D:\Codes_pracitce\last\tuesday\CloudinaryService\obj\Debug\net10.0\CloudinaryService.csproj.CoreCompileInputs.cache
+D:\Codes_pracitce\last\tuesday\CloudinaryService\obj\Debug\net10.0\CloudinaryService.sourcelink.json
+D:\Codes_pracitce\last\tuesday\CloudinaryService\obj\Debug\net10.0\CloudinaryService.dll
+D:\Codes_pracitce\last\tuesday\CloudinaryService\obj\Debug\net10.0\refint\CloudinaryService.dll
+D:\Codes_pracitce\last\tuesday\CloudinaryService\obj\Debug\net10.0\CloudinaryService.pdb
+D:\Codes_pracitce\last\tuesday\CloudinaryService\obj\Debug\net10.0\ref\CloudinaryService.dll

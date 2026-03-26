@@ -178,14 +178,12 @@ public class BidService : IBidService
     public async Task<ServiceResult<PagedResponse<BidResponse>>> GetBidHistoryAsync(
         int auctionId, int page, int pageSize,bool mine,int userId)
     {
-        var auction = await _auctionRepo.GetByIdAsync(auctionId);
-        if (auction == null)
-            return ServiceResult<PagedResponse<BidResponse>>.NotFound();
 
-        var bids = await _bidRepo.GetByAuctionIdAsync(auctionId, page, pageSize);
+        var bids = await _bidRepo.GetByAuctionIdAsync(auctionId, page, pageSize,mine,userId);
+        if(bids==null)
+           return ServiceResult<PagedResponse<BidResponse>>.NotFound();
         var total = await _bidRepo.GetBidCountAsync(auctionId);
-        if(mine)
-        bids =  bids.Where(x=>x.UserId==userId).ToList();
+        
         return ServiceResult<PagedResponse<BidResponse>>.Ok(new PagedResponse<BidResponse>
         {
             Items = bids.Select(b => new BidResponse

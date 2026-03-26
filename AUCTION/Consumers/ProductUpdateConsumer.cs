@@ -12,7 +12,7 @@ namespace AUCTION.Consumers
             var auction = await repo.GetbyProductId(context.Message.ProductId);
             if (auction == null)
                 return;
-logger.LogInformation("entered heresdfsefsfs"+context.Message.descripiton);
+             logger.LogInformation("entered heresdfsefsfs"+context.Message.descripiton);
          
             if (context.Message.name != null)
                 auction.ProductName = context.Message.name;

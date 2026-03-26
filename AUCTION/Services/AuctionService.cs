@@ -3,9 +3,12 @@ using AUCTION.Data.Dto.Response;
 using AUCTION.Data.Entities;
 using AUCTION.Data.Repositories.Interfaces;
 using AUCTION.Hubs;
+using AUCTION.Messages;
 using AUCTION.Services.Interfaces;
+using AutoMapper;
 using MassTransit;
 using Messaging.Contracts;
+using Microsoft.VisualBasic;
 namespace AUCTION.Services;
 
 public class AuctionService : IAuctionService
@@ -18,6 +21,7 @@ public class AuctionService : IAuctionService
     private readonly IPublishEndpoint _publish;
     private readonly IAuctionHubService _hub;
     private readonly ILogger<AuctionService> _logger;
+    private readonly IMapper mapper;
 
     public AuctionService(
         IAuctionRepository auctionRepo,
@@ -26,7 +30,7 @@ public class AuctionService : IAuctionService
         IRedisService redis,
         IPublishEndpoint publish,
         IAuctionHubService hub,
-        ILogger<AuctionService> logger)
+        ILogger<AuctionService> logger,IMapper mapper)
     {
         _auctionRepo = auctionRepo;
         _bidRepo = bidRepo;
@@ -35,13 +39,14 @@ public class AuctionService : IAuctionService
         _publish = publish;
         _hub = hub;
         _logger = logger;
+        this.mapper = mapper;
     }
 
     //  Get single auction (with live Redis state) 
 
     public async Task<ServiceResult<AuctionDetailResponse>> GetAuctionAsync(int auctionId,int userID)
     {
-        var auction = await _auctionRepo.GetByIdWithBidsAsync(auctionId);
+        var auction = await _auctionRepo.GetByIdAsync(auctionId);
         if (auction == null)
             return ServiceResult<AuctionDetailResponse>.NotFound("Auction not found");
 
@@ -90,7 +95,7 @@ public class AuctionService : IAuctionService
         if (auction.CreatedByUserId != userId)
             return ServiceResult<AuctionResponse>.Forbidden("You can only edit your own auctions");
 
-        if (auction.Status != AuctionStatus.Upcoming && auction.Status != AuctionStatus.Ended && auction.Status!=AuctionStatus.Verified && auction.Status!=AuctionStatus.Cancelled)
+        if (auction.Status != AuctionStatus.Upcoming && auction.Status!=AuctionStatus.Verified && auction.Status!=AuctionStatus.Cancelled)
             return ServiceResult<AuctionResponse>.Fail("Cannot edit an auction that has already started");
 
         var bidCount = await _bidRepo.GetBidCountAsync(auctionId);
@@ -103,12 +108,25 @@ public class AuctionService : IAuctionService
         if (request.StartDate.HasValue) auction.StartDate = request.StartDate.Value;
         if (request.EndDate.HasValue) auction.EndDate = request.EndDate.Value;
         auction.UpdatedAt = TimeHelper.Now();
+        await _auctionRepo.UpdateAsync(auction);
+        await _auctionRepo.SaveChangesAsync();
         if(request.StartDate.HasValue || request.EndDate.HasValue){
         await _hub.BroadcastAuctionUpdated(auctionId, new { StartDate = auction.StartDate, EndDate = auction.EndDate,status=auction.Status.ToString() });
         await _publish.Publish (new ProductAddAuctionDate(productId:auction.ProductId,StartDate:auction.StartDate,EndDate:auction.EndDate));
-}
-        await _auctionRepo.UpdateAsync(auction);
-        await _auctionRepo.SaveChangesAsync();
+        }
+
+
+        _logger.LogInformation("this time slots"+Math.Abs(auction.StartDate.Second-TimeHelper.Now().Second));
+        if(Math.Abs(auction.StartDate.Second-TimeHelper.Now().Second)<=3600)
+        {
+            _logger.LogInformation("data has send to the consumer of the auction update consumer so see in the consumer");
+            var currentauction=await _auctionRepo.GetByIdAsyncWithWatchList(auctionId);
+            if(currentauction!=null && currentauction.Watchlists!=null && currentauction.Watchlists.Count()!=0){
+            _logger.LogInformation("sending the data resolve this correct way fast ");
+            var sendingDatas=mapper.Map<AuctionUpdateConsumerDto>(currentauction);
+            sendingDatas.totalBids=bidCount;
+            await _publish.Publish(new AuctionUpdated(auction:sendingDatas));}
+        }
 
         return ServiceResult<AuctionResponse>.Ok(MapToResponse(auction, null, bidCount,userId));
     }
@@ -155,7 +173,7 @@ public class AuctionService : IAuctionService
         return ServiceResult<List<AuctionResponse>>.Ok(result);
     }
 
-    public async Task<ServiceResult<PagedResponse<AuctionResponse>>> GetMyParticipatedAuctionsAsync(int userId, AuctionFilterRequest filter)
+    public async Task<ServiceResult<PagedResponse<AuctionResponse>>> GetMyParticipatedAuctionsAsync(int userId, ParticipatedFilter filter)
     {
         var (items, total) = await _bidRepo.GetParticipatedAuctionsAsync(userId, filter);
 
@@ -390,15 +408,7 @@ public class AuctionService : IAuctionService
             };
         }
 
-        response.RecentBids = auction.Bids.Select(b => new BidResponse
-        {
-            Id = b.Id,
-            AuctionId = b.AuctionId,
-            MaskedBidder = MaskUserId(b.UserId),
-            Amount = b.Amount,
-            Status = b.Status.ToString(),
-            PlacedAt = b.PlacedAt
-        }).ToList();
+       
 
         return response;
     }

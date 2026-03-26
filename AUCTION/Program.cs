@@ -59,6 +59,7 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<AuctionCreateConsumer>();
     x.AddConsumer<ProductVerifiedConsumer>();
     x.AddConsumer<ProductUpdateConsumer>();
+    x.AddConsumer<AuctionUpdateConsumer>();
 
     x.UsingRabbitMq((ctx, cfg) =>
     {

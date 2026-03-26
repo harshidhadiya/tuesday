@@ -1,4 +1,5 @@
 using AUCTION.Data.Dto;
+using AUCTION.Data.Dto.Request;
 using AUCTION.Data.Dto.Response;
 using AUCTION.Helpers;
 using AUCTION.Services.Interfaces;
@@ -38,10 +39,10 @@ public class WatchlistController : ControllerBase
     }
 
     [HttpGet("watched")]
-    public async Task<IActionResult> GetWatched()
+    public async Task<IActionResult> GetWatched([FromQuery]WatchListFilterRequest filter)
     {
         var userId = ClaimsHelper.GetUserId(User);
-        var result = await _watchlistService.GetWatchedAuctionsAsync(userId);
+        var result = await _watchlistService.GetWatchedAuctionsAsync(userId,filter);
         return StatusCode(result.StatusCode, result.Success
             ? ApiResponse<List<AuctionResponse>>.SuccessResponse(result.Data!)
             : ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode));

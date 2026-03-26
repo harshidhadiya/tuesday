@@ -17,16 +17,15 @@ public interface IAuctionRepository
     Task<Auction?> GetbyProductId(int productId);
     Task SaveChangesAsync();
     Task<Auction> removeAuction(Auction auction);
-    Task<Auction?> getHighestBidder(int auctionId);
+    Task<Auction?> GetByIdAsyncWithWatchList(int id);
+    public Task UpdateRangeAsync(IEnumerable<Auction> auctions);
 }
 
 public interface IBidRepository
 {
     Task<Bid?> GetByIdAsync(int id);
-    Task<List<Bid>> GetByAuctionIdAsync(int auctionId, int page, int pageSize);
-    Task<List<Bid>> GetByUserAndAuctionAsync(int userId, int auctionId);
-    Task<List<Bid>> GetByUserIdAsync(int userId);
-    Task<(List<Auction> Items, int Total)> GetParticipatedAuctionsAsync(int userId, AuctionFilterRequest filter);
+    Task<List<Bid>> GetByAuctionIdAsync(int auctionId, int page, int pageSize,bool mine,int userId);
+    Task<(List<Auction> Items, int Total)> GetParticipatedAuctionsAsync(int userId, ParticipatedFilter filter);
     Task<Bid?> GetHighestBidAsync(int auctionId);
     Task<int> GetBidCountAsync(int auctionId);
     Task AddAsync(Bid bid);
@@ -37,8 +36,7 @@ public interface IBidRepository
 public interface IWatchlistRepository
 {
     Task<Watchlist?> GetAsync(int userId, int auctionId);
-    Task<List<Watchlist>> GetByUserIdAsync(int userId);
-    Task<List<int>> GetWatcherUserIdsAsync(int auctionId);
+    Task<List<Watchlist>> GetByUserIdAsync(int userId,WatchListFilterRequest filter);
     Task<int> GetWatcherCountAsync(int auctionId);
     Task AddAsync(Watchlist watchlist);
     Task RemoveAsync(Watchlist watchlist);

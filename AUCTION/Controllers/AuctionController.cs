@@ -89,7 +89,7 @@ public class AuctionController : ControllerBase
 
     /// GET /api/auctions/participated  — auctions the user has bid in
     [HttpGet("participated")]
-    public async Task<IActionResult> GetMyParticipated([FromQuery]AuctionFilterRequest filter)
+    public async Task<IActionResult> GetMyParticipated([FromQuery]ParticipatedFilter filter)
     {
         var userId = ClaimsHelper.GetUserId(User);
         var result = await _auctionService.GetMyParticipatedAuctionsAsync(userId, filter);
@@ -102,34 +102,34 @@ public class AuctionController : ControllerBase
 
 
 
-//  Admin Controller 
+// //  Admin Controller 
 
-[ApiController]
-[Route("api/admin/auctions")]
-[Authorize(Roles = "ADMIN")]
-public class AdminAuctionController : ControllerBase
-{
-    private readonly IAuctionService _auctionService;
+// [ApiController]
+// [Route("api/admin/auctions")]
+// [Authorize(Roles = "ADMIN")]
+// public class AdminAuctionController : ControllerBase
+// {
+//     private readonly IAuctionService _auctionService;
 
-    public AdminAuctionController(IAuctionService auctionService)
-        => _auctionService = auctionService;
+//     public AdminAuctionController(IAuctionService auctionService)
+//         => _auctionService = auctionService;
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] AuctionFilterRequest filter)
-    {
-        var result = await _auctionService.GetAllAuctionsAsync(filter);
-        return StatusCode(result.StatusCode, result.Success
-            ? ApiResponse<PagedResponse<AuctionResponse>>.SuccessResponse(result.Data!)
-            : ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode));
-    }
+//     [HttpGet]
+//     public async Task<IActionResult> GetAll([FromQuery] AuctionFilterRequest filter)
+//     {
+//         var result = await _auctionService.GetAllAuctionsAsync(filter);
+//         return StatusCode(result.StatusCode, result.Success
+//             ? ApiResponse<PagedResponse<AuctionResponse>>.SuccessResponse(result.Data!)
+//             : ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode));
+//     }
 
-    [HttpPatch("{auctionId:int}/force-close")]
-    public async Task<IActionResult> ForceClose(int auctionId)
-    {
-        var result = await _auctionService.CloseAuctionAsync(auctionId);
-        return StatusCode(result.StatusCode, result.Success
-            ? ApiResponse<WinnerResponse>.SuccessResponse(result.Data!, "Auction force-closed by admin")
-            : ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode));
-    }
-}
+//     [HttpPatch("{auctionId:int}/force-close")]
+//     public async Task<IActionResult> ForceClose(int auctionId)
+//     {
+//         var result = await _auctionService.CloseAuctionAsync(auctionId);
+//         return StatusCode(result.StatusCode, result.Success
+//             ? ApiResponse<WinnerResponse>.SuccessResponse(result.Data!, "Auction force-closed by admin")
+//             : ApiResponse<object>.ErrorResponse(result.Message, result.StatusCode));
+//     }
+// }
 
