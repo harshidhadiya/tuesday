@@ -75,12 +75,12 @@ namespace USER.Controllers
 
         [HttpGet("profile")]
         [Authorize(Roles = "ADMIN")]
-        public async Task<ActionResult> GetProfile(int ?userid=null)
+        public async Task<ActionResult> GetProfile([FromQuery]int ?userid=null)
         {
             var userId = userid ?? getMyId(HttpContext);
             if (userId == null)
                 return BadRequest(ApiResponse<AdminDetail>.ErrorResponse("Token Not Valid Format", 400));
-            var response = await _userAdminService.GetProfileAsync((int)userId);
+            var response = await _userAdminService.GetProfileAsync((userid != null && userid != 0) ? (int)userid : (int)userId);
             if (!response.Success)
                 return badResponce(response.Message, response.StatusCode, "GetProfile");
             return Ok(ApiResponse<AdminDetail>.SuccessResponse(response.Data!, response.Message, response.StatusCode));

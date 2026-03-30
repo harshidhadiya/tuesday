@@ -1,0 +1,558 @@
+{
+	"info": {
+		"_postman_id": "admin-complete-collection-2026",
+		"name": "ADMIN Service - Complete Collection",
+		"description": "Complete Postman collection for the ADMIN microservice. Covers all AdminRequest and AdminProduct endpoints with auto-filled data.\n\n**Setup:**\n1. Set the `baseUrl` variable (default: http://localhost:5087)\n2. Set the `jwtKey` variable to your JWT secret key\n3. Run the \"Generate Admin Token\" request first to auto-populate the `adminToken` variable\n4. All subsequent requests will automatically use the generated token",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5087",
+			"type": "string"
+		},
+		{
+			"key": "adminToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "jwtKey",
+			"value": "harshidHADIYAHOWAREYOUDFSDFSDSDFGS",
+			"type": "string"
+		},
+		{
+			"key": "adminId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "requestId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "productId",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// ─── Auto-generate JWT if adminToken is empty ───",
+					"if (!pm.collectionVariables.get('adminToken') || pm.collectionVariables.get('adminToken') === '') {",
+					"    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '');",
+					"    const adminId = pm.collectionVariables.get('adminId') || '1';",
+					"    const now = Math.floor(Date.now() / 1000);",
+					"    const payload = btoa(JSON.stringify({",
+					"        Name: 'AdminUser',",
+					"        'http://schemas.microsoft.com/ws/2008/06/identity/claims/role': 'ADMIN',",
+					"        ID: adminId,",
+					"        exp: now + 86400,",
+					"        iat: now",
+					"    })).replace(/=/g, '');",
+					"    ",
+					"    // NOTE: This creates a pseudo-JWT for Postman testing.",
+					"    // For real HMAC-SHA256, use the pre-request script below with CryptoJS.",
+					"    const jwtKey = pm.collectionVariables.get('jwtKey');",
+					"    const CryptoJS = require('crypto-js');",
+					"    const signature = CryptoJS.HmacSHA256(header + '.' + payload, jwtKey);",
+					"    const sigBase64 = CryptoJS.enc.Base64.stringify(signature).replace(/=/g, '').replace(/\\+/g, '-').replace(/\\//g, '_');",
+					"    const token = header + '.' + payload + '.' + sigBase64;",
+					"    pm.collectionVariables.set('adminToken', token);",
+					"    console.log('Auto-generated admin JWT token');",
+					"}"
+				]
+			}
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{adminToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "🔑 Setup",
+			"item": [
+				{
+					"name": "Generate Admin Token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Force regenerate token",
+									"pm.collectionVariables.set('adminToken', '');",
+									"",
+									"const adminId = pm.collectionVariables.get('adminId') || '1';",
+									"const now = Math.floor(Date.now() / 1000);",
+									"",
+									"const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '');",
+									"const payload = btoa(JSON.stringify({",
+									"    Name: 'AdminUser',",
+									"    'http://schemas.microsoft.com/ws/2008/06/identity/claims/role': 'ADMIN',",
+									"    ID: adminId,",
+									"    exp: now + 86400,",
+									"    iat: now",
+									"})).replace(/=/g, '');",
+									"",
+									"const jwtKey = pm.collectionVariables.get('jwtKey');",
+									"const CryptoJS = require('crypto-js');",
+									"const signature = CryptoJS.HmacSHA256(header + '.' + payload, jwtKey);",
+									"const sigBase64 = CryptoJS.enc.Base64.stringify(signature).replace(/=/g, '').replace(/\\+/g, '-').replace(/\\//g, '_');",
+									"const token = header + '.' + payload + '.' + sigBase64;",
+									"pm.collectionVariables.set('adminToken', token);",
+									"console.log('Generated admin JWT:', token);"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Health check returns 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Admin token is set', function () {",
+									"    const token = pm.collectionVariables.get('adminToken');",
+									"    pm.expect(token).to.not.be.empty;",
+									"    console.log('Token set successfully:', token.substring(0, 50) + '...');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": ["{{baseUrl}}"],
+							"path": [""]
+						},
+						"description": "Generates a valid admin JWT token and stores it in the `adminToken` collection variable. Run this FIRST before any other request."
+					}
+				}
+			]
+		},
+		{
+			"name": "📋 Admin Request",
+			"item": [
+				{
+					"name": "Get Pending Requests",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has correct structure', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json).to.have.property('success', true);",
+									"    pm.expect(json).to.have.property('data');",
+									"    pm.expect(json.data).to.be.an('array');",
+									"});",
+									"",
+									"// Auto-set requestId from first pending request",
+									"const json = pm.response.json();",
+									"if (json.data && json.data.length > 0) {",
+									"    pm.collectionVariables.set('requestId', json.data[0].requestUserId.toString());",
+									"    console.log('Auto-set requestId to:', json.data[0].requestUserId);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-request/pending",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-request", "pending"]
+						},
+						"description": "Get all pending (unverified) admin requests. No authentication required.\n\n**Auto-sets:** `requestId` variable from the first result."
+					}
+				},
+				{
+					"name": "Get Verified Requests",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has correct structure', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json).to.have.property('success', true);",
+									"    pm.expect(json).to.have.property('data');",
+									"    pm.expect(json.data).to.be.an('array');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-request/verified",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-request", "verified"]
+						},
+						"description": "Get all verified admin requests. No authentication required."
+					}
+				},
+				{
+					"name": "Get Dashboard",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Dashboard has counts', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json).to.have.property('success', true);",
+									"    pm.expect(json.data).to.have.property('pendingCount');",
+									"    pm.expect(json.data).to.have.property('verifiedCount');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-request/dashboard",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-request", "dashboard"]
+						},
+						"description": "Get admin dashboard with pending and verified request counts. No authentication required."
+					}
+				},
+				{
+					"name": "Get Request Details",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200 or 404', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test('Response has request details', function () {",
+									"        const json = pm.response.json();",
+									"        pm.expect(json).to.have.property('success', true);",
+									"        pm.expect(json.data).to.have.property('id');",
+									"        pm.expect(json.data).to.have.property('requestUserId');",
+									"        pm.expect(json.data).to.have.property('verifiedByAdmin');",
+									"    });",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-request/details/{{requestId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-request", "details", "{{requestId}}"]
+						},
+						"description": "Get details of a specific request by RequestUserId. No authentication required.\n\n**Uses:** `requestId` variable (auto-set by Get Pending Requests)."
+					}
+				},
+				{
+					"name": "Get User Requests",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is array', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json).to.have.property('success', true);",
+									"    pm.expect(json.data).to.be.an('array');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-request/user/{{adminId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-request", "user", "{{adminId}}"]
+						},
+						"description": "Get all requests verified by a specific admin (by their userId). No authentication required.\n\n**Uses:** `adminId` variable."
+					}
+				},
+				{
+					"name": "Verify Request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200 or 400', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test('Request verified successfully', function () {",
+									"        const json = pm.response.json();",
+									"        pm.expect(json).to.have.property('success', true);",
+									"        pm.expect(json.data).to.have.property('verifiedByAdmin', true);",
+									"    });",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-request/verify/{{requestId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-request", "verify", "{{requestId}}"]
+						},
+						"description": "Verify an admin request. Requires ADMIN role JWT + must be verified admin (VerifyFilter).\n\n**Uses:** `requestId` variable."
+					}
+				},
+				{
+					"name": "Grant User Rights",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is valid', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test('Rights granted successfully', function () {",
+									"        const json = pm.response.json();",
+									"        pm.expect(json).to.have.property('success', true);",
+									"        pm.expect(json.data).to.have.property('hasRightToAdd', true);",
+									"    });",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-request/grant-rights/{{requestId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-request", "grant-rights", "{{requestId}}"]
+						},
+						"description": "Grant a verified user rights to add other users. Requires ADMIN role + VerifyFilter.\n\n**Prerequisites:** Request must already be verified.\n**Uses:** `requestId` variable."
+					}
+				},
+				{
+					"name": "Revoke User Rights",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is valid', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test('Rights revoked successfully', function () {",
+									"        const json = pm.response.json();",
+									"        pm.expect(json).to.have.property('success', true);",
+									"        pm.expect(json.data).to.have.property('hasRightToAdd', false);",
+									"    });",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-request/revoke-rights/{{requestId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-request", "revoke-rights", "{{requestId}}"]
+						},
+						"description": "Revoke a user's right to add other users. Requires ADMIN role + VerifyFilter.\n\n**Prerequisites:** User must currently have rights.\n**Uses:** `requestId` variable."
+					}
+				},
+				{
+					"name": "Revoke Verification",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is valid', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test('Verification revoked successfully', function () {",
+									"        const json = pm.response.json();",
+									"        pm.expect(json).to.have.property('success', true);",
+									"        pm.expect(json.data).to.have.property('verifiedByAdmin', false);",
+									"    });",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-request/revoke-verification/{{requestId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-request", "revoke-verification", "{{requestId}}"]
+						},
+						"description": "Revoke a request's verification status. Requires ADMIN role + VerifyFilter.\n\n**Prerequisites:** Request must be currently verified.\n**Uses:** `requestId` variable."
+					}
+				}
+			]
+		},
+		{
+			"name": "📦 Admin Product",
+			"item": [
+				{
+					"name": "Verify Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is valid', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test('Product verification sent', function () {",
+									"        const json = pm.response.json();",
+									"        pm.expect(json).to.have.property('success', true);",
+									"        pm.expect(json.message).to.include('successfully');",
+									"    });",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": {{productId}},\n    \"description\": \"Product verified by admin after quality check\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-product/verify",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-product", "verify"]
+						},
+						"description": "Send a product verification request via RabbitMQ. Requires ADMIN role + VerifyFilter.\n\n**Body:** `ProductVerifyRequest` with productId and description.\n**Uses:** `productId` variable."
+					}
+				},
+				{
+					"name": "Unverify Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is valid', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test('Product unverification sent', function () {",
+									"        const json = pm.response.json();",
+									"        pm.expect(json).to.have.property('success', true);",
+									"        pm.expect(json.message).to.include('successfully');",
+									"    });",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-product/unverify/{{productId}}?description=Product failed re-inspection",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-product", "unverify", "{{productId}}"],
+							"query": [
+								{
+									"key": "description",
+									"value": "Product failed re-inspection"
+								}
+							]
+						},
+						"description": "Send a product unverification request via RabbitMQ. Requires ADMIN role + VerifyFilter.\n\n**Uses:** `productId` variable.\n**Query:** `description` (optional reason for unverification)."
+					}
+				}
+			]
+		}
+	]
+}

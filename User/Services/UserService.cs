@@ -1,44 +1,35 @@
 using AutoMapper;
-using Microsoft.AspNetCore.Identity;
-using Name;
-using USER.Data.Dto;
-using USER.Model;
-using USER.Repository;
-using USER.Data.Dto.Response;
+using Helper;
 using MassTransit;
 using Messaging.Contracts;
 using USER.CloudinaryService;
-using USER.Messaging.Consumer;
-
+using USER.Data.Dto;
+using USER.Data.Dto.Response;
+using USER.Model;
+using USER.Repository;
 namespace USER.Services
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _repository;
         private readonly ILogger<UserService> _logger;
-        private readonly ItokenGeneration _token;
-        private readonly PasswordHasher<object> _hash;
         private readonly IMapper _mapper;
         private readonly IPublishEndpoint _publishEndpoint;
-        private readonly ClodinaryService cloudinary;
-        private readonly ISendEndpointProvider sendEndpoint;
-
+        private readonly IClodinaryService cloudinary;
+        private readonly Ihelper helper;
         public UserService(
             IUserRepository repository,
             ILogger<UserService> logger,
-            PasswordHasher<object> hash,
-            ItokenGeneration token,
             IMapper mapper,
-            IPublishEndpoint publishEndpoint, ClodinaryService cloudinary,ISendEndpointProvider sendEndpoint)
+            IPublishEndpoint publishEndpoint, IClodinaryService cloudinary,Ihelper helper)
         {
             _repository = repository;
             _publishEndpoint = publishEndpoint;
             _logger = logger;
-            _hash = hash;
-            _token = token;
+            
             _mapper = mapper;
             this.cloudinary = cloudinary;
-            this.sendEndpoint=sendEndpoint;
+            this.helper=helper;
         }
 
         public async Task<ServiceResult<OwnDetail>> CreateUserAsync(UserCreateDto user)
@@ -59,7 +50,7 @@ namespace USER.Services
             }
 
             var userData = _mapper.Map<UserTable>(user);
-            if (publicId != null && publicId != null)
+            if (url != null && publicId != null)
             {
                 userData.ProfilePicture = url;
                 userData.publicPictureId = publicId;
@@ -67,8 +58,13 @@ namespace USER.Services
 
 
             var response = await _repository.AddAsync(userData);
-            if (response == null)
+            if (response == null){
+                if(publicId!=null)
+                 await cloudinary.deleteFile(publicId);
                 return ServiceResult<OwnDetail>.Fail("User Not create successfully");
+
+       
+}
 
             if (response.Role == "ADMIN")
             {
@@ -85,13 +81,14 @@ namespace USER.Services
         public async Task<ServiceResult<OwnDetail>> ChangeProfileAsync(int userId, changeProfileDto docs)
         {
             var existOrNot = await _repository.GetByIdAsync(userId);
+            // here i changed fail to notfound
             if (existOrNot == null)
-                return ServiceResult<OwnDetail>.Fail("User Not Exist");
+                return ServiceResult<OwnDetail>.NotFound("User Not Exist");
 
 
             if (docs.file != null)
             {
-                var result = await ProfileImageUpdate((IFormFile)docs.file, existOrNot.publicPictureId);
+                var result = await helper.ProfileImageUpdate((IFormFile)docs.file, existOrNot.publicPictureId);
                 if (result.publicId != null)
                     docs.publicId = result.publicId;
                 if (result.url != null)
@@ -100,10 +97,12 @@ namespace USER.Services
 
 
             var currentUser = await _repository.changeFields(docs, userId);
-            if (currentUser == null)
-                return ServiceResult<OwnDetail>.NotFound("User Is Not Found Here");
-
-
+            // I CHANGE HERE FAIL TO SERVER ERROR OKAY DONE 
+            if (currentUser == null){
+                if(docs.publicId!=null)
+                await cloudinary.deleteFile(docs.publicId);
+                return ServiceResult<OwnDetail>.ServerError("User Is Not Found Here");
+}
 
 
             var response = _mapper.Map<OwnDetail>(currentUser);
@@ -122,20 +121,7 @@ namespace USER.Services
             return ServiceResult<UserDetail>.Ok(response, "User profile retrieved");
 
         }
-        public async Task<(string? url, string? publicId)> ProfileImageUpdate(IFormFile? file, string? publicId = null)
-        {
-            if (file==null)
-            {
-                return (null,null);
-            }
-            if (publicId != null)
-            {
-                var endpoint=await sendEndpoint.GetSendEndpoint(new Uri("queue:user-messaging-consumer-image-delete-consumer"));
-                await endpoint.Send(new productDeleteImage(publicId= new String(publicId)));
-            }
-            var detail = await cloudinary.singleUpload(file);
-
-            return (detail.url, detail.publicId);
-        }
+       
     }
 }
+

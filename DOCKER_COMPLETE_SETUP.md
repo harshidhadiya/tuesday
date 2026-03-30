@@ -70,7 +70,7 @@ docker-compose logs -f
 
 **Infrastructure:**
 - RabbitMQ Admin Panel: `http://localhost:15672` (guest/guest)
-- SQL Server: `localhost:1433` (sa/Harshid@123)
+- SQL Server: `localhost:1433` (sa/BATMAN@2024)
 - Redis CLI: `redis-cli -h localhost -p 6379`
 
 ### From Container Network (Service-to-Service)
@@ -202,7 +202,7 @@ Health checks ensure services are ready before dependents start.
 Server=sqlserver,1433;
 Database=<DbName>;
 User Id=sa;
-Password=Harshid@123;
+Password=BATMAN@2024;
 TrustServerCertificate=True;
 ```
 
@@ -346,7 +346,7 @@ sleep 30
 docker-compose ps
 
 # Verify connection
-docker exec microservice-sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Harshid@123
+docker exec microservice-sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P BATMAN@2024
 ```
 
 ### Issue: RabbitMQ Connection Failed
@@ -424,7 +424,7 @@ ASPNETCORE_ENVIRONMENT: Production
 ```
 
 ### Passwords to Change
-- SQL Server: `Harshid@123` → Strong password
+- SQL Server: `BATMAN@2024` → Strong password
 - RabbitMQ: `guest/guest` → Strong credentials
 - JWT Key: Update in appsettings
 
@@ -554,7 +554,7 @@ docker system prune -a --volumes
 ```bash
 # Backup database
 docker exec microservice-sqlserver /opt/mssql-tools/bin/sqlcmd \
-  -S localhost -U sa -P Harshid@123 \
+  -S localhost -U sa -P BATMAN@2024 \
   -Q "BACKUP DATABASE [AdminDb] TO DISK = N'/var/opt/mssql/backup/AdminDb.bak'"
 
 # Backup Redis

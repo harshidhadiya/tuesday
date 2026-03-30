@@ -68,7 +68,7 @@ echo -e "  Auction SignalR: ${GREEN}ws://localhost:5001/hubs/auction${NC}"
 
 echo -e "\n${YELLOW}Infrastructure:${NC}"
 echo -e "  RabbitMQ Admin:  ${GREEN}http://localhost:15672${NC} (guest/guest)"
-echo -e "  SQL Server:      ${GREEN}localhost:1433${NC} (sa/Harshid@123)"
+echo -e "  SQL Server:      ${GREEN}localhost:1433${NC} (sa/BATMAN@2024)"
 echo -e "  Redis Cache:     ${GREEN}localhost:6379${NC}"
 
 echo -e "\n${YELLOW}Useful Commands:${NC}"

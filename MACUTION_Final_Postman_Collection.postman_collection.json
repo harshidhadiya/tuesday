@@ -1,0 +1,1032 @@
+{
+	"info": {
+		"_postman_id": "macution-microservice-based-2026",
+		"name": "MACUTION - Microservice Based Collection",
+		"description": "Complete Postman collection organized by microservice.\n\nServices:\n- User Service (port 8080) → Gateway: /api/user/*, /api/admin/*\n- Product Service (port 5088) → Gateway: /api/product/*\n- Admin Service (port 5087) → Gateway: /api/admin-request/*, /api/admin-product/*\n- Verify Service (port 5089) → Gateway: /api/verify/*\n- Auction Service (port 5001) → Gateway: /api/auctions/*, /api/Watchlist/*, /hubs/auction/*\n\nSignalR Hub: ws://localhost:5000/hubs/auction?access_token={{seller_token}}\n\nHub Client Methods: JoinAuction(auctionId), ListenToAuction(auctionId), StopViewing(auctionId), LeaveAuction(auctionId)\nHub Server Events: BidPlaced, AuctionStarted, AuctionClosed, AuctionEndingSoon, TimerTick, ViewerCountUpdated, AuctionAborted, AuctionUnverified, AuctionUpdated, AuctionMessage, GetWatchListDetail, GeneralAuction",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "base_url", "value": "http://localhost:5000", "type": "string" },
+		{ "key": "seller_token", "value": "", "type": "string" },
+		{ "key": "admin_token", "value": "", "type": "string" },
+		{ "key": "seller_id", "value": "", "type": "string" },
+		{ "key": "admin_id", "value": "", "type": "string" },
+		{ "key": "product_id", "value": "", "type": "string" },
+		{ "key": "auction_id", "value": "", "type": "string" },
+		{ "key": "request_id", "value": "", "type": "string" },
+		{ "key": "second_seller_token", "value": "", "type": "string" },
+		{ "key": "second_seller_id", "value": "", "type": "string" },
+		{ "key": "image_id", "value": "", "type": "string" },
+		{ "key": "auction_start", "value": "", "type": "string" },
+		{ "key": "auction_end", "value": "", "type": "string" }
+	],
+	"item": [
+		{
+			"name": "User Service",
+			"description": "Port: 8080 | Gateway routes: /api/user/* → userCluster, /api/admin/* → adminCluster (both proxy to User service)\n\nControllers:\n- UserController [Route(\"api/[controller]\")] → api/user\n- AdminController [Route(\"api/[controller]\")] → api/admin",
+			"item": [
+				{
+					"name": "UserController",
+					"description": "Route: api/user\nHandles seller/user registration, login, and profile management.",
+					"item": [
+						{
+							"name": "POST /api/user/create — Register Seller",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    var jsonData = pm.response.json();",
+											"    console.log('Seller registered:', JSON.stringify(jsonData));",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{ "key": "Name", "value": "Test Seller", "type": "text" },
+										{ "key": "Password", "value": "123456", "type": "text" },
+										{ "key": "Email", "value": "seller@test.com", "type": "text" },
+										{ "key": "Phone", "value": "9876543210", "type": "text" },
+										{ "key": "Address", "value": "123 Seller Street", "type": "text" },
+										{ "key": "Role", "value": "SELLER", "type": "text" },
+										{ "key": "file", "type": "file", "src": [], "description": "Optional profile picture", "disabled": true }
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user/create",
+									"host": ["{{base_url}}"],
+									"path": ["api", "user", "create"]
+								},
+								"description": "Controller: UserController.CreateUser\nBinding: [FromForm] UserCreateDto\nAuth: None\n\nFields: Name (string), Password (string), Email (string), Phone (string), Address (string), Role (string, default \"SELLER\"), ProfilePicture (string?), file (IFormFile?)"
+							},
+							"response": []
+						},
+						{
+							"name": "POST /api/user/login — Seller Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.data && jsonData.data.token) {",
+											"        pm.collectionVariables.set('seller_token', jsonData.data.token);",
+											"        pm.collectionVariables.set('seller_id', jsonData.data.id || jsonData.data.Id);",
+											"        console.log('seller_token saved');",
+											"        console.log('seller_id saved:', jsonData.data.id || jsonData.data.Id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"seller@test.com\",\n    \"password\": \"123456\",\n    \"role\": \"SELLER\"\n}",
+									"options": { "raw": { "language": "json" } }
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user/login",
+									"host": ["{{base_url}}"],
+									"path": ["api", "user", "login"]
+								},
+								"description": "Controller: UserController.Login\nBinding: [FromBody] UserLoginDto\nAuth: None\n\nFields: Email (string), Password (string), Role (string, default \"SELLER\")\nResponse: { Id, Name, Email, Role, imageUrl, Phone, Address, token }"
+							},
+							"response": []
+						},
+						{
+							"name": "PATCH /api/user/profile — Update Profile",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{ "key": "Name", "value": "Updated Seller Name", "type": "text" },
+										{ "key": "Phone", "value": "9999999999", "type": "text" },
+										{ "key": "Address", "value": "456 New Address", "type": "text" },
+										{ "key": "Email", "value": "", "type": "text", "disabled": true },
+										{ "key": "Password", "value": "", "type": "text", "disabled": true },
+										{ "key": "confirmPassword", "value": "", "type": "text", "disabled": true },
+										{ "key": "file", "type": "file", "src": [], "description": "Optional profile picture", "disabled": true },
+										{ "key": "publicId", "value": "", "type": "text", "disabled": true }
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user/profile",
+									"host": ["{{base_url}}"],
+									"path": ["api", "user", "profile"]
+								},
+								"description": "Controller: UserController.ChangeProfile\nBinding: [FromForm] changeProfileDto\nAuth: [Authorize] — Bearer token required\n\nAll fields optional: Name, Phone, Address, ProfilePicture, Email, Password, confirmPassword, file (IFormFile), publicId"
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/user/profile/{id} — Get Profile",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/user/profile/0",
+									"host": ["{{base_url}}"],
+									"path": ["api", "user", "profile", "0"]
+								},
+								"description": "Controller: UserController.getProfile\nBinding: route param {id:int}\nAuth: [Authorize] — Bearer token required\n\nPass 0 or own ID → returns own profile. Pass another user's ID → returns their profile.\nResponse: UserDetail { id, Name, Email, Phone, Address, imageUrl, Role }"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "AdminController",
+					"description": "Route: api/admin\nHandles admin signup, login, and admin profile. This controller lives in the User service but is accessed via the adminCluster gateway route.",
+					"item": [
+						{
+							"name": "POST /api/admin/signup — Register Admin",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Admin User\",\n    \"password\": \"123456\",\n    \"email\": \"newadmin@test.com\",\n    \"phone\": \"7777777777\",\n    \"address\": \"Admin HQ\",\n    \"role\": \"ADMIN\"\n}",
+									"options": { "raw": { "language": "json" } }
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/signup",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "signup"]
+								},
+								"description": "Controller: AdminController.requestSignup\nBinding: [FromBody] UserCreateDto (NO [FromForm] — JSON body)\nAuth: None\n\nFields: Name, Password, Email, Phone, Address, Role (set to \"ADMIN\")"
+							},
+							"response": []
+						},
+						{
+							"name": "POST /api/admin/Login — Admin Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.data && jsonData.data.token) {",
+											"        pm.collectionVariables.set('admin_token', jsonData.data.token);",
+											"        pm.collectionVariables.set('admin_id', jsonData.data.id || jsonData.data.Id);",
+											"        console.log('admin_token saved');",
+											"        console.log('admin_id saved:', jsonData.data.id || jsonData.data.Id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"admin@test.com\",\n    \"password\": \"123456\"\n}",
+									"options": { "raw": { "language": "json" } }
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/Login",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "Login"]
+								},
+								"description": "Controller: AdminController.Login\nBinding: [FromBody] UserLoginDto\nAuth: None\n\nFields: Email (string), Password (string)\nNote: Route is case-sensitive 'Login' (capital L) as defined in [HttpPost(\"Login\")]"
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/admin/profile — Admin Profile",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/profile",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "profile"],
+									"query": [
+										{ "key": "userid", "value": "", "disabled": true, "description": "Optional: pass specific user ID" }
+									]
+								},
+								"description": "Controller: AdminController.GetProfile\nBinding: query param userid (int?, optional)\nAuth: [Authorize(Roles = \"ADMIN\")]\n\nIf userid is null, uses the logged-in admin's ID from token.\nResponse: AdminDetail { id, Name, Email, Phone, Address, imageUrl, Role, obj (RequestDetailDto?) }"
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Product Service",
+			"description": "Port: 5088 | Gateway route: /api/product/* → productCluster\n\nController: ProductController [Route(\"api/Product\")]",
+			"item": [
+				{
+					"name": "POST /api/product — Create Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data) {",
+									"        pm.collectionVariables.set('product_id', jsonData.data.id || jsonData.data.Id);",
+									"        console.log('product_id saved:', jsonData.data.id || jsonData.data.Id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{seller_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Vintage Watch Collection\",\n    \"description\": \"A rare vintage watch from the 1960s in excellent condition.\",\n    \"date\": \"2025-01-15T00:00:00\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/api/product",
+							"host": ["{{base_url}}"],
+							"path": ["api", "product"]
+						},
+						"description": "Controller: ProductController.createProduct\nBinding: [FromBody] ProductCreate (NO [FromForm] attribute)\nAuth: [Authorize(Roles = \"SELLER,USER\")]\n\nFields: name (string?), description (string?), date (DateTime — product purchase date)\nNote: user_id is set from token, not from body. images field exists in DTO but cannot be sent via JSON — use the separate /images endpoint for file uploads.\n\nResponse: ProductDto { id, product_buy_date, user_id, Name, description, verified, images[], AuctionStartTime, AuctionEndTime }"
+					},
+					"response": []
+				},
+				{
+					"name": "POST /api/product/all — Get Products (Filtered)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{seller_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mine\": true,\n    \"verified\": false,\n    \"page\": 1,\n    \"size\": 10\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/api/product/all",
+							"host": ["{{base_url}}"],
+							"path": ["api", "product", "all"]
+						},
+						"description": "Controller: ProductController.getallProducts\nBinding: [FromBody] ProductAll\nAuth: [Authorize(Roles = \"SELLER,USER,ADMIN\")]\n\nFields: mine (bool, default false), verified (bool, default false), searchName (string?), productId (int?), createdFrom (DateTime?), createdTo (DateTime?), buyFrom (DateTime?), buyTo (DateTime?), page (int, default 1), size (int, default 10)\n\nNote: id is set from token (not from body)"
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH /api/product/{productId} — Update Product",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "name", "value": "Vintage Watch - Updated", "type": "text" },
+								{ "key": "description", "value": "Updated description with more details.", "type": "text" },
+								{ "key": "date", "value": "", "type": "text", "disabled": true, "description": "DateTime? — product purchase date" },
+								{ "key": "AuctionStartTime", "value": "", "type": "text", "disabled": true, "description": "DateTime? — auction start" },
+								{ "key": "AuctionEndTime", "value": "", "type": "text", "disabled": true, "description": "DateTime? — auction end" },
+								{ "key": "ids", "value": "", "type": "text", "disabled": true, "description": "List<int>? — image IDs to delete" },
+								{ "key": "images", "type": "file", "src": [], "disabled": true, "description": "List<IFormFile>? — new images to add" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/product/{{product_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "product", "{{product_id}}"]
+						},
+						"description": "Controller: ProductController.updateproduct\nBinding: [FromForm] ProductUpdate (extends AddImage)\nAuth: [Authorize(Roles = \"SELLER,USER\")]\n\nProductUpdate fields: name (string?), description (string?), date (DateTime?), AuctionStartTime (DateTime?), AuctionEndTime (DateTime?), ids (List<int>? — image IDs to remove), images (List<IFormFile>? — new images)\nRoute param: productId (int) — set from URL\n\nNote: id field in DTO is set from route param, not body"
+					},
+					"response": []
+				},
+				{
+					"name": "POST /api/product/images — Add Images",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "id", "value": "{{product_id}}", "type": "text" },
+								{ "key": "images", "type": "file", "src": [], "description": "Select image files to upload" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/product/images",
+							"host": ["{{base_url}}"],
+							"path": ["api", "product", "images"]
+						},
+						"description": "Controller: ProductController.addImages\nBinding: [FromForm] AddImage\nAuth: [Authorize(Roles = \"SELLER,USER\")]\n\nFields: id (int — product ID), images (List<IFormFile>? — image files)"
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE /api/product/{productId}/images/{imageId} — Delete Image",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/product/{{product_id}}/images/{{image_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "product", "{{product_id}}", "images", "{{image_id}}"]
+						},
+						"description": "Controller: ProductController.deleteProductImage\nBinding: route params productId (int), imageId (int)\nAuth: [Authorize(Roles = \"SELLER,USER\")]\n\nDeletes a specific image from a product. Only the product owner can delete."
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE /api/product/{productId} — Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/product/{{product_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "product", "{{product_id}}"]
+						},
+						"description": "Controller: ProductController.deleteproduct\nBinding: route param productId (int)\nAuth: [Authorize(Roles = \"SELLER,USER\")]\n\n⚠️ CAUTION: Deleting a product triggers 'AuctionAborted' SignalR event if a live auction exists. Run this LAST."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin Service",
+			"description": "Port: 5087 | Gateway routes:\n- /api/admin-request/* → requestCluster\n- /api/admin-product/* → adminProductCluster\n\nControllers:\n- AdminRequestController [Route(\"api/admin-request\")]\n- AdminProductController [Route(\"api/admin-product\")]",
+			"item": [
+				{
+					"name": "AdminRequestController",
+					"description": "Route: api/admin-request\nAll endpoints require [Authorize(Roles = \"ADMIN\")] except details (AllowAnonymous).\nMost endpoints use [TypeFilter(typeof(VerifyFilter))].",
+					"item": [
+						{
+							"name": "POST /api/admin-request/filter — Get Filtered Requests",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.data && Array.isArray(jsonData.data) && jsonData.data.length > 0) {",
+											"        pm.collectionVariables.set('request_id', jsonData.data[0].id || jsonData.data[0].Id);",
+											"        console.log('request_id saved:', jsonData.data[0].id || jsonData.data[0].Id);",
+											"    } else if (jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+											"        pm.collectionVariables.set('request_id', jsonData.data.items[0].id || jsonData.data.items[0].Id);",
+											"        console.log('request_id saved:', jsonData.data.items[0].id || jsonData.data.items[0].Id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"pending\": true,\n    \"page\": 1,\n    \"pageSize\": 10,\n    \"mine\": false\n}",
+									"options": { "raw": { "language": "json" } }
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin-request/filter",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin-request", "filter"]
+								},
+								"description": "Controller: AdminRequestController.GetFilterdData\nBinding: [FromBody] Filter\nAuth: [Authorize(Roles = \"ADMIN\")]\n\nFilter fields: name (string?), email (string?), From (DateTime?), To (DateTime?), pending (bool, default false), page (int, default 1), pageSize (int, default 10), mine (bool, default false)\nNote: mineId is set from token, not body"
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/admin-request/details/{id} — Request Details",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin-request/details/{{request_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin-request", "details", "{{request_id}}"]
+								},
+								"description": "Controller: AdminRequestController.GetRequestDetails\nBinding: route param id (int)\nAuth: [AllowAnonymous] — no token needed"
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/admin-request/verify/{RequestId} — Verify Request",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin-request/verify/{{request_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin-request", "verify", "{{request_id}}"]
+								},
+								"description": "Controller: AdminRequestController.VerifyRequest\nBinding: route param RequestId (int)\nAuth: [Authorize(Roles = \"ADMIN\")] + [TypeFilter(typeof(VerifyFilter))]\n\nMarks seller request as verified by admin."
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/admin-request/grant-rights/{requestId} — Grant Rights",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin-request/grant-rights/{{request_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin-request", "grant-rights", "{{request_id}}"]
+								},
+								"description": "Controller: AdminRequestController.GrantUserRights\nBinding: route param requestId (int)\nAuth: [Authorize(Roles = \"ADMIN\")] + [TypeFilter(typeof(VerifyFilter))]\n\nGrants seller rights to user after verification."
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/admin-request/revoke-rights/{requestId} — Revoke Rights",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin-request/revoke-rights/{{request_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin-request", "revoke-rights", "{{request_id}}"]
+								},
+								"description": "Controller: AdminRequestController.RevokeUserRights\nBinding: route param requestId (int)\nAuth: [Authorize(Roles = \"ADMIN\")] + [TypeFilter(typeof(VerifyFilter))]"
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/admin-request/revoke-verification/{requestId} — Revoke Verification",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin-request/revoke-verification/{{request_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin-request", "revoke-verification", "{{request_id}}"]
+								},
+								"description": "Controller: AdminRequestController.RevokeVerification\nBinding: route param requestId (int)\nAuth: [Authorize(Roles = \"ADMIN\")] + [TypeFilter(typeof(VerifyFilter))]"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "AdminProductController",
+					"description": "Route: api/admin-product\nHandles product verification records in the Admin service.",
+					"item": [
+						{
+							"name": "POST /api/admin-product/verify — Verify Product",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"productId\": {{product_id}},\n    \"description\": \"Product verified and approved for listing.\"\n}",
+									"options": { "raw": { "language": "json" } }
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin-product/verify",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin-product", "verify"]
+								},
+								"description": "Controller: AdminProductController.VerifyProduct\nBinding: [FromBody] ProductVerifyRequest\nAuth: [Authorize(Roles = \"ADMIN\")] + [TypeFilter(typeof(VerifyFilter))]\n\nFields: ProductId (int), Description (string, default empty)"
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /api/admin-product/unverify/{id} — Unverify Product",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin-product/unverify/{{product_id}}?description=Product removed from verification",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin-product", "unverify", "{{product_id}}"],
+									"query": [
+										{ "key": "description", "value": "Product removed from verification" }
+									]
+								},
+								"description": "Controller: AdminProductController.UnverifyProduct\nBinding: route param id (int), query param description (string, default empty)\nAuth: [Authorize(Roles = \"ADMIN\")] + [TypeFilter(typeof(VerifyFilter))]\n\nTriggers 'AuctionUnverified' SignalR event if an auction is live."
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Verify Service",
+			"description": "Port: 5089 | Gateway route: /api/verify/* → verifyCluster\n\nController: VerifyController [Route(\"api/[controller]\")]",
+			"item": [
+				{
+					"name": "POST /api/verify/product — Verify Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": {{product_id}},\n    \"sellerId\": {{seller_id}},\n    \"description\": \"Product verified after inspection.\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/api/verify/product",
+							"host": ["{{base_url}}"],
+							"path": ["api", "verify", "product"]
+						},
+						"description": "Controller: VerifyController.VerifyProduct\nBinding: [FromBody] VerifyProductRequest\nAuth: [Authorize(Roles = \"ADMIN\")]\n\nFields: ProductId (int), SellerId (int), description (string, default empty)\nCreates a verification record for the product."
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH /api/verify/product — Unverify Product",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": {{product_id}},\n    \"description\": \"Admin Unverify this product due to some reasons\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/api/verify/product",
+							"host": ["{{base_url}}"],
+							"path": ["api", "verify", "product"]
+						},
+						"description": "Controller: VerifyController.UnverifyProduct\nBinding: [FromBody] ProductUnverify\nAuth: [Authorize(Roles = \"ADMIN\")]\n\nFields: productId (int), description (string, default \"Admin Unverify this product due to some reasons\")\nCancels live auction if exists, triggers 'AuctionUnverified' SignalR event."
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/verify/status/{productId} — Get Verify Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/verify/status/{{product_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "verify", "status", "{{product_id}}"]
+						},
+						"description": "Controller: VerifyController.GetVerifyStatus\nBinding: route param productId (int)\nAuth: [AllowAnonymous] — no token needed\n\nResponse: VerifyStatusResponse { ProductId, IsVerified, VerifierId, VerifiedTime, Description, user_id }"
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/verify/my-products — Products Verified By Me",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/verify/my-products?page=1&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "verify", "my-products"],
+							"query": [
+								{ "key": "searchName", "value": "", "disabled": true },
+								{ "key": "page", "value": "1" },
+								{ "key": "size", "value": "10" }
+							]
+						},
+						"description": "Controller: VerifyController.GetProductsVerifiedByMe\nBinding: [FromQuery] searchName (string?), page (int, default 1), size (int, default 10)\nAuth: [Authorize(Roles = \"ADMIN\")]\n\nNote: Passes Authorization header to downstream calls."
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/verify/unverified-products — Unverified Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/verify/unverified-products?page=1&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "verify", "unverified-products"],
+							"query": [
+								{ "key": "searchName", "value": "", "disabled": true },
+								{ "key": "page", "value": "1" },
+								{ "key": "size", "value": "10" }
+							]
+						},
+						"description": "Controller: VerifyController.GetUnverifiedProducts\nBinding: [FromQuery] searchName (string?), page (int, default 1), size (int, default 10)\nAuth: [Authorize(Roles = \"ADMIN\")]\n\nNote: Passes Authorization header to downstream calls."
+					},
+					"response": []
+				},
+				{
+					"name": "POST /api/verify/products — Universal Product Filter",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"page\": 1,\n    \"pagesize\": 10,\n    \"verified\": false,\n    \"pending\": true,\n    \"mine\": false\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/api/verify/products",
+							"host": ["{{base_url}}"],
+							"path": ["api", "verify", "products"]
+						},
+						"description": "Controller: VerifyController.GetProductsUniversal\nBinding: [FromBody] FilterVerify\nAuth: [Authorize(Roles = \"ADMIN\")]\n\nFields: page (int, default 1), pagesize (int, default 10), name (string?), verified (bool, default false), pending (bool, default false), mine (bool, default false)\nNote: verifierId is set from token, not body"
+					},
+					"response": []
+				},
+				{
+					"name": "POST /api/verify/auction — Create Auction",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var now = new Date();",
+									"var startDate = new Date(now.getTime() + 2 * 60 * 1000);",
+									"var endDate = new Date(startDate.getTime() + 60 * 60 * 1000);",
+									"pm.collectionVariables.set('auction_start', startDate.toISOString());",
+									"pm.collectionVariables.set('auction_end', endDate.toISOString());",
+									"console.log('Auction start:', startDate.toISOString());",
+									"console.log('Auction end:', endDate.toISOString());"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    console.log('Create Auction response:', JSON.stringify(jsonData));",
+									"    if (jsonData.data) {",
+									"        var id = jsonData.data.id || jsonData.data.Id || jsonData.data.AuctionId || jsonData.data.auctionId;",
+									"        if (id) {",
+									"            pm.collectionVariables.set('auction_id', id);",
+									"            console.log('auction_id saved:', id);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{seller_token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": {{product_id}},\n    \"startingPrice\": 100.00,\n    \"reservePrice\": 500.00,\n    \"minBidIncrement\": 10.00,\n    \"startDate\": \"{{auction_start}}\",\n    \"endDate\": \"{{auction_end}}\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/api/verify/auction",
+							"host": ["{{base_url}}"],
+							"path": ["api", "verify", "auction"]
+						},
+						"description": "Controller: VerifyController.createAuctions\nBinding: [FromBody] CreateAuctionRequest\nAuth: [Authorize(Roles = \"SELLER,USER\")]\n\nFields: ProductId (int), StartingPrice (decimal), ReservePrice (decimal?), MinBidIncrement (decimal, default 1.00), StartDate (DateTime), EndDate (DateTime)\n\n⚠️ Product MUST be verified before calling this. The Verify service validates verification status before publishing CreateAuction event via RabbitMQ.\nPre-request script auto-sets start=now+2min, end=start+1hr."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auction Service",
+			"description": "Port: 5001 | Gateway routes:\n- /api/auctions/* → auctionCluster\n- /api/Watchlist/* → watchListCluster\n- /hubs/auction/* → hubCluster (SignalR WebSocket)\n\nControllers:\n- AuctionController [Route(\"api/auctions\")]\n- BidController [Route(\"api/auctions/{auctionId:int}/bids\")]\n- WatchlistController [Route(\"api/[controller]\")]\n\nSignalR Hub: AuctionHub mapped at /hubs/auction",
+			"item": [
+				{
+					"name": "AuctionController",
+					"description": "Route: api/auctions\nAll endpoints require [Authorize]. Most require SELLER/USER role.",
+					"item": [
+						{
+							"name": "GET /api/auctions — Get All Auctions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+											"        pm.collectionVariables.set('auction_id', jsonData.data.items[0].id || jsonData.data.items[0].Id);",
+											"        console.log('auction_id from listing:', jsonData.data.items[0].id || jsonData.data.items[0].Id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/auctions?Page=1&PageSize=20",
+									"host": ["{{base_url}}"],
+									"path": ["api", "auctions"],
+									"query": [
+										{ "key": "Page", "value": "1" },
+										{ "key": "PageSize", "value": "20" },
+										{ "key": "Status", "value": "", "disabled": true, "description": "Enum: Scheduled=0, Live=1, Closed=2, Cancelled=3" },
+										{ "key": "MinPrice", "value": "", "disabled": true },
+										{ "key": "MaxPrice", "value": "", "disabled": true },
+										{ "key": "FilterStartDate", "value": "", "disabled": true },
+										{ "key": "FilterEndDate", "value": "", "disabled": true },
+										{ "key": "name", "value": "", "disabled": true },
+										{ "key": "mine", "value": "false", "disabled": true },
+										{ "key": "productId", "value": "", "disabled": true }
+									]
+								},
+								"description": "Controller: AuctionController.GetAll\nBinding: [FromQuery] AuctionFilterRequest\nAuth: [Authorize(Roles = \"USER,SELLER\")]\n\nQuery params: Status (AuctionStatus? enum), MinPrice (decimal?), MaxPrice (decimal?), FilterStartDate (DateTime?), FilterEndDate (DateTime?), Page (int, default 1), PageSize (int, default 20), name (string?), mine (bool, default false), productId (int?)\nNote: mineid is set from token\n\nResponse: PagedResponse<AuctionResponse> { Items[], TotalCount, Page, PageSize, TotalPages }"
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/auctions/{auctionId} — Get Auction Detail",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/auctions/{{auction_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "auctions", "{{auction_id}}"]
+								},
+								"description": "Controller: AuctionController.GetById\nBinding: route param auctionId (int)\nAuth: [Authorize]\n\nResponse: AuctionDetailResponse extends AuctionResponse { HighestBid (BidResponse?), RecentBids (List<BidResponse>), WatcherCount (int), LiveViewerCount (long), Winner (WinnerResponse?), win (bool) }"
+							},
+							"response": []
+						},
+						{
+							"name": "PATCH /api/auctions/{auctionId} — Update Auction",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"startingPrice\": 150.00,\n    \"minBidIncrement\": 15.00\n}",
+									"options": { "raw": { "language": "json" } }
+								},
+								"url": {
+									"raw": "{{base_url}}/api/auctions/{{auction_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "auctions", "{{auction_id}}"]
+								},
+								"description": "Controller: AuctionController.Update\nBinding: route param auctionId (int), [FromBody] UpdateAuctionRequest\nAuth: [Authorize]\n\nAll fields optional: StartingPrice (decimal?), ReservePrice (decimal?), MinBidIncrement (decimal?), StartDate (DateTime?), EndDate (DateTime?)\nOnly auction creator can update. Triggers 'AuctionUpdated' SignalR event."
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /api/auctions/{auctionId} — Cancel Auction",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/auctions/{{auction_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "auctions", "{{auction_id}}"]
+								},
+								"description": "Controller: AuctionController.Cancel\nBinding: route param auctionId (int)\nAuth: [Authorize]\n\nOnly auction creator can cancel."
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/auctions/created — My Created Auctions",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/auctions/created",
+									"host": ["{{base_url}}"],
+									"path": ["api", "auctions", "created"]
+								},
+								"description": "Controller: AuctionController.GetMyCreated\nBinding: none (userId from token)\nAuth: [Authorize]\n\nResponse: List<AuctionResponse>"
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/auctions/participated — My Participated Auctions",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/auctions/participated?Page=1&PageSize=20",
+									"host": ["{{base_url}}"],
+									"path": ["api", "auctions", "participated"],
+									"query": [
+										{ "key": "Page", "value": "1" },
+										{ "key": "PageSize", "value": "20" },
+										{ "key": "win", "value": "false", "disabled": true, "description": "Filter won auctions only" },
+										{ "key": "Status", "value": "", "disabled": true },
+										{ "key": "MinPrice", "value": "", "disabled": true },
+										{ "key": "MaxPrice", "value": "", "disabled": true },
+										{ "key": "name", "value": "", "disabled": true }
+									]
+								},
+								"description": "Controller: AuctionController.GetMyParticipated\nBinding: [FromQuery] ParticipatedFilter (extends AuctionFilterRequest)\nAuth: [Authorize]\n\nExtra field: win (bool, default false) — filter only won auctions\nResponse: PagedResponse<AuctionResponse>"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "BidController",
+					"description": "Route: api/auctions/{auctionId}/bids\nAll endpoints require [Authorize].",
+					"item": [
+						{
+							"name": "POST /api/auctions/{auctionId}/bids — Place Bid",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"amount\": 200.00\n}",
+									"options": { "raw": { "language": "json" } }
+								},
+								"url": {
+									"raw": "{{base_url}}/api/auctions/{{auction_id}}/bids",
+									"host": ["{{base_url}}"],
+									"path": ["api", "auctions", "{{auction_id}}", "bids"]
+								},
+								"description": "Controller: BidController.PlaceBid\nBinding: route param auctionId (int), [FromBody] PlaceBidRequest\nAuth: [Authorize]\n\nFields: Amount (decimal) — must be >= currentHighest + minBidIncrement\nBroadcasts 'BidPlaced' via SignalR to auction group.\nResponse: BidResponse { Id, AuctionId, MaskedBidder, Amount, Status, PlacedAt }"
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/auctions/{auctionId}/bids — Bid History",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/auctions/{{auction_id}}/bids?page=1&pageSize=20&mine=false",
+									"host": ["{{base_url}}"],
+									"path": ["api", "auctions", "{{auction_id}}", "bids"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "pageSize", "value": "20" },
+										{ "key": "mine", "value": "false", "description": "true = only my bids" }
+									]
+								},
+								"description": "Controller: BidController.GetHistory\nBinding: route param auctionId (int), [FromQuery] page (int, default 1), pageSize (int, default 20), mine (bool, default true)\nAuth: [Authorize]\n\nResponse: PagedResponse<BidResponse>"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "WatchlistController",
+					"description": "Route: api/Watchlist (case-sensitive)\nAll endpoints require [Authorize].",
+					"item": [
+						{
+							"name": "POST /api/Watchlist/{auctionId}/watch — Watch Auction",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/Watchlist/{{auction_id}}/watch",
+									"host": ["{{base_url}}"],
+									"path": ["api", "Watchlist", "{{auction_id}}", "watch"]
+								},
+								"description": "Controller: WatchlistController.Watch\nBinding: route param auctionId (int), no body\nAuth: [Authorize]\n\nAdds auction to user's watchlist. Sends 'GetWatchListDetail' SignalR event to the user."
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /api/Watchlist/{auctionId}/watch — Unwatch Auction",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/Watchlist/{{auction_id}}/watch",
+									"host": ["{{base_url}}"],
+									"path": ["api", "Watchlist", "{{auction_id}}", "watch"]
+								},
+								"description": "Controller: WatchlistController.Unwatch\nBinding: route param auctionId (int), no body\nAuth: [Authorize]"
+							},
+							"response": []
+						},
+						{
+							"name": "GET /api/Watchlist/watched — Get Watched Auctions",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{seller_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/Watchlist/watched?page=1&size=10",
+									"host": ["{{base_url}}"],
+									"path": ["api", "Watchlist", "watched"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "size", "value": "10" },
+										{ "key": "name", "value": "", "disabled": true },
+										{ "key": "startDate", "value": "", "disabled": true },
+										{ "key": "endDate", "value": "", "disabled": true },
+										{ "key": "status", "value": "", "disabled": true, "description": "Enum: Scheduled=0, Live=1, Closed=2, Cancelled=3" },
+										{ "key": "isdashBoardPage", "value": "false", "disabled": true }
+									]
+								},
+								"description": "Controller: WatchlistController.GetWatched\nBinding: [FromQuery] WatchListFilterRequest\nAuth: [Authorize]\n\nQuery params: name (string?), startDate (DateTime?), endDate (DateTime?), status (AuctionStatus?), page (int, default 1), size (int, default 10), isdashBoardPage (bool, default false)\n\nResponse: List<AuctionResponse>"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "SignalR Hub (AuctionHub)",
+					"description": "WebSocket endpoint: /hubs/auction\nAuth: [Authorize] — pass token as query param\n\nConnection URL: ws://localhost:5000/hubs/auction?access_token={token}\n\n--- Client → Server Methods ---\n• JoinAuction(auctionId: string) — Join auction room, increment viewer count\n• ListenToAuction(auctionId: string) — Listen to auction events without viewer count\n• StopViewing(auctionId: string) — Stop viewing but stay listening\n• LeaveAuction(auctionId: string) — Leave auction room completely\n\n--- Server → Client Events ---\n• BidPlaced(data) — New bid placed, broadcast to auction group\n• AuctionStarted({auctionId}) — Auction status changed to Live, broadcast to auctiondetail group\n• AuctionClosed(data) — Auction ended with winner info\n• AuctionEndingSoon({auctionId, minutesRemaining}) — Warning before auction ends\n• TimerTick({auctionId, secondsRemaining}) — Countdown timer\n• ViewerCountUpdated(count) — Live viewer count changed\n• AuctionAborted({auctionId, reason}) — Product deleted during auction\n• AuctionUnverified({auctionId, reason}) — Product un-verified during auction\n• AuctionUpdated(data) — Auction details changed\n• AuctionMessage({message}) — General message to auction group\n• GetWatchListDetail(data) — Watchlist update sent to specific user\n• GeneralAuction(message) — General auction creation notification",
+					"item": []
+				}
+			]
+		}
+	]
+}

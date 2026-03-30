@@ -19,6 +19,7 @@ using MassTransit;
 using Microsoft.Extensions.Options;
 using USER.CloudinaryService;
 using USER.Messaging.Consumer;
+using Helper;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<PasswordHasher<object>>();
@@ -94,7 +95,8 @@ builder.Services.AddScoped<IUserAdminService, UserAdminService>();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ItokenGeneration,Tokenget>();
 builder.Services.AddAutoMapper(typeof(Mapper));
-builder.Services.AddScoped<ClodinaryService>();
+builder.Services.AddScoped<IClodinaryService,ClodinaryService>();
+builder.Services.AddScoped<Ihelper,Helpers>();
 builder.Services.AddHealthChecks();
 var app = builder.Build();
 app.MapHealthChecks("/health");

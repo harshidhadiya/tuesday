@@ -40,5 +40,9 @@ namespace USER.Services
         {
             return Fail(message, 404);
         }
+        public static ServiceResult<T> ServerError(string message="Internal server error")
+        {
+            return Fail(message,500);
+        }
     }
 }

@@ -7,6 +7,7 @@ using USER.CloudinaryService;
 using USER.Data.Dto;
 using USER.Data.Interfaces;
 using USER.Services;
+using USER.Repository;
 
 namespace USER.Controllers
 {
@@ -19,13 +20,15 @@ namespace USER.Controllers
         private readonly IsellerLogin _loginInterface;
         private readonly ILogger<UserController> logger;
         private readonly IPublishEndpoint publish;
-        public UserController(IUserService userService, IsellerLogin loginInterface, ILogger<UserController> logger, ClodinaryService clodinary, IPublishEndpoint publish)
+        private readonly IUserRepository repo;
+        public UserController(IUserService userService, IsellerLogin loginInterface, ILogger<UserController> logger, ClodinaryService clodinary, IPublishEndpoint publish,IUserRepository repo)
         {
             _userService = userService;
             this.logger = logger;
             _loginInterface = loginInterface;
             this.clodinary = clodinary;
             this.publish = publish;
+            this.repo=repo;
         }
 
         [NonAction]
@@ -115,6 +118,23 @@ namespace USER.Controllers
                 return badResponce(responce.Message, responce.StatusCode, "getProfile");
 
             return Ok(ApiResponse<object>.SuccessResponse(responce.Data!, responce.Message, responce.StatusCode));
+        }
+        [HttpDelete("profile")]
+        [Authorize]
+        public async Task<ActionResult> DeleteProfile()
+        {
+            int? userId = getMyId(HttpContext);
+            if (userId == null)
+                return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 400));
+      
+            var responce = await repo.GetByIdAsync((int)userId);
+            if(responce == null)
+            return BadRequest("Not deleted");
+            var responce1 = await repo.RemoveAsync(responce);
+            if(responce1 == null)
+            return BadRequest("Not deleted");   
+
+            return Ok("deleted successfully");
         }
 
 

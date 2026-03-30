@@ -23,7 +23,7 @@ namespace CloudinaryService
             };
             clodinary = new Cloudinary(account);
         }
-        public async Task<(string? url, string? publicId)> singleUpload(IFormFile file)
+        public virtual async Task<(string? url, string? publicId)> singleUpload(IFormFile file)
         {
             if (file == null || file.Length <= 0)
             {
@@ -56,7 +56,7 @@ namespace CloudinaryService
 
             return (null, null);
         }
-        public async Task<List<(string? url, string? publicId)>> multipleUploads(List<IFormFile> files)
+        public virtual async Task<List<(string? url, string? publicId)>> multipleUploads(List<IFormFile> files)
         {
             var images = new List<(string? url, string? publicId)>();
             if (files == null || files.Count == 0)
@@ -72,7 +72,7 @@ namespace CloudinaryService
         }
 
 
-        public async Task deleteFile(string publicId)
+        public virtual async Task deleteFile(string publicId)
         {
             try
             {

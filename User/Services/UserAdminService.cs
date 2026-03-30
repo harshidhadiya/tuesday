@@ -45,14 +45,7 @@ namespace USER.Services
                 return ServiceResult<AdminDetail>.NotFound("User not found");
 
                 var result = await httpRequestCommon.GetRequestDetailsAsync(userId);
-                if(result is null)
-                {
-                    return ServiceResult<AdminDetail>.NotFound("Request details are missing from the response." );
-                }
-                if(result.Data is null )
-                {
-                    return ServiceResult<AdminDetail>.NotFound("Request details are missing from the response." );
-                }
+               
                 if(result.Success == false)
                 {
                     switch(result.StatusCode)
