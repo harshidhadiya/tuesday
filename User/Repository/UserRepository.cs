@@ -50,15 +50,8 @@ namespace USER.Repository
             return user;
         }
 
-        public async Task<List<UserTable>> GetUsersByIdsAsync(IEnumerable<int> ids,int page=1,int size=10)
-        {
-            return await _db.USERS.Where(u => ids.Contains(u.Id)).Skip((page-1)*size).Take(size).ToListAsync();
-        }
 
-        public async Task<List<UserTable>> GetAllUsersAsync()
-        {
-            return await _db.USERS.ToListAsync();
-        }
+       
         public async Task<UserTable> changeFields(changeProfileDto profile,int userId)
         {
              var currentUser = await _db.USERS.FindAsync(userId);

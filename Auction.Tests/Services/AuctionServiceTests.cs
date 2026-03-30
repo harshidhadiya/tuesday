@@ -158,8 +158,8 @@ namespace AuctionTests.Services
             var auction = BuildAuction(1, createdByUserId: 1, status: AuctionStatus.Upcoming);
             var request = new UpdateAuctionRequest
             {
-                StartDate = DateTime.UtcNow.AddHours(1),
-                EndDate   = DateTime.UtcNow.AddHours(3)
+                StartDate = TimeHelper.Now().AddHours(1),
+                EndDate   = TimeHelper.Now().AddHours(3)
             };
 
             _auctionRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(auction);
@@ -413,8 +413,8 @@ namespace AuctionTests.Services
             CreatedByUserId  = createdByUserId,
             StartingPrice    = 100m,
             MinBidIncrement  = 10m,
-            StartDate        = DateTime.UtcNow.AddHours(1),
-            EndDate          = DateTime.UtcNow.AddHours(2),
+            StartDate        = TimeHelper.Now().AddHours(1),
+            EndDate          = TimeHelper.Now().AddHours(2),
             Status           = status
         };
     }

@@ -1,0 +1,1470 @@
+<?xml version="1.0" encoding="utf-8"?>
+<coverage line-rate="1" branch-rate="0.9229999999999999" version="1.9" timestamp="1774874265" lines-covered="346" lines-valid="346" branches-covered="72" branches-valid="78">
+  <sources>
+    <source>D:\Codes_pracitce\last\tuesday\AUCTION\</source>
+  </sources>
+  <packages>
+    <package name="AUCTION" line-rate="1" branch-rate="0.9229999999999999" complexity="115">
+      <classes>
+        <class name="AUCTION.Data.Repositories.AuctionRepository" filename="Data\Repositories\AuctionRepository.cs" line-rate="1" branch-rate="1" complexity="13">
+          <methods>
+            <method name="get_IndianNow" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="13" hits="10" branch="False" />
+                <line number="14" hits="10" branch="False" />
+                <line number="15" hits="10" branch="False" />
+              </lines>
+            </method>
+            <method name="GetByIdAsync" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="18" hits="6" branch="False" />
+              </lines>
+            </method>
+            <method name="GetByIdAsyncWithWatchList" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="20" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name="GetByIdWithBidsAsync" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="22" hits="4" branch="False" />
+                <line number="23" hits="4" branch="False" />
+                <line number="24" hits="4" branch="False" />
+              </lines>
+            </method>
+            <method name="removeAuction" signature="(AUCTION.Data.Entities.Auction)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="48" hits="1" branch="False" />
+                <line number="49" hits="1" branch="False" />
+                <line number="50" hits="1" branch="False" />
+                <line number="51" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="GetByUserIdAsync" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="54" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name="GetLiveAuctionsDueToCloseAsync" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="57" hits="3" branch="False" />
+                <line number="58" hits="3" branch="False" />
+                <line number="59" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name="GetUpcomingAuctionsDueToStartAsync" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="62" hits="3" branch="False" />
+                <line number="63" hits="3" branch="False" />
+                <line number="64" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name="GetLiveAuctionsEndingSoonAsync" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="67" hits="4" branch="False" />
+                <line number="68" hits="4" branch="False" />
+                <line number="69" hits="4" branch="False" />
+                <line number="70" hits="4" branch="False" />
+                <line number="71" hits="4" branch="False" />
+                <line number="72" hits="4" branch="False" />
+                <line number="73" hits="4" branch="False" />
+                <line number="74" hits="4" branch="False" />
+                <line number="75" hits="4" branch="False" />
+              </lines>
+            </method>
+            <method name="UpdateAsync" signature="(AUCTION.Data.Entities.Auction)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="79" hits="4" branch="False" />
+              </lines>
+            </method>
+            <method name="UpdateRangeAsync" signature="(System.Collections.Generic.IEnumerable`1&lt;AUCTION.Data.Entities.Auction&gt;)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="81" hits="1" branch="False" />
+                <line number="82" hits="1" branch="False" />
+                <line number="83" hits="1" branch="False" />
+                <line number="84" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="SaveChangesAsync" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="85" hits="4" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(AUCTION.Data.AuctionDbContext)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="11" hits="82" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="13" hits="10" branch="False" />
+            <line number="14" hits="10" branch="False" />
+            <line number="15" hits="10" branch="False" />
+            <line number="18" hits="6" branch="False" />
+            <line number="20" hits="3" branch="False" />
+            <line number="22" hits="4" branch="False" />
+            <line number="23" hits="4" branch="False" />
+            <line number="24" hits="4" branch="False" />
+            <line number="48" hits="1" branch="False" />
+            <line number="49" hits="1" branch="False" />
+            <line number="50" hits="1" branch="False" />
+            <line number="51" hits="1" branch="False" />
+            <line number="54" hits="3" branch="False" />
+            <line number="57" hits="3" branch="False" />
+            <line number="58" hits="3" branch="False" />
+            <line number="59" hits="3" branch="False" />
+            <line number="62" hits="3" branch="False" />
+            <line number="63" hits="3" branch="False" />
+            <line number="64" hits="3" branch="False" />
+            <line number="67" hits="4" branch="False" />
+            <line number="68" hits="4" branch="False" />
+            <line number="69" hits="4" branch="False" />
+            <line number="70" hits="4" branch="False" />
+            <line number="71" hits="4" branch="False" />
+            <line number="72" hits="4" branch="False" />
+            <line number="73" hits="4" branch="False" />
+            <line number="74" hits="4" branch="False" />
+            <line number="75" hits="4" branch="False" />
+            <line number="79" hits="4" branch="False" />
+            <line number="81" hits="1" branch="False" />
+            <line number="82" hits="1" branch="False" />
+            <line number="83" hits="1" branch="False" />
+            <line number="84" hits="1" branch="False" />
+            <line number="85" hits="4" branch="False" />
+            <line number="11" hits="82" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Data.Repositories.AuctionRepository/&lt;AddAsync&gt;d__13" filename="Data\Repositories\AuctionRepository.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="78" hits="1" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="78" hits="1" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Data.Repositories.AuctionRepository/&lt;GetAllAsync&gt;d__7" filename="Data\Repositories\AuctionRepository.cs" line-rate="1" branch-rate="1" complexity="12">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="12">
+              <lines>
+                <line number="27" hits="11" branch="False" />
+                <line number="29" hits="11" branch="False" />
+                <line number="30" hits="13" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="102" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="31" hits="13" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="271" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="32" hits="13" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="495" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="33" hits="13" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="689" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="34" hits="12" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="883" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="35" hits="12" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="1066" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="37" hits="11" branch="False" />
+                <line number="38" hits="11" branch="False" />
+                <line number="39" hits="11" branch="False" />
+                <line number="40" hits="11" branch="False" />
+                <line number="41" hits="11" branch="False" />
+                <line number="42" hits="11" branch="False" />
+                <line number="44" hits="11" branch="False" />
+                <line number="45" hits="11" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="27" hits="11" branch="False" />
+            <line number="29" hits="11" branch="False" />
+            <line number="30" hits="13" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="102" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="31" hits="13" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="271" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="32" hits="13" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="495" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="33" hits="13" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="689" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="34" hits="12" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="883" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="35" hits="12" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="1066" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="37" hits="11" branch="False" />
+            <line number="38" hits="11" branch="False" />
+            <line number="39" hits="11" branch="False" />
+            <line number="40" hits="11" branch="False" />
+            <line number="41" hits="11" branch="False" />
+            <line number="42" hits="11" branch="False" />
+            <line number="44" hits="11" branch="False" />
+            <line number="45" hits="11" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Data.Repositories.AuctionRepository/&lt;GetbyProductId&gt;d__17" filename="Data\Repositories\AuctionRepository.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="88" hits="3" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="88" hits="3" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Data.Repositories.BidRepository" filename="Data\Repositories\AuctionRepository.cs" line-rate="1" branch-rate="1" complexity="6">
+          <methods>
+            <method name="GetByIdAsync" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="97" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="GetHighestBidAsync" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="163" hits="2" branch="False" />
+                <line number="164" hits="2" branch="False" />
+                <line number="165" hits="2" branch="False" />
+                <line number="166" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="GetBidCountAsync" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="169" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="UpdateRangeAsync" signature="(System.Collections.Generic.IEnumerable`1&lt;AUCTION.Data.Entities.Bid&gt;)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="174" hits="1" branch="False" />
+                <line number="175" hits="1" branch="False" />
+                <line number="176" hits="1" branch="False" />
+                <line number="177" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="SaveChangesAsync" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="179" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(AUCTION.Data.AuctionDbContext)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="94" hits="54" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="97" hits="2" branch="False" />
+            <line number="163" hits="2" branch="False" />
+            <line number="164" hits="2" branch="False" />
+            <line number="165" hits="2" branch="False" />
+            <line number="166" hits="2" branch="False" />
+            <line number="169" hits="2" branch="False" />
+            <line number="174" hits="1" branch="False" />
+            <line number="175" hits="1" branch="False" />
+            <line number="176" hits="1" branch="False" />
+            <line number="177" hits="1" branch="False" />
+            <line number="179" hits="3" branch="False" />
+            <line number="94" hits="54" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Data.Repositories.BidRepository/&lt;AddAsync&gt;d__7" filename="Data\Repositories\AuctionRepository.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="171" hits="1" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="171" hits="1" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Data.Repositories.BidRepository/&lt;GetByAuctionIdAsync&gt;d__3" filename="Data\Repositories\AuctionRepository.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="100" hits="7" branch="False" />
+                <line number="101" hits="7" branch="False" />
+                <line number="102" hits="7" branch="False" />
+                <line number="103" hits="7" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="201" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="104" hits="1" branch="False" />
+                <line number="105" hits="7" branch="False" />
+                <line number="106" hits="7" branch="False" />
+                <line number="107" hits="7" branch="False" />
+                <line number="108" hits="7" branch="False" />
+                <line number="109" hits="7" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="100" hits="7" branch="False" />
+            <line number="101" hits="7" branch="False" />
+            <line number="102" hits="7" branch="False" />
+            <line number="103" hits="7" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="201" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="104" hits="1" branch="False" />
+            <line number="105" hits="7" branch="False" />
+            <line number="106" hits="7" branch="False" />
+            <line number="107" hits="7" branch="False" />
+            <line number="108" hits="7" branch="False" />
+            <line number="109" hits="7" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Data.Repositories.BidRepository/&lt;GetParticipatedAuctionsAsync&gt;d__4" filename="Data\Repositories\AuctionRepository.cs" line-rate="1" branch-rate="1" complexity="14">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="14">
+              <lines>
+                <line number="114" hits="12" branch="False" />
+                <line number="116" hits="12" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="92" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="117" hits="1" branch="False" />
+                <line number="118" hits="1" branch="False" />
+                <line number="119" hits="1" branch="False" />
+                <line number="120" hits="1" branch="False" />
+                <line number="121" hits="1" branch="False" />
+                <line number="122" hits="1" branch="False" />
+                <line number="123" hits="1" branch="False" />
+                <line number="125" hits="11" branch="False" />
+                <line number="126" hits="11" branch="False" />
+                <line number="127" hits="11" branch="False" />
+                <line number="128" hits="11" branch="False" />
+                <line number="129" hits="11" branch="False" />
+                <line number="130" hits="11" branch="False" />
+                <line number="131" hits="11" branch="False" />
+                <line number="134" hits="12" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="596" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="135" hits="1" branch="False" />
+                <line number="137" hits="12" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="820" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="138" hits="1" branch="False" />
+                <line number="140" hits="12" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="1014" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="141" hits="1" branch="False" />
+                <line number="143" hits="12" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="1207" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="144" hits="1" branch="False" />
+                <line number="146" hits="12" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="1481" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="147" hits="1" branch="False" />
+                <line number="149" hits="12" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="1691" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="150" hits="1" branch="False" />
+                <line number="152" hits="12" branch="False" />
+                <line number="153" hits="12" branch="False" />
+                <line number="154" hits="12" branch="False" />
+                <line number="155" hits="12" branch="False" />
+                <line number="156" hits="12" branch="False" />
+                <line number="157" hits="12" branch="False" />
+                <line number="159" hits="12" branch="False" />
+                <line number="160" hits="12" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="114" hits="12" branch="False" />
+            <line number="116" hits="12" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="92" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="117" hits="1" branch="False" />
+            <line number="118" hits="1" branch="False" />
+            <line number="119" hits="1" branch="False" />
+            <line number="120" hits="1" branch="False" />
+            <line number="121" hits="1" branch="False" />
+            <line number="122" hits="1" branch="False" />
+            <line number="123" hits="1" branch="False" />
+            <line number="125" hits="11" branch="False" />
+            <line number="126" hits="11" branch="False" />
+            <line number="127" hits="11" branch="False" />
+            <line number="128" hits="11" branch="False" />
+            <line number="129" hits="11" branch="False" />
+            <line number="130" hits="11" branch="False" />
+            <line number="131" hits="11" branch="False" />
+            <line number="134" hits="12" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="596" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="135" hits="1" branch="False" />
+            <line number="137" hits="12" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="820" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="138" hits="1" branch="False" />
+            <line number="140" hits="12" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="1014" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="141" hits="1" branch="False" />
+            <line number="143" hits="12" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="1207" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="144" hits="1" branch="False" />
+            <line number="146" hits="12" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="1481" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="147" hits="1" branch="False" />
+            <line number="149" hits="12" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="1691" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="150" hits="1" branch="False" />
+            <line number="152" hits="12" branch="False" />
+            <line number="153" hits="12" branch="False" />
+            <line number="154" hits="12" branch="False" />
+            <line number="155" hits="12" branch="False" />
+            <line number="156" hits="12" branch="False" />
+            <line number="157" hits="12" branch="False" />
+            <line number="159" hits="12" branch="False" />
+            <line number="160" hits="12" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Data.Repositories.WatchlistRepository" filename="Data\Repositories\AuctionRepository.cs" line-rate="1" branch-rate="1" complexity="5">
+          <methods>
+            <method name="GetAsync" signature="(System.Int32,System.Int32)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="188" hits="4" branch="False" />
+              </lines>
+            </method>
+            <method name="GetWatcherCountAsync" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="213" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="RemoveAsync" signature="(AUCTION.Data.Entities.Watchlist)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="218" hits="2" branch="False" />
+                <line number="219" hits="2" branch="False" />
+                <line number="220" hits="2" branch="False" />
+                <line number="221" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="SaveChangesAsync" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="223" hits="4" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(AUCTION.Data.AuctionDbContext)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="185" hits="40" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="188" hits="4" branch="False" />
+            <line number="213" hits="2" branch="False" />
+            <line number="218" hits="2" branch="False" />
+            <line number="219" hits="2" branch="False" />
+            <line number="220" hits="2" branch="False" />
+            <line number="221" hits="2" branch="False" />
+            <line number="223" hits="4" branch="False" />
+            <line number="185" hits="40" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Data.Repositories.WatchlistRepository/&lt;AddAsync&gt;d__5" filename="Data\Repositories\AuctionRepository.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="215" hits="1" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="215" hits="1" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Data.Repositories.WatchlistRepository/&lt;GetByUserIdAsync&gt;d__3" filename="Data\Repositories\AuctionRepository.cs" line-rate="1" branch-rate="1" complexity="8">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="8">
+              <lines>
+                <line number="191" hits="11" branch="False" />
+                <line number="192" hits="11" branch="False" />
+                <line number="194" hits="11" branch="False" />
+                <line number="196" hits="11" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="293" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="197" hits="2" branch="False" />
+                <line number="199" hits="11" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="587" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="200" hits="1" branch="False" />
+                <line number="202" hits="11" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="807" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="203" hits="2" branch="False" />
+                <line number="205" hits="11" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="1017" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="206" hits="1" branch="False" />
+                <line number="208" hits="11" branch="False" />
+                <line number="210" hits="11" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="191" hits="11" branch="False" />
+            <line number="192" hits="11" branch="False" />
+            <line number="194" hits="11" branch="False" />
+            <line number="196" hits="11" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="293" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="197" hits="2" branch="False" />
+            <line number="199" hits="11" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="587" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="200" hits="1" branch="False" />
+            <line number="202" hits="11" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="807" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="203" hits="2" branch="False" />
+            <line number="205" hits="11" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="1017" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="206" hits="1" branch="False" />
+            <line number="208" hits="11" branch="False" />
+            <line number="210" hits="11" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.AuctionController" filename="Controllers\AuctionController.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name=".ctor" signature="(Microsoft.Extensions.Logging.ILogger`1&lt;AUCTION.Controllers.AuctionController&gt;,AUCTION.Services.Interfaces.IAuctionService,System.Net.Http.IHttpClientFactory)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="22" hits="8" branch="False" />
+                <line number="23" hits="8" branch="False" />
+                <line number="24" hits="8" branch="False" />
+                <line number="25" hits="8" branch="False" />
+                <line number="26" hits="8" branch="False" />
+                <line number="27" hits="8" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="22" hits="8" branch="False" />
+            <line number="23" hits="8" branch="False" />
+            <line number="24" hits="8" branch="False" />
+            <line number="25" hits="8" branch="False" />
+            <line number="26" hits="8" branch="False" />
+            <line number="27" hits="8" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.AuctionController/&lt;Cancel&gt;d__7" filename="Controllers\AuctionController.cs" line-rate="1" branch-rate="0.5" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="71" hits="1" branch="False" />
+                <line number="72" hits="1" branch="False" />
+                <line number="73" hits="1" branch="False" />
+                <line number="74" hits="1" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="207" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="75" hits="1" branch="False" />
+                <line number="76" hits="1" branch="False" />
+                <line number="77" hits="1" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="71" hits="1" branch="False" />
+            <line number="72" hits="1" branch="False" />
+            <line number="73" hits="1" branch="False" />
+            <line number="74" hits="1" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="207" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="75" hits="1" branch="False" />
+            <line number="76" hits="1" branch="False" />
+            <line number="77" hits="1" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.AuctionController/&lt;GetAll&gt;d__4" filename="Controllers\AuctionController.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="33" hits="2" branch="False" />
+                <line number="34" hits="2" branch="False" />
+                <line number="35" hits="2" branch="False" />
+                <line number="36" hits="2" branch="False" />
+                <line number="37" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="219" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="38" hits="2" branch="False" />
+                <line number="39" hits="2" branch="False" />
+                <line number="40" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="33" hits="2" branch="False" />
+            <line number="34" hits="2" branch="False" />
+            <line number="35" hits="2" branch="False" />
+            <line number="36" hits="2" branch="False" />
+            <line number="37" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="219" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="38" hits="2" branch="False" />
+            <line number="39" hits="2" branch="False" />
+            <line number="40" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.AuctionController/&lt;GetById&gt;d__5" filename="Controllers\AuctionController.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="45" hits="2" branch="False" />
+                <line number="46" hits="2" branch="False" />
+                <line number="47" hits="2" branch="False" />
+                <line number="48" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="207" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="49" hits="2" branch="False" />
+                <line number="50" hits="2" branch="False" />
+                <line number="51" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="45" hits="2" branch="False" />
+            <line number="46" hits="2" branch="False" />
+            <line number="47" hits="2" branch="False" />
+            <line number="48" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="207" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="49" hits="2" branch="False" />
+            <line number="50" hits="2" branch="False" />
+            <line number="51" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.AuctionController/&lt;GetMyCreated&gt;d__8" filename="Controllers\AuctionController.cs" line-rate="1" branch-rate="0.5" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="82" hits="1" branch="False" />
+                <line number="83" hits="1" branch="False" />
+                <line number="84" hits="1" branch="False" />
+                <line number="85" hits="1" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="201" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="86" hits="1" branch="False" />
+                <line number="87" hits="1" branch="False" />
+                <line number="88" hits="1" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="82" hits="1" branch="False" />
+            <line number="83" hits="1" branch="False" />
+            <line number="84" hits="1" branch="False" />
+            <line number="85" hits="1" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="201" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="86" hits="1" branch="False" />
+            <line number="87" hits="1" branch="False" />
+            <line number="88" hits="1" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.AuctionController/&lt;GetMyParticipated&gt;d__9" filename="Controllers\AuctionController.cs" line-rate="1" branch-rate="0.5" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="93" hits="1" branch="False" />
+                <line number="94" hits="1" branch="False" />
+                <line number="95" hits="1" branch="False" />
+                <line number="96" hits="1" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="207" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="97" hits="1" branch="False" />
+                <line number="98" hits="1" branch="False" />
+                <line number="99" hits="1" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="93" hits="1" branch="False" />
+            <line number="94" hits="1" branch="False" />
+            <line number="95" hits="1" branch="False" />
+            <line number="96" hits="1" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="207" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="97" hits="1" branch="False" />
+            <line number="98" hits="1" branch="False" />
+            <line number="99" hits="1" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.AuctionController/&lt;Update&gt;d__6" filename="Controllers\AuctionController.cs" line-rate="1" branch-rate="0.5" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="59" hits="1" branch="False" />
+                <line number="60" hits="1" branch="False" />
+                <line number="61" hits="1" branch="False" />
+                <line number="62" hits="1" branch="False" />
+                <line number="63" hits="1" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="274" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="64" hits="1" branch="False" />
+                <line number="65" hits="1" branch="False" />
+                <line number="66" hits="1" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="59" hits="1" branch="False" />
+            <line number="60" hits="1" branch="False" />
+            <line number="61" hits="1" branch="False" />
+            <line number="62" hits="1" branch="False" />
+            <line number="63" hits="1" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="274" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="64" hits="1" branch="False" />
+            <line number="65" hits="1" branch="False" />
+            <line number="66" hits="1" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.BidController" filename="Controllers\BidController.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name=".ctor" signature="(AUCTION.Services.Interfaces.IBidService)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="19" hits="8" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="19" hits="8" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.BidController/&lt;GetHistory&gt;d__3" filename="Controllers\BidController.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="38" hits="2" branch="False" />
+                <line number="39" hits="2" branch="False" />
+                <line number="40" hits="2" branch="False" />
+                <line number="41" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="225" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="42" hits="2" branch="False" />
+                <line number="43" hits="2" branch="False" />
+                <line number="44" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="38" hits="2" branch="False" />
+            <line number="39" hits="2" branch="False" />
+            <line number="40" hits="2" branch="False" />
+            <line number="41" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="225" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="42" hits="2" branch="False" />
+            <line number="43" hits="2" branch="False" />
+            <line number="44" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.BidController/&lt;PlaceBid&gt;d__2" filename="Controllers\BidController.cs" line-rate="1" branch-rate="0.75" complexity="4">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="0.75" complexity="4">
+              <lines>
+                <line number="24" hits="2" branch="False" />
+                <line number="25" hits="2" branch="False" />
+                <line number="26" hits="2" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="63" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="28" hits="2" branch="False" />
+                <line number="29" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="261" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="30" hits="2" branch="False" />
+                <line number="31" hits="2" branch="False" />
+                <line number="32" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="24" hits="2" branch="False" />
+            <line number="25" hits="2" branch="False" />
+            <line number="26" hits="2" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="63" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="28" hits="2" branch="False" />
+            <line number="29" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="261" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="30" hits="2" branch="False" />
+            <line number="31" hits="2" branch="False" />
+            <line number="32" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.WatchlistController" filename="Controllers\WatchlistController.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name=".ctor" signature="(AUCTION.Services.Interfaces.IWatchlistService)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="18" hits="5" branch="False" />
+                <line number="19" hits="5" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="18" hits="5" branch="False" />
+            <line number="19" hits="5" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.WatchlistController/&lt;GetWatched&gt;d__4" filename="Controllers\WatchlistController.cs" line-rate="1" branch-rate="0.5" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="43" hits="1" branch="False" />
+                <line number="44" hits="1" branch="False" />
+                <line number="45" hits="1" branch="False" />
+                <line number="46" hits="1" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="207" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="47" hits="1" branch="False" />
+                <line number="48" hits="1" branch="False" />
+                <line number="49" hits="1" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="43" hits="1" branch="False" />
+            <line number="44" hits="1" branch="False" />
+            <line number="45" hits="1" branch="False" />
+            <line number="46" hits="1" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="207" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="47" hits="1" branch="False" />
+            <line number="48" hits="1" branch="False" />
+            <line number="49" hits="1" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.WatchlistController/&lt;Unwatch&gt;d__3" filename="Controllers\WatchlistController.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="33" hits="2" branch="False" />
+                <line number="34" hits="2" branch="False" />
+                <line number="35" hits="2" branch="False" />
+                <line number="36" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="207" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="37" hits="2" branch="False" />
+                <line number="38" hits="2" branch="False" />
+                <line number="39" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="33" hits="2" branch="False" />
+            <line number="34" hits="2" branch="False" />
+            <line number="35" hits="2" branch="False" />
+            <line number="36" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="207" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="37" hits="2" branch="False" />
+            <line number="38" hits="2" branch="False" />
+            <line number="39" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Controllers.WatchlistController/&lt;Watch&gt;d__2" filename="Controllers\WatchlistController.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="23" hits="2" branch="False" />
+                <line number="24" hits="2" branch="False" />
+                <line number="25" hits="2" branch="False" />
+                <line number="26" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="207" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="27" hits="2" branch="False" />
+                <line number="28" hits="2" branch="False" />
+                <line number="29" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="23" hits="2" branch="False" />
+            <line number="24" hits="2" branch="False" />
+            <line number="25" hits="2" branch="False" />
+            <line number="26" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="207" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="27" hits="2" branch="False" />
+            <line number="28" hits="2" branch="False" />
+            <line number="29" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.ProductVerifiedConsumer" filename="Consumers\AuctionConsumers.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name=".ctor" signature="(AUCTION.Data.Repositories.Interfaces.IAuctionRepository)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="9" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="9" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.ProductVerifiedConsumer/&lt;Consume&gt;d__2" filename="Consumers\AuctionConsumers.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="12" hits="2" branch="False" />
+                <line number="13" hits="2" branch="False" />
+                <line number="14" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="197" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="15" hits="1" branch="False" />
+                <line number="16" hits="1" branch="False" />
+                <line number="17" hits="1" branch="False" />
+                <line number="18" hits="1" branch="False" />
+                <line number="19" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="12" hits="2" branch="False" />
+            <line number="13" hits="2" branch="False" />
+            <line number="14" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="197" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="15" hits="1" branch="False" />
+            <line number="16" hits="1" branch="False" />
+            <line number="17" hits="1" branch="False" />
+            <line number="18" hits="1" branch="False" />
+            <line number="19" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.ProductUnverifiedConsumer" filename="Consumers\AuctionConsumers.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name=".ctor" signature="(AUCTION.Data.Repositories.Interfaces.IAuctionRepository,AUCTION.Services.Interfaces.IAuctionService,Microsoft.Extensions.Logging.ILogger`1&lt;AUCTION.Consumers.ProductUnverifiedConsumer&gt;)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="29" hits="2" branch="False" />
+                <line number="30" hits="2" branch="False" />
+                <line number="31" hits="2" branch="False" />
+                <line number="32" hits="2" branch="False" />
+                <line number="33" hits="2" branch="False" />
+                <line number="34" hits="2" branch="False" />
+                <line number="35" hits="2" branch="False" />
+                <line number="36" hits="2" branch="False" />
+                <line number="37" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="29" hits="2" branch="False" />
+            <line number="30" hits="2" branch="False" />
+            <line number="31" hits="2" branch="False" />
+            <line number="32" hits="2" branch="False" />
+            <line number="33" hits="2" branch="False" />
+            <line number="34" hits="2" branch="False" />
+            <line number="35" hits="2" branch="False" />
+            <line number="36" hits="2" branch="False" />
+            <line number="37" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.ProductUnverifiedConsumer/&lt;Consume&gt;d__4" filename="Consumers\AuctionConsumers.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="40" hits="2" branch="False" />
+                <line number="41" hits="2" branch="False" />
+                <line number="42" hits="2" branch="False" />
+                <line number="43" hits="2" branch="False" />
+                <line number="44" hits="2" branch="False" />
+                <line number="46" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="103" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="47" hits="1" branch="False" />
+                <line number="48" hits="2" branch="False" />
+                <line number="49" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="40" hits="2" branch="False" />
+            <line number="41" hits="2" branch="False" />
+            <line number="42" hits="2" branch="False" />
+            <line number="43" hits="2" branch="False" />
+            <line number="44" hits="2" branch="False" />
+            <line number="46" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="103" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="47" hits="1" branch="False" />
+            <line number="48" hits="2" branch="False" />
+            <line number="49" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.AuctionCreateConsumer" filename="Consumers\AuctionCreateConsumer.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name=".ctor" signature="(AUCTION.Data.Repositories.Interfaces.IAuctionRepository,AutoMapper.IMapper,AUCTION.Hubs.IUserHubService,MassTransit.IPublishEndpoint,Microsoft.Extensions.Logging.ILogger`1&lt;AUCTION.Consumers.AuctionCreateConsumer&gt;,AUCTION.Data.AuctionDbContext)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="23" hits="3" branch="False" />
+                <line number="24" hits="3" branch="False" />
+                <line number="25" hits="3" branch="False" />
+                <line number="26" hits="3" branch="False" />
+                <line number="27" hits="3" branch="False" />
+                <line number="28" hits="3" branch="False" />
+                <line number="29" hits="3" branch="False" />
+                <line number="30" hits="3" branch="False" />
+                <line number="31" hits="3" branch="False" />
+                <line number="32" hits="3" branch="False" />
+                <line number="33" hits="3" branch="False" />
+                <line number="34" hits="3" branch="False" />
+                <line number="35" hits="3" branch="False" />
+                <line number="36" hits="3" branch="False" />
+                <line number="37" hits="3" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="23" hits="3" branch="False" />
+            <line number="24" hits="3" branch="False" />
+            <line number="25" hits="3" branch="False" />
+            <line number="26" hits="3" branch="False" />
+            <line number="27" hits="3" branch="False" />
+            <line number="28" hits="3" branch="False" />
+            <line number="29" hits="3" branch="False" />
+            <line number="30" hits="3" branch="False" />
+            <line number="31" hits="3" branch="False" />
+            <line number="32" hits="3" branch="False" />
+            <line number="33" hits="3" branch="False" />
+            <line number="34" hits="3" branch="False" />
+            <line number="35" hits="3" branch="False" />
+            <line number="36" hits="3" branch="False" />
+            <line number="37" hits="3" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.AuctionCreateConsumer/&lt;Consume&gt;d__7" filename="Consumers\AuctionCreateConsumer.cs" line-rate="1" branch-rate="1" complexity="4">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="4">
+              <lines>
+                <line number="40" hits="3" branch="False" />
+                <line number="41" hits="3" branch="False" />
+                <line number="42" hits="3" branch="False" />
+                <line number="43" hits="5" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="269" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="46" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="311" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="47" hits="1" branch="False" />
+                <line number="48" hits="1" branch="False" />
+                <line number="49" hits="1" branch="False" />
+                <line number="50" hits="1" branch="False" />
+                <line number="51" hits="1" branch="False" />
+                <line number="52" hits="1" branch="False" />
+                <line number="53" hits="1" branch="False" />
+                <line number="54" hits="1" branch="False" />
+                <line number="55" hits="1" branch="False" />
+                <line number="56" hits="1" branch="False" />
+                <line number="57" hits="1" branch="False" />
+                <line number="58" hits="1" branch="False" />
+                <line number="59" hits="1" branch="False" />
+                <line number="60" hits="1" branch="False" />
+                <line number="61" hits="1" branch="False" />
+                <line number="62" hits="1" branch="False" />
+                <line number="63" hits="1" branch="False" />
+                <line number="64" hits="1" branch="False" />
+                <line number="66" hits="1" branch="False" />
+                <line number="67" hits="1" branch="False" />
+                <line number="68" hits="1" branch="False" />
+                <line number="69" hits="1" branch="False" />
+                <line number="70" hits="1" branch="False" />
+                <line number="71" hits="1" branch="False" />
+                <line number="73" hits="3" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="40" hits="3" branch="False" />
+            <line number="41" hits="3" branch="False" />
+            <line number="42" hits="3" branch="False" />
+            <line number="43" hits="5" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="269" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="46" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="311" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="47" hits="1" branch="False" />
+            <line number="48" hits="1" branch="False" />
+            <line number="49" hits="1" branch="False" />
+            <line number="50" hits="1" branch="False" />
+            <line number="51" hits="1" branch="False" />
+            <line number="52" hits="1" branch="False" />
+            <line number="53" hits="1" branch="False" />
+            <line number="54" hits="1" branch="False" />
+            <line number="55" hits="1" branch="False" />
+            <line number="56" hits="1" branch="False" />
+            <line number="57" hits="1" branch="False" />
+            <line number="58" hits="1" branch="False" />
+            <line number="59" hits="1" branch="False" />
+            <line number="60" hits="1" branch="False" />
+            <line number="61" hits="1" branch="False" />
+            <line number="62" hits="1" branch="False" />
+            <line number="63" hits="1" branch="False" />
+            <line number="64" hits="1" branch="False" />
+            <line number="66" hits="1" branch="False" />
+            <line number="67" hits="1" branch="False" />
+            <line number="68" hits="1" branch="False" />
+            <line number="69" hits="1" branch="False" />
+            <line number="70" hits="1" branch="False" />
+            <line number="71" hits="1" branch="False" />
+            <line number="73" hits="3" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.AuctionUpdateConsumer" filename="Consumers\AuctionUpdateConsumer.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name=".ctor" signature="(AUCTION.Hubs.IAuctionHubService,Microsoft.Extensions.Logging.ILogger`1&lt;AUCTION.Consumers.AuctionUpdateConsumer&gt;)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="9" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="9" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.AuctionUpdateConsumer/&lt;Consume&gt;d__3" filename="Consumers\AuctionUpdateConsumer.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="12" hits="2" branch="False" />
+                <line number="14" hits="2" branch="False" />
+                <line number="15" hits="2" branch="False" />
+                <line number="16" hits="2" branch="False" />
+                <line number="17" hits="12" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="449" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="18" hits="3" branch="False" />
+                <line number="19" hits="3" branch="False" />
+                <line number="20" hits="3" branch="False" />
+                <line number="21" hits="3" branch="False" />
+                <line number="22" hits="3" branch="False" />
+                <line number="23" hits="3" branch="False" />
+                <line number="24" hits="3" branch="False" />
+                <line number="25" hits="3" branch="False" />
+                <line number="26" hits="3" branch="False" />
+                <line number="27" hits="3" branch="False" />
+                <line number="28" hits="3" branch="False" />
+                <line number="29" hits="3" branch="False" />
+                <line number="31" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="12" hits="2" branch="False" />
+            <line number="14" hits="2" branch="False" />
+            <line number="15" hits="2" branch="False" />
+            <line number="16" hits="2" branch="False" />
+            <line number="17" hits="12" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="449" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="18" hits="3" branch="False" />
+            <line number="19" hits="3" branch="False" />
+            <line number="20" hits="3" branch="False" />
+            <line number="21" hits="3" branch="False" />
+            <line number="22" hits="3" branch="False" />
+            <line number="23" hits="3" branch="False" />
+            <line number="24" hits="3" branch="False" />
+            <line number="25" hits="3" branch="False" />
+            <line number="26" hits="3" branch="False" />
+            <line number="27" hits="3" branch="False" />
+            <line number="28" hits="3" branch="False" />
+            <line number="29" hits="3" branch="False" />
+            <line number="31" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.ProductDeleteConsumer" filename="Consumers\ProductDeleteConsumer.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name=".ctor" signature="(AUCTION.Data.Repositories.Interfaces.IAuctionRepository,AUCTION.Services.Interfaces.IAuctionService,Microsoft.Extensions.Logging.ILogger`1&lt;AUCTION.Consumers.ProductDeleteConsumer&gt;)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="12" hits="2" branch="False" />
+                <line number="13" hits="2" branch="False" />
+                <line number="14" hits="2" branch="False" />
+                <line number="15" hits="2" branch="False" />
+                <line number="16" hits="2" branch="False" />
+                <line number="17" hits="2" branch="False" />
+                <line number="18" hits="2" branch="False" />
+                <line number="19" hits="2" branch="False" />
+                <line number="20" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="12" hits="2" branch="False" />
+            <line number="13" hits="2" branch="False" />
+            <line number="14" hits="2" branch="False" />
+            <line number="15" hits="2" branch="False" />
+            <line number="16" hits="2" branch="False" />
+            <line number="17" hits="2" branch="False" />
+            <line number="18" hits="2" branch="False" />
+            <line number="19" hits="2" branch="False" />
+            <line number="20" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.ProductDeleteConsumer/&lt;Consume&gt;d__4" filename="Consumers\ProductDeleteConsumer.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="23" hits="2" branch="False" />
+                <line number="24" hits="2" branch="False" />
+                <line number="25" hits="2" branch="False" />
+                <line number="26" hits="2" branch="False" />
+                <line number="27" hits="2" branch="False" />
+                <line number="29" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="122" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="30" hits="1" branch="False" />
+                <line number="31" hits="2" branch="False" />
+                <line number="32" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="23" hits="2" branch="False" />
+            <line number="24" hits="2" branch="False" />
+            <line number="25" hits="2" branch="False" />
+            <line number="26" hits="2" branch="False" />
+            <line number="27" hits="2" branch="False" />
+            <line number="29" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="122" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="30" hits="1" branch="False" />
+            <line number="31" hits="2" branch="False" />
+            <line number="32" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.ProductUpdateConsumer" filename="Consumers\ProductUpdateConsumer.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name=".ctor" signature="(AUCTION.Data.Repositories.Interfaces.IAuctionRepository,Microsoft.Extensions.Logging.ILogger`1&lt;AUCTION.Consumers.ProductUpdateConsumer&gt;)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="7" hits="3" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="7" hits="3" branch="False" />
+          </lines>
+        </class>
+        <class name="AUCTION.Consumers.ProductUpdateConsumer/&lt;Consume&gt;d__3" filename="Consumers\ProductUpdateConsumer.cs" line-rate="1" branch-rate="1" complexity="6">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="6">
+              <lines>
+                <line number="10" hits="3" branch="False" />
+                <line number="11" hits="3" branch="False" />
+                <line number="12" hits="3" branch="False" />
+                <line number="13" hits="3" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="258" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="14" hits="1" branch="False" />
+                <line number="15" hits="2" branch="False" />
+                <line number="17" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="336" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="18" hits="2" branch="False" />
+                <line number="19" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="389" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="20" hits="1" branch="False" />
+                <line number="21" hits="2" branch="False" />
+                <line number="22" hits="2" branch="False" />
+                <line number="24" hits="3" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="10" hits="3" branch="False" />
+            <line number="11" hits="3" branch="False" />
+            <line number="12" hits="3" branch="False" />
+            <line number="13" hits="3" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="258" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="14" hits="1" branch="False" />
+            <line number="15" hits="2" branch="False" />
+            <line number="17" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="336" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="18" hits="2" branch="False" />
+            <line number="19" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="389" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="20" hits="1" branch="False" />
+            <line number="21" hits="2" branch="False" />
+            <line number="22" hits="2" branch="False" />
+            <line number="24" hits="3" branch="False" />
+          </lines>
+        </class>
+      </classes>
+    </package>
+  </packages>
+</coverage>

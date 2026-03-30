@@ -4109,33 +4109,32 @@
     ]
   },
   "packageFolders": {
-    "/home/harshid/.nuget/packages/": {}
+    "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product.Tests/Product.Tests.csproj",
+      "projectUniqueName": "D:\\Codes_pracitce\\last\\tuesday\\Product.Tests\\Product.Tests.csproj",
       "projectName": "Product.Tests",
-      "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product.Tests/Product.Tests.csproj",
-      "packagesPath": "/home/harshid/.nuget/packages/",
-      "outputPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product.Tests/obj/",
+      "projectPath": "D:\\Codes_pracitce\\last\\tuesday\\Product.Tests\\Product.Tests.csproj",
+      "packagesPath": "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\",
+      "outputPath": "D:\\Codes_pracitce\\last\\tuesday\\Product.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/harshid/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\Harshid Hadiya\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
       ],
       "sources": {
-        "/usr/lib/dotnet/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product/Product.csproj": {
-              "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product/Product.csproj"
+            "D:\\Codes_pracitce\\last\\tuesday\\Product\\Product.csproj": {
+              "projectPath": "D:\\Codes_pracitce\\last\\tuesday\\Product\\Product.csproj"
             }
           }
         }
@@ -4201,7 +4200,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",

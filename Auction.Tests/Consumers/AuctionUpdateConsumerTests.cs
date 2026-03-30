@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AUCTION.Data.Dto.Request;
-
+using AUCTION.Data.Entities;
 public class AuctionUpdateConsumerTests
 {
     private readonly Mock<IAuctionHubService> _hubMock = new();
@@ -39,8 +39,8 @@ public class AuctionUpdateConsumerTests
             ProductName = "Test Product",
             StartingPrice = 500,
             MinBidIncrement = 10,
-            StartDate = DateTime.UtcNow,
-            EndDate = DateTime.UtcNow.AddMinutes(10),
+            StartDate = TimeHelper.Now(),
+            EndDate = TimeHelper.Now().AddMinutes(10),
             Status = "Active",
             productDescription = "desc",
             users = users

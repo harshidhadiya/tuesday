@@ -15,13 +15,13 @@ namespace USER.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly ClodinaryService clodinary;
+        private readonly IClodinaryService clodinary;
         private readonly IUserService _userService;
         private readonly IsellerLogin _loginInterface;
         private readonly ILogger<UserController> logger;
         private readonly IPublishEndpoint publish;
         private readonly IUserRepository repo;
-        public UserController(IUserService userService, IsellerLogin loginInterface, ILogger<UserController> logger, ClodinaryService clodinary, IPublishEndpoint publish,IUserRepository repo)
+        public UserController(IUserService userService, IsellerLogin loginInterface, ILogger<UserController> logger, IClodinaryService clodinary, IPublishEndpoint publish,IUserRepository repo)
         {
             _userService = userService;
             this.logger = logger;
@@ -91,8 +91,6 @@ namespace USER.Controllers
             if (!string.IsNullOrWhiteSpace(docs.Name))
                 name = docs.Name;
 
-
-
             // I changed this: if (responce.Success) was returning a bad response even on success. Changed to if (!responce.Success)
             if (!responce.Success)
                 return badResponce(responce.Message, responce.StatusCode, "CreateUser"); // Note: Method name here says CreateUser but it's ChangeProfile in original code.
@@ -119,23 +117,23 @@ namespace USER.Controllers
 
             return Ok(ApiResponse<object>.SuccessResponse(responce.Data!, responce.Message, responce.StatusCode));
         }
-        [HttpDelete("profile")]
-        [Authorize]
-        public async Task<ActionResult> DeleteProfile()
-        {
-            int? userId = getMyId(HttpContext);
-            if (userId == null)
-                return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 400));
+        // [HttpDelete("profile")]
+        // [Authorize]
+        // public async Task<ActionResult> DeleteProfile()
+        // {
+        //     int? userId = getMyId(HttpContext);
+        //     if (userId == null)
+        //         return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 400));
       
-            var responce = await repo.GetByIdAsync((int)userId);
-            if(responce == null)
-            return BadRequest("Not deleted");
-            var responce1 = await repo.RemoveAsync(responce);
-            if(responce1 == null)
-            return BadRequest("Not deleted");   
+        //     var responce = await repo.GetByIdAsync((int)userId);
+        //     if(responce == null)
+        //     return BadRequest("Not deleted");
+        //     var responce1 = await repo.RemoveAsync(responce);
+        //     if(responce1 == null)
+        //     return BadRequest("Not deleted");   
 
-            return Ok("deleted successfully");
-        }
+        //     return Ok("deleted successfully");
+        // }
 
 
 

@@ -49,8 +49,8 @@ public class AuctionCreateConsumerTests
         var message = new AuctionCreatedFromVerifyService(
             ProductId: 1,
             ProductName: "Test",
-            StartDate: DateTime.UtcNow,
-            EndDate: DateTime.UtcNow.AddDays(1),
+            StartDate: TimeHelper.Now(),
+            EndDate: TimeHelper.Now().AddDays(1),
             MinBidIncrement: 10,
             Description: "desc",
             verifierId: 2,
@@ -91,8 +91,8 @@ public class AuctionCreateConsumerTests
         var message = new AuctionCreatedFromVerifyService(
             ProductId: 1,
             ProductName: "Test",
-            StartDate: DateTime.UtcNow,
-            EndDate: DateTime.UtcNow.AddDays(1),
+            StartDate: TimeHelper.Now(),
+            EndDate: TimeHelper.Now().AddDays(1),
             MinBidIncrement: 10,
             Description: "desc",
             verifierId: 2,
@@ -125,8 +125,8 @@ public class AuctionCreateConsumerTests
         var message = new AuctionCreatedFromVerifyService(
             ProductId: 2,
             ProductName: "New Product",
-            StartDate: DateTime.UtcNow,
-            EndDate: DateTime.UtcNow.AddDays(2),
+            StartDate: TimeHelper.Now(),
+            EndDate: TimeHelper.Now().AddDays(2),
             MinBidIncrement: 5,
             Description: "new",
             verifierId: 1,

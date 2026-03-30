@@ -276,8 +276,8 @@ namespace AuctionTests.Services
             CreatedByUserId = createdByUserId,
             StartingPrice   = startingPrice,
             MinBidIncrement = minBidIncrement,
-            StartDate       = DateTime.UtcNow.AddHours(-1),
-            EndDate         = DateTime.UtcNow.AddHours(1),
+            StartDate       = TimeHelper.Now().AddHours(-1),
+            EndDate         = TimeHelper.Now().AddHours(1),
             Status          = status,
             Extension       = 0,
             maxExtension    = 3

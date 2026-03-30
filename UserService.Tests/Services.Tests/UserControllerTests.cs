@@ -11,6 +11,8 @@ using USER.Repository;
 using MassTransit;
 using USER.Data.Interfaces;
 using ADMIN.Data.Dto;
+using Microsoft.AspNetCore.Identity;
+using Messaging.Contracts;
 namespace UserService_Tests.Services.Tests
 {
     public class UserControllerTests
@@ -79,6 +81,23 @@ namespace UserService_Tests.Services.Tests
             badResult!.Value.Should().BeEquivalentTo(
                 ApiResponse<object>.ErrorResponse("Error")
             );
+        }
+ 
+        [Fact]
+        public async Task Login_ShouldReturnFromLoginService()
+        {
+            var dto = new UserLoginDto();
+
+            var expected = new OkObjectResult("TOKEN");
+
+            _loginMock.Setup(x => x.Login(dto, It.IsAny<HttpClient>()))
+                      .ReturnsAsync(expected);
+
+            var controller = GetController();
+
+            var result = await controller.Login(dto);
+
+            result.Should().BeSameAs(expected);
         }
 
         // GET PROFILE SUCCESS
@@ -184,6 +203,37 @@ namespace UserService_Tests.Services.Tests
                 ApiResponse<object>.SuccessResponse(data, "Updated")
             );
         }
+        [Fact]
+        public async Task ChangeProfile_ShouldReturnOk_WhenAdminIsRole()
+        {
+            var controller = GetController();
+            CancellationToken token=default;
+            
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            };
+            controller.HttpContext.Items["id"] = "1";
+
+            var dto = new changeProfileDto { Name = "New Name" };
+
+            var data = new OwnDetail { id = 1, Role = "ADMIN" };
+
+            var serviceResult = ServiceResult<OwnDetail>.Ok(data, "Updated");
+
+            _serviceMock.Setup(x => x.ChangeProfileAsync(1, dto))
+                        .ReturnsAsync(serviceResult);
+
+            var result = await controller.ChangeProfile(dto);
+
+            var okResult = result as OkObjectResult;
+
+            okResult.Should().NotBeNull();
+            okResult!.Value.Should().BeEquivalentTo(
+                ApiResponse<object>.SuccessResponse(data, "Updated")
+            );
+            _publishMock.Verify(x=>x.Publish(It.IsAny<AdminUpdate>(),token),Times.Once);
+        }
 
         // CHANGE PROFILE FAIL
         [Theory]
@@ -224,6 +274,21 @@ namespace UserService_Tests.Services.Tests
             objectResult!.Value.Should().BeEquivalentTo(
                 ApiResponse<object>.ErrorResponse("Error",statusCode)
             );
+        }
+        [Fact]
+        public async Task ChangeProfile_ShouldReturnBadRequest_WhenUserIdIsNull()
+        {
+            var controller=GetController();
+            controller.ControllerContext=new ControllerContext
+            {
+                HttpContext=new DefaultHttpContext()
+            };
+            var data=new changeProfileDto{Address="nothing"};
+            var result=await controller.ChangeProfile(data);
+            result.Should().BeOfType<BadRequestObjectResult>();
+            var badresult=result as BadRequestObjectResult;
+            badresult!.StatusCode.Should().Be(400);
+            badresult.Value.Should().BeEquivalentTo(ApiResponse<object>.ErrorResponse("Token Not Valid Format",400));
         }
     }
 }

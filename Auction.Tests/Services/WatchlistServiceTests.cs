@@ -219,9 +219,9 @@ namespace AuctionTests.Services
         public async Task GetWatchedAuctions_Should_Sort_Result_By_StartDate_When_Not_Empty()
         {
             var filter  = new WatchListFilterRequest();
-            var later   = BuildAuction(status: AuctionStatus.Upcoming, startDate: DateTime.UtcNow.AddDays(3));
+            var later   = BuildAuction(status: AuctionStatus.Upcoming, startDate: TimeHelper.Now().AddDays(3));
             later.Id    = 2;
-            var sooner  = BuildAuction(status: AuctionStatus.Upcoming, startDate: DateTime.UtcNow.AddDays(1));
+            var sooner  = BuildAuction(status: AuctionStatus.Upcoming, startDate: TimeHelper.Now().AddDays(1));
             sooner.Id   = 1;
 
             var entries = new List<Watchlist>
@@ -257,8 +257,8 @@ namespace AuctionTests.Services
             CreatedByUserId = 7,
             StartingPrice   = startingPrice,
             MinBidIncrement = 10m,
-            StartDate       = startDate ?? DateTime.UtcNow.AddHours(1),
-            EndDate         = DateTime.UtcNow.AddHours(5),
+            StartDate       = startDate ?? TimeHelper.Now().AddHours(1),
+            EndDate         = TimeHelper.Now().AddHours(5),
             Status          = status
         };
     }

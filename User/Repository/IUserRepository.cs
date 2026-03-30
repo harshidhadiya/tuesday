@@ -12,8 +12,6 @@ namespace USER.Repository
         Task<UserTable> AddAsync(UserTable user);
         Task<UserTable> RemoveAsync(UserTable user);
         Task<UserTable> UpdateAsync(UserTable user);
-        Task<List<UserTable>> GetUsersByIdsAsync(IEnumerable<int> ids,int page,int size);
-        Task<List<UserTable>> GetAllUsersAsync();
         Task<UserTable> changeFields(changeProfileDto profile,int id);
     }
 }
