@@ -100,19 +100,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer           = false,
             ValidateAudience         = false,
             ValidateLifetime         = true,
-            ValidateIssuerSigningKey = false,
-            IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew =TimeSpan.Zero
         };
-
+    
         // Required: SignalR passes token as query string for WebSocket connections
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
             {
-                var token = context.Request.Query["access_token"];
-                var path  = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(token) && path.StartsWithSegments("/hubs/auction"))
-                    context.Token = token;
+                if(context.Request.Cookies.TryGetValue("AccessToken",out var cookieToken))
+                {
+                    context.Token = cookieToken; // Use token from cookie
+                }
+                
                 return Task.CompletedTask;
             }
         };

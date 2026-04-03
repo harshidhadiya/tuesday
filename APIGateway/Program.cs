@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
                 "http://localhost:5087",
                 "http://localhost:5000",
                 "http://localhost:8080",
-                "http://localhost:3000").AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                "http://localhost:3000").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
     });
 });
 

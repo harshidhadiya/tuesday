@@ -5,8 +5,10 @@ using AUCTION.Data.Dto.Request;
 using AUCTION.Data.Dto.Response;
 using AUCTION.Services;
 using AUCTION.Services.Interfaces;
+using Azure.Core;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
@@ -29,11 +31,14 @@ namespace AuctionTests.Controllers
             var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userId.ToString()) };
             var identity = new ClaimsIdentity(claims, "TestAuthType");
             var claimsPrincipal = new ClaimsPrincipal(identity);
-
+            var items=new Dictionary<object,object?>();
+            // this i write for the practice purpose only
+            items["data"]="nothing";
             _sut.ControllerContext = new ControllerContext
             {
-                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal ,Items=items}
             };
+            
         }
 
         [Fact]
@@ -91,6 +96,29 @@ namespace AuctionTests.Controllers
 
             var result = await _sut.GetWatched(filter) as ObjectResult;
             result!.StatusCode.Should().Be(200);
+        }
+        [Fact]
+        public async Task GetWatched_Should_Return_Error_Response_When_service_Return_Error()
+        {
+            // Given
+
+            SetupUserClaims(5);
+            var filter=new WatchListFilterRequest();
+            var serviceResult= ServiceResult<List<AuctionResponse>>.Fail("not okay");
+            _service.Setup(x=> x.GetWatchedAuctionsAsync(5,filter)).ReturnsAsync(serviceResult);
+            // When
+        
+            var result = await _sut.GetWatched(filter) as ObjectResult;
+            // Then
+            result.Should().NotBeNull();
+            result.StatusCode.Should().Be(serviceResult.StatusCode);
+            result.Value.Should().NotBeNull();
+            var data=result.Value as ApiResponse<object>;
+            data.Should().NotBeNull();
+            data.StatusCode.Should().Be(serviceResult.StatusCode);
+            data.Message.Should().Be(serviceResult.Message);
+
+              
         }
     }
 }

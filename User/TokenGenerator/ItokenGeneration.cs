@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using AUCTION.Helpers;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Name
@@ -21,7 +22,7 @@ namespace Name
             var claims = new [] {new Claim("Name",name),new Claim(ClaimTypes.Role,role),new Claim("ID",Id)};
             var seckretkey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             var SigningCredentials=new SigningCredentials(seckretkey,SecurityAlgorithms.HmacSha256);
-            var tokenHandler=new JwtSecurityToken(claims:claims,signingCredentials:SigningCredentials,expires:DateTime.UtcNow.AddDays(1));
+            var tokenHandler=new JwtSecurityToken(claims:claims,signingCredentials:SigningCredentials,expires:DateTime.UtcNow.AddMinutes(30));
             return new JwtSecurityTokenHandler().WriteToken(tokenHandler);
         }
     }

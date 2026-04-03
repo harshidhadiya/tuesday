@@ -7,6 +7,7 @@ namespace USER.Model
     public class MACUTIONDB:DbContext
     {
         public DbSet<UserTable> USERS { get; set; }
+        public DbSet<RefreshTable> refreshTables{get;set;}
         public MACUTIONDB(DbContextOptions<MACUTIONDB> options) : base(options)
         {
            
@@ -25,6 +26,7 @@ namespace USER.Model
                 CreatedAt=DateTime.Parse("2024-06-01T00:00:00Z")
             });
             modelBuilder.ApplyConfiguration(new UserConstraints());
+            modelBuilder.ApplyConfiguration(new RefreshTokenConstraints());
         }
     }
 }

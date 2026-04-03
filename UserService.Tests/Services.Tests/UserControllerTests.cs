@@ -13,6 +13,7 @@ using USER.Data.Interfaces;
 using ADMIN.Data.Dto;
 using Microsoft.AspNetCore.Identity;
 using Messaging.Contracts;
+using USER.Helper;
 namespace UserService_Tests.Services.Tests
 {
     public class UserControllerTests
@@ -22,7 +23,7 @@ namespace UserService_Tests.Services.Tests
         private readonly Mock<ILogger<UserController>> _loggerMock = new();
         private readonly Mock<IPublishEndpoint> _publishMock = new();
         private readonly Mock<IUserRepository> _repoMock = new();
-
+        private readonly Mock<IRefreshToken> refreshToken=new();
         private UserController GetController()
         {
             return new UserController(
@@ -31,7 +32,8 @@ namespace UserService_Tests.Services.Tests
                 _loggerMock.Object,
                 null!,
                 _publishMock.Object,
-                _repoMock.Object
+                _repoMock.Object,
+                refreshToken.Object
             );
         }
 
@@ -131,7 +133,7 @@ namespace UserService_Tests.Services.Tests
 
         // GET PROFILE INVALID TOKEN
         [Theory]
-        [InlineData(400, "Token Not Valid Format")]
+        [InlineData(401, "Token Not Valid Format")]
         [InlineData(404, "User Not Found")]
         public async Task GetProfile_ShouldReturnBadRequest_WhenTokenInvalid(int statusCode, string message)
         {
@@ -141,7 +143,7 @@ namespace UserService_Tests.Services.Tests
             {
                 HttpContext = new DefaultHttpContext()
             };
-            if (statusCode != 400)
+            if (statusCode != 401)
             {
                 controller.HttpContext.Items["id"] = "1";
 
@@ -155,7 +157,7 @@ namespace UserService_Tests.Services.Tests
 
 
 
-            if (statusCode == 400)
+            if (statusCode == 401)
             {
                 badResult.Should().NotBeNull();
                 badResult!.Value.Should().BeEquivalentTo(
@@ -288,7 +290,29 @@ namespace UserService_Tests.Services.Tests
             result.Should().BeOfType<BadRequestObjectResult>();
             var badresult=result as BadRequestObjectResult;
             badresult!.StatusCode.Should().Be(400);
-            badresult.Value.Should().BeEquivalentTo(ApiResponse<object>.ErrorResponse("Token Not Valid Format",400));
+            badresult.Value.Should().BeEquivalentTo(ApiResponse<object>.ErrorResponse("Token Not Valid Format",401));
+        }
+        
+        [Theory]
+        [InlineData(400,"BAD REQUEST")]
+        [InlineData(404,"NOT FOUND")]
+        [InlineData(500,"Internal Server Error")]
+        [InlineData(403,"FORBIDDEN")]
+        [InlineData(401,"UNAUTHORIZED")]
+        public async Task badResponce_Should_Return_Correct_Status_Code_And_Message(int statusCode, string message)
+        {
+            var service = GetController();
+            var result = service.badResponce(message, statusCode,"all");
+
+            result.Should().NotBeNull();
+            result.Should().BeAssignableTo<ObjectResult>();
+            var objectResult = result as ObjectResult;
+            objectResult.Should().NotBeNull(); 
+            objectResult!.Value.Should().BeEquivalentTo(ApiResponse<object>.ErrorResponse(message, statusCode));
+            objectResult.StatusCode.Should().Be(statusCode);
+            
+        
+        
         }
     }
 }

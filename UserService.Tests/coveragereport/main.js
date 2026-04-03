@@ -290,9 +290,13 @@ var assemblies = [
   {
     "name": "User",
     "classes": [
-      { "name": "USER.Controllers.AdminController", "rp": "User_AdminController.html", "cl": 42, "ucl": 1, "cal": 43, "tl": 90, "cb": 16, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "USER.Controllers.UserController", "rp": "User_UserController.html", "cl": 57, "ucl": 2, "cal": 59, "tl": 145, "cb": 30, "tb": 40, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "USER.Controllers.AdminController", "rp": "User_AdminController.html", "cl": 43, "ucl": 7, "cal": 50, "tl": 104, "cb": 16, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "USER.Controllers.UserController", "rp": "User_UserController.html", "cl": 61, "ucl": 7, "cal": 68, "tl": 164, "cb": 33, "tb": 42, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "USER.Repository.UserRepository", "rp": "User_UserRepository.html", "cl": 50, "ucl": 0, "cal": 50, "tl": 88, "cb": 16, "tb": 16, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "USER.Services.ServiceResult<T>", "rp": "User_ServiceResult_1.html", "cl": 29, "ucl": 3, "cal": 32, "tl": 48, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "USER.Services.TokenCleanupService", "rp": "User_TokenCleanupService.html", "cl": 0, "ucl": 51, "cal": 51, "tl": 88, "cb": 0, "tb": 8, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "USER.Services.UserAdminService", "rp": "User_UserAdminService.html", "cl": 28, "ucl": 2, "cal": 30, "tl": 76, "cb": 9, "tb": 12, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "USER.Services.UserService", "rp": "User_UserService.html", "cl": 74, "ucl": 0, "cal": 74, "tl": 127, "cb": 32, "tb": 32, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
 
@@ -307,10 +311,22 @@ var riskHotspotMetrics = [
 
 var riskHotspots = [
   {
-    "assembly": "User", "class": "USER.Controllers.UserController", "reportPath": "User_UserController.html", "methodName": "ChangeProfile()", "methodShortName": "ChangeProfile()", "fileIndex": 0, "line": 81,
+    "assembly": "User", "class": "USER.Services.TokenCleanupService", "reportPath": "User_TokenCleanupService.html", "methodName": "CleanExpiredTokensInBatches()", "methodShortName": "CleanExpiredTokensInBatches()", "fileIndex": 0, "line": 45,
+    "metrics": [
+      { "value": 42, "exceeded": true },
+      { "value": 6, "exceeded": false },
+    ]},
+  {
+    "assembly": "User", "class": "USER.Controllers.UserController", "reportPath": "User_UserController.html", "methodName": "ChangeProfile()", "methodShortName": "ChangeProfile()", "fileIndex": 0, "line": 88,
     "metrics": [
       { "value": 22, "exceeded": false },
       { "value": 22, "exceeded": true },
+    ]},
+  {
+    "assembly": "User", "class": "USER.Services.UserService", "reportPath": "User_UserService.html", "methodName": "CreateUserAsync()", "methodShortName": "CreateUserAsync()", "fileIndex": 0, "line": 36,
+    "metrics": [
+      { "value": 18, "exceeded": false },
+      { "value": 18, "exceeded": true },
     ]},
   {
     "assembly": "User", "class": "USER.Repository.UserRepository", "reportPath": "User_UserRepository.html", "methodName": "changeFields()", "methodShortName": "changeFields()", "fileIndex": 0, "line": 56,

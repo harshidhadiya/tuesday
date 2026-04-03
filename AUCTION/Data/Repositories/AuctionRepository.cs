@@ -34,14 +34,15 @@ public class AuctionRepository : IAuctionRepository
         if (filter.productId.HasValue) q = q.Where(x => x.ProductId == filter.productId);
         if (!string.IsNullOrWhiteSpace(filter.name)) q = q.Where(x => EF.Functions.Like(x.ProductName, $"%{filter.name}%"));
 
-        var total = await q.CountAsync();
+        int total = await q.CountAsync();
+        int total2=  await q.Where(x => x.CreatedByUserId == filter.mineid).CountAsync();
         var items = await q
             .OrderBy(x => x.StartDate)
             .Skip((filter.Page - 1) * filter.PageSize)
             .Take(filter.PageSize)
             .ToListAsync();
 
-        return (items, total);
+        return (items, filter.mine ? total2 : total);
     }
 
     public Task<Auction> removeAuction(Auction auction)

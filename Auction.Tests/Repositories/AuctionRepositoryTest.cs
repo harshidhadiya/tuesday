@@ -498,6 +498,7 @@ public class AuctionRepositoryTests
         var result = await repo.GetUpcomingAuctionsDueToStartAsync();
 
         result.Should().NotBeEmpty();
+        result.First().ProductId.Should().Be(1);
     }
 
     [Fact]
@@ -558,7 +559,6 @@ public class AuctionRepositoryTests
         var repo = new AuctionRepository(ctx);
 
         var result = await repo.GetLiveAuctionsEndingSoonAsync(10);
-
         result.Should().NotBeEmpty();
     }
 

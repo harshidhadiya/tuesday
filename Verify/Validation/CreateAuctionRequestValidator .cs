@@ -1,3 +1,4 @@
+using AUCTION.Helpers;
 using FluentValidation;
 using VERIFY.DTOs.Requests;
 
@@ -20,7 +21,7 @@ public class CreateAuctionRequestValidator : AbstractValidator<CreateAuctionRequ
             .GreaterThan(0).WithMessage("Minimum bid increment must be greater than 0.");
 
         RuleFor(x => x.StartDate)
-            .GreaterThan(DateTime.UtcNow)
+            .GreaterThan(TimeHelper.Now())
             .WithMessage("Start date must be in the future.");
 
         RuleFor(x => x.EndDate)

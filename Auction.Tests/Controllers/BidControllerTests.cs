@@ -32,6 +32,7 @@ namespace AuctionTests.Controllers
             var claimsPrincipal = new ClaimsPrincipal(identity);
 
             var context = new DefaultHttpContext { User = claimsPrincipal };
+            
             context.Connection.RemoteIpAddress = IPAddress.Parse(ipAddress);
             
             _sut.ControllerContext = new ControllerContext { HttpContext = context };

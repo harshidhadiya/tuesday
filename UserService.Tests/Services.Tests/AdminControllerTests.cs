@@ -9,6 +9,7 @@ using Moq;
 using Microsoft.Extensions.Logging;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using USER.Helper;
 namespace UserService_Tests.Services.Tests
 {
     public class AdminControllerTests
@@ -18,6 +19,7 @@ namespace UserService_Tests.Services.Tests
         private readonly Mock<IUserService> _userServiceMock = new();
         private readonly Mock<ILogger<AdminController>> _loggerMock = new();
         private readonly Mock<IHttpClientFactory> _httpFactoryMock = new();
+        private readonly Mock<IRefreshToken> refreshToken=new();
 
         private AdminController GetController()
         {
@@ -29,7 +31,7 @@ namespace UserService_Tests.Services.Tests
                 _loginMock.Object,
                 _httpFactoryMock.Object,
                 _userServiceMock.Object,
-                _loggerMock.Object
+                _loggerMock.Object,refreshToken.Object
             );
         }
 

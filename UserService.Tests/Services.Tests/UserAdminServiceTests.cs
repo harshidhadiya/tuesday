@@ -81,7 +81,7 @@ public class UserAdminServiceTests
         var result = await service.GetProfileAsync(userId);
 
         if (statusCode == 401)
-            result.StatusCode.Should().Be(403); // Forbidden
+            result.StatusCode.Should().Be(401); // Forbidden
         else
             result.StatusCode.Should().Be(statusCode);
     }

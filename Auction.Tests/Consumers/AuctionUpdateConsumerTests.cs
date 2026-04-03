@@ -86,6 +86,7 @@ public class AuctionUpdateConsumerTests
 
         var contextMock = new Mock<ConsumeContext<AuctionUpdated>>();
         contextMock.Setup(x => x.Message).Returns(message);
+        
 
         // Act
         await _consumer.Consume(contextMock.Object);

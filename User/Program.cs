@@ -20,8 +20,18 @@ using Microsoft.Extensions.Options;
 using USER.CloudinaryService;
 using USER.Messaging.Consumer;
 using Helper;
+using USER.Practice;
+using System.IO.Pipes;
+using System.Security.Claims;
+using USER.ExceptionHandler;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc;
+using USER.Helper;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddHttpContextAccessor();
+
+
 builder.Services.AddSingleton<PasswordHasher<object>>();
 builder.Services.AddDbContext<MACUTIONDB>(options=>options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddValidatorsFromAssemblyContaining<UserCreateValidation>();
@@ -41,6 +51,7 @@ builder.Services.AddMassTransit(x =>
     {
         e.UseMessageRetry(x=>x.Interval(6,TimeSpan.FromSeconds(30)));
     });
+    x.AddConsumer<refreshTokenConsumer>();
     x.UsingRabbitMq((context, cfg) =>
     {
         var options = context.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
@@ -82,9 +93,23 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false,  
         ValidateAudience = false,  
         ValidateLifetime = true,  
-        ValidateIssuerSigningKey = false,  
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        ValidateIssuerSigningKey = true,  
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        ClockSkew=TimeSpan.Zero
     };  
+    
+    options.Events=new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if(context.Request.Cookies.TryGetValue(tokenType.AccessToken.ToString(),out var token))
+            {
+                Console.WriteLine("token from cookie"+token);
+                context.Token=token;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 builder.Services.AddAuthorization();
 builder.Services.AddControllers().AddJsonOptions((option=>option.JsonSerializerOptions.UnmappedMemberHandling= System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow));
@@ -98,8 +123,13 @@ builder.Services.AddAutoMapper(typeof(Mapper));
 builder.Services.AddScoped<IClodinaryService,ClodinaryService>();
 builder.Services.AddScoped<Ihelper,Helpers>();
 builder.Services.AddHealthChecks();
+builder.Services.AddExceptionHandler<GlobalHandler>();
+builder.Services.AddProblemDetails();
+builder.Services.AddHostedService<TokenCleanupService>();
+builder.Services.AddScoped<IRefreshToken,RefreshToken>();
 var app = builder.Build();
 app.MapHealthChecks("/health");
+app.UseExceptionHandler();
 app.UseCors("MyPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
@@ -107,5 +137,9 @@ app.UseMiddleware<MappingId>();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
+app.MapPracticeEndpoint();
 app.MapGet("/", () => "Creating Project For User Management System");
+app.MapPracticeEndpoint();
+
+app.MapGet("/good", () => "nothing");
 app.Run();

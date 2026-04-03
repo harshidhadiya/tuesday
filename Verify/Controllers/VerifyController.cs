@@ -56,7 +56,7 @@ namespace VERIFY.Controllers
             if (adminId == null)
                 return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
 
-            var result = await _verifyService.UnverifyProductAsync(adminId.Value, product);
+            var result = await _verifyService.UnverifyProductAsync(adminId.Value, product,HttpContext);
             return ToActionResult(result);
         }
 
@@ -70,38 +70,38 @@ namespace VERIFY.Controllers
         }
 
 //  not used right now not used in the ai 
-        [HttpGet("my-products")]
-        [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> GetProductsVerifiedByMe([FromQuery] string? searchName = null, [FromQuery] int page = 1, [FromQuery] int size = 10)
-        {
-            var adminId = GetCurrentUserId();
-            if (adminId == null)
-                return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
+        // [HttpGet("my-products")]
+        // [Authorize(Roles = "ADMIN")]
+        // public async Task<IActionResult> GetProductsVerifiedByMe([FromQuery] string? searchName = null, [FromQuery] int page = 1, [FromQuery] int size = 10)
+        // {
+        //     var adminId = GetCurrentUserId();
+        //     if (adminId == null)
+        //         return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
 
-            string? authHeader = Request.Headers.TryGetValue("Authorization", out var headerValue)
-                ? headerValue.ToString()
-                : null;
+        //     string? authHeader = Request.Headers.TryGetValue("Authorization", out var headerValue)
+        //         ? headerValue.ToString()
+        //         : null;
 
-            var result = await _verifyService.GetProductsVerifiedByMeAsync(adminId.Value, searchName, authHeader, page, size);
-            return ToActionResult(result);
-        }
+        //     var result = await _verifyService.GetProductsVerifiedByMeAsync(adminId.Value, searchName, authHeader, page, size);
+        //     return ToActionResult(result);
+        // }
 
 
-        [HttpGet("unverified-products")]
-        [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> GetUnverifiedProducts([FromQuery] string? searchName = null, [FromQuery] int page = 1, [FromQuery] int size = 10)
-        {
-            var adminId = GetCurrentUserId();
-            if (adminId == null)
-                return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
+        // [HttpGet("unverified-products")]
+        // [Authorize(Roles = "ADMIN")]
+        // public async Task<IActionResult> GetUnverifiedProducts([FromQuery] string? searchName = null, [FromQuery] int page = 1, [FromQuery] int size = 10)
+        // {
+        //     var adminId = GetCurrentUserId();
+        //     if (adminId == null)
+        //         return BadRequest(ApiResponse<object>.ErrorResponse("Invalid admin id in context.", 400));
 
-            string? authHeader = Request.Headers.TryGetValue("Authorization", out var headerValue)
-                ? headerValue.ToString()
-                : null;
+        //     string? authHeader = Request.Headers.TryGetValue("Authorization", out var headerValue)
+        //         ? headerValue.ToString()
+        //         : null;
 
-            var result = await _verifyService.GetUnverifiedProductsAsync(adminId.Value, searchName, authHeader, page, size);
-            return ToActionResult(result);
-        }
+        //     var result = await _verifyService.GetUnverifiedProductsAsync(adminId.Value, searchName, authHeader, page, size);
+        //     return ToActionResult(result);
+        // }
         // this will help ful for the fetching the product right like verified and unverified all of that htings
         [HttpPost("products")]
         [Authorize(Roles ="ADMIN")]

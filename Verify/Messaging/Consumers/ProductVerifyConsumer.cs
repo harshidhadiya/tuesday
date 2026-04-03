@@ -1,3 +1,4 @@
+using AUCTION.Helpers;
 using MassTransit;
 using Messaging.Contracts;
 using VERIFY.Model;
@@ -29,7 +30,7 @@ public sealed class ProductVerifyConsumer(
         containProduct.isProductVerified = true;
         containProduct.Description = context.Message.Description;
         containProduct.VerifierId = context.Message.VerifierId;
-        containProduct.VerifiedTime = DateTime.UtcNow;
+        containProduct.VerifiedTime = TimeHelper.Now();
 
         await dbContext.SaveChangesAsync();
 

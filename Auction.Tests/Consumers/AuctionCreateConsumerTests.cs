@@ -68,10 +68,12 @@ public class AuctionCreateConsumerTests
 
         _repoMock.Setup(x => x.GetbyProductId(1)).ReturnsAsync(auction);
 
-        var contextMock = new Mock<ConsumeContext<AuctionCreatedFromVerifyService>>();
-        contextMock.Setup(x => x.Message).Returns(message);
+        
 
-        await _consumer.Consume(contextMock.Object);
+
+        var contextMock=Mock.Of<ConsumeContext<AuctionCreatedFromVerifyService>>(x=>x.Message==message);
+
+        await _consumer.Consume(contextMock);
 
         Assert.Equal(AuctionStatus.Upcoming, auction.Status);
         Assert.Empty(auction.Bids);

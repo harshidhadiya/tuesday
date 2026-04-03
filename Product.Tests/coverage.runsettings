@@ -1,0 +1,26 @@
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+      <Configuration>
+
+  <Include>
+    [Product]*.Services.*,
+    [Product]*.Controllers.*,
+    [Product]*.Repository.*,
+    [Product]*.Consumers.*,
+
+  </Include>
+
+  <Exclude>
+  
+    [Product]*.Services.*,
+    [Product]*.DTOs.*,   
+    [*]Program
+  </Exclude>
+
+</Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

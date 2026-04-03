@@ -7,6 +7,8 @@ using VERIFY.Repositories;
 using MassTransit;
 using Messaging.Contracts;
 using AutoMapper;
+using Verify.DTOs.Responses;
+using AUCTION.Helpers;
 
 namespace VERIFY.Services
 {
@@ -55,7 +57,7 @@ namespace VERIFY.Services
             if (existing != null)
             {
                 existing.VerifierId = adminId;
-                existing.VerifiedTime = DateTime.UtcNow;
+                existing.VerifiedTime = TimeHelper.Now();
                 existing.isProductVerified = true;
                 existing.Description=request.description;
 
@@ -79,17 +81,23 @@ namespace VERIFY.Services
         }
 
 
-        public async Task<ServiceResult<object>> UnverifyProductAsync(int adminId, ProductUnverify product)
+        public async Task<ServiceResult<object>> UnverifyProductAsync(int adminId, ProductUnverify product,HttpContext context)
         {
             if (product.productId <= 0)
             {
                 return ServiceResult<object>.Fail("Invalid product id.");
             }
-
+           
             var hasRights = await AdminHasVerifyPermissionAsync(adminId);
             if (!hasRights)
             {
                 return ServiceResult<object>.Forbidden("Admin does not have verify permission.");
+            }
+
+            var auctionStatus = await doesAuctionEndedOrCreated(product.productId,context);
+            if(!auctionStatus)
+            {
+                return ServiceResult<object>.Forbidden("Cannot unverify product after auction completed.");
             }
 
             var record = await _repository.GetByProductIdAsync(product.productId);
@@ -105,9 +113,9 @@ namespace VERIFY.Services
                     adminId, product.productId, record.VerifierId);
                 return ServiceResult<object>.Forbidden("You can only unverify products that you verified.");
             }
-
+             
             record.isProductVerified = false;
-            record.VerifiedTime = DateTime.UtcNow;
+            record.VerifiedTime = TimeHelper.Now();
             record.Description = !string.IsNullOrWhiteSpace(product.description)
                 ? product.description
                 : "Product unverification requested by admin.";
@@ -136,14 +144,8 @@ namespace VERIFY.Services
 
             if (record == null)
             {
-                return ServiceResult<VerifyStatusResponse>.Ok(
-                    new VerifyStatusResponse
-                    {
-                        ProductId = productId,
-                        IsVerified = false,
-                        Description = null,
-                    },
-                    "Product is not verified");
+                return ServiceResult<VerifyStatusResponse>.NotFound(
+                    "Corresponding Id Didn't find data");
             }
 
             return ServiceResult<VerifyStatusResponse>.Ok(
@@ -160,113 +162,144 @@ namespace VERIFY.Services
         }
 
 
-        public async Task<ServiceResult<List<VerifiedProductDetail>>> GetProductsVerifiedByMeAsync(
-            int adminId, string? searchName, string? authorizationHeader,int page=1,int size=10)
-        {
-            Console.WriteLine("Admin ID: " + adminId);
-            var hasRights = await AdminHasVerifyPermissionAsync(adminId);
-            if (!hasRights)
-            {
-                return ServiceResult<List<VerifiedProductDetail>>.Forbidden("Admin does not have verify permission.");
-            }
+        // public async Task<ServiceResult<List<VerifiedProductDetail>>> GetProductsVerifiedByMeAsync(
+        //     int adminId, string? searchName, string? authorizationHeader,int page=1,int size=10)
+        // {
+        //     Console.WriteLine("Admin ID: " + adminId);
+        //     var hasRights = await AdminHasVerifyPermissionAsync(adminId);
+        //     if (!hasRights)
+        //     {
+        //         return ServiceResult<List<VerifiedProductDetail>>.Forbidden("Admin does not have verify permission.");
+        //     }
 
-            var verifyRecords = await _repository.GetVerifiedByAdminAsync(adminId, searchName);
+        //     var verifyRecords = await _repository.GetVerifiedByAdminAsync(adminId, searchName);
 
-            if (verifyRecords.Count == 0)
-            {
-                return ServiceResult<List<VerifiedProductDetail>>.Ok(
-                    new List<VerifiedProductDetail>(),
-                    "No verified products found for this admin");
-            }
+        //     if (verifyRecords.Count == 0)
+        //     {
+        //         return ServiceResult<List<VerifiedProductDetail>>.Ok(
+        //             new List<VerifiedProductDetail>(),
+        //             "No verified products found for this admin");
+        //     }
 
-            var allProducts = await GetAllProductsFromProductServiceAsync(authorizationHeader);
-            if (allProducts.Count == 0)
-            {
-                return ServiceResult<List<VerifiedProductDetail>>.Ok(
-                    new List<VerifiedProductDetail>(),
-                    "No products found in product service");
-            }
+        //     var allProducts = await GetAllProductsFromProductServiceAsync(authorizationHeader);
+        //     if (allProducts.Count == 0)
+        //     {
+        //         return ServiceResult<List<VerifiedProductDetail>>.Ok(
+        //             new List<VerifiedProductDetail>(),
+        //             "No products found in product service");
+        //     }
 
-            var productsById = allProducts.ToDictionary(p => p.id, p => p);
-            var results = new List<VerifiedProductDetail>();
+        //     var productsById = allProducts.ToDictionary(p => p.id, p => p);
+        //     var results = new List<VerifiedProductDetail>();
 
-            foreach (var v in verifyRecords)
-            {
-                if (productsById.TryGetValue(v.ProductId, out var p))
-                {
+        //     foreach (var v in verifyRecords)
+        //     {
+        //         if (productsById.TryGetValue(v.ProductId, out var p))
+        //         {
                
 
-                    results.Add(new VerifiedProductDetail
-                    {
-                        ProductId = p.id,
-                        ProductName = p.productName,
-                        Description = p.description,
-                        BuyDate = p.buyDate,
-                        CreatedDate = p.createdDate,
-                        VerifierId = v.VerifierId,
-                        VerifiedTime = v.VerifiedTime,
-                        IsVerified = v.isProductVerified,
-                        VerifyDescription = v.Description
-                    });
-                }
-            }
-            results = results.Skip((page-1)*size).Take(size).ToList();
+        //             results.Add(new VerifiedProductDetail
+        //             {
+        //                 ProductId = p.id,
+        //                 ProductName = p.productName,
+        //                 Description = p.description,
+        //                 BuyDate = p.buyDate,
+        //                 CreatedDate = p.createdDate,
+        //                 VerifierId = v.VerifierId,
+        //                 VerifiedTime = v.VerifiedTime,
+        //                 IsVerified = v.isProductVerified,
+        //                 VerifyDescription = v.Description
+        //             });
+        //         }
+        //     }
+        //     results = results.Skip((page-1)*size).Take(size).ToList();
 
-            return ServiceResult<List<VerifiedProductDetail>>.Ok(
-                results,
-                "Verified products with details retrieved successfully");
-        }
+        //     return ServiceResult<List<VerifiedProductDetail>>.Ok(
+        //         results,
+        //         "Verified products with details retrieved successfully");
+        // }
 
 
-        public async Task<ServiceResult<List<object>>> GetUnverifiedProductsAsync(
-            int adminId, string? searchName, string? authorizationHeader,int page,int size)
+        // public async Task<ServiceResult<List<object>>> GetUnverifiedProductsAsync(
+        //     int adminId, string? searchName, string? authorizationHeader,int page,int size)
+        // {
+        //     var hasRights = await AdminHasVerifyPermissionAsync(adminId);
+        //     if (!hasRights)
+        //     {
+        //         return ServiceResult<List<object>>.Forbidden("Admin does not have verify permission.");
+        //     }
+
+        //     var allProducts = await GetAllProductsFromProductServiceAsync(authorizationHeader);
+        //     if (allProducts.Count == 0)
+        //     {
+        //         return ServiceResult<List<object>>.Ok(
+        //             new List<object>(),
+        //             "No products found in product service");
+        //     }
+
+        //     var verifiedSet = await _repository.GetVerifiedProductIdsAsync();
+
+        //     IEnumerable<ProductSummary> unverified = allProducts
+        //         .Where(p => !verifiedSet.Contains(p.id));
+
+        //     if (!string.IsNullOrWhiteSpace(searchName))
+        //     {
+        //         unverified = unverified.Where(p =>
+        //             !string.IsNullOrEmpty(p.productName) &&
+        //             p.productName.Contains(searchName, StringComparison.OrdinalIgnoreCase));
+        //     }
+
+        //     var result = unverified
+        //         .Select(p => (object)new
+        //         {
+        //             productId = p.id,
+        //             productName = p.productName,
+        //             description = p.description,
+        //             buyDate = p.buyDate,
+        //             createdDate = p.createdDate,
+        //             ownerId = p.userId,
+        //             isVerified = false
+        //         })
+        //         .ToList();
+        //       result = result.Skip((page-1)*size).Take(size).ToList();
+
+
+        //     return ServiceResult<List<object>>.Ok(
+        //         result,
+        //         "Unverified products with details retrieved successfully");
+        // }
+         
+        private async Task <bool> doesAuctionEndedOrCreated(int productId,HttpContext context)
         {
-            var hasRights = await AdminHasVerifyPermissionAsync(adminId);
-            if (!hasRights)
+            var cookie=context.Request.Headers["Cookie"].ToString();
+            var client = _httpClientFactory.CreateClient("AuctionService");
+            var requst = new HttpRequestMessage(HttpMethod.Get,$"/api/auctions?productId={productId}");
+            requst.Headers.Add("Cookie", cookie);
+            try
             {
-                return ServiceResult<List<object>>.Forbidden("Admin does not have verify permission.");
-            }
-
-            var allProducts = await GetAllProductsFromProductServiceAsync(authorizationHeader);
-            if (allProducts.Count == 0)
-            {
-                return ServiceResult<List<object>>.Ok(
-                    new List<object>(),
-                    "No products found in product service");
-            }
-
-            var verifiedSet = await _repository.GetVerifiedProductIdsAsync();
-
-            IEnumerable<ProductSummary> unverified = allProducts
-                .Where(p => !verifiedSet.Contains(p.id));
-
-            if (!string.IsNullOrWhiteSpace(searchName))
-            {
-                unverified = unverified.Where(p =>
-                    !string.IsNullOrEmpty(p.productName) &&
-                    p.productName.Contains(searchName, StringComparison.OrdinalIgnoreCase));
-            }
-
-            var result = unverified
-                .Select(p => (object)new
+                var response = await client.SendAsync(requst);
+                if (!response.IsSuccessStatusCode)
                 {
-                    productId = p.id,
-                    productName = p.productName,
-                    description = p.description,
-                    buyDate = p.buyDate,
-                    createdDate = p.createdDate,
-                    ownerId = p.userId,
-                    isVerified = false
-                })
-                .ToList();
-              result = result.Skip((page-1)*size).Take(size).ToList();
+                    _logger.LogWarning("Auction status check failed with status {StatusCode} for product {ProductId}",
+                        response.StatusCode, productId);
+                    return false;
+                }
 
+                var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<PagedResponse<AuctionResponse>>>();
+                if (envelope?.Data == null)
+                {
+                    _logger.LogWarning("Auction status check returned no data for product {ProductId}", productId);
+                    return false;
+                }
 
-            return ServiceResult<List<object>>.Ok(
-                result,
-                "Unverified products with details retrieved successfully");
+                return envelope.Data.Items.FirstOrDefault()?.Status == "Upcoming"; 
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Error calling Auction service to check status for product {ProductId}", productId);
+                return false;
+            }
         }
-
 
         private async Task<bool> AdminHasVerifyPermissionAsync(int adminId)
         {
@@ -326,71 +359,42 @@ namespace VERIFY.Services
         }
 
 
-        private async Task<List<ProductSummary>> GetAllProductsFromProductServiceAsync(string? authorizationHeader)
-        {
-            var client = _httpClientFactory.CreateClient("ProductService");
-            var result = new List<ProductSummary>();
+        // private async Task<List<ProductSummary>> GetAllProductsFromProductServiceAsync(string? authorizationHeader)
+        // {
+        //     var client = _httpClientFactory.CreateClient("ProductService");
+        //     var result = new List<ProductSummary>();
 
-            try
-            {
-                var request = new HttpRequestMessage(HttpMethod.Get, "/api/product/all");
+        //     try
+        //     {
+        //         var request = new HttpRequestMessage(HttpMethod.Get, "/api/product/all");
 
-                if (!string.IsNullOrEmpty(authorizationHeader))
-                {
-                    request.Headers.TryAddWithoutValidation("Authorization", authorizationHeader);
-                }
+        //         if (!string.IsNullOrEmpty(authorizationHeader))
+        //         {
+        //             request.Headers.TryAddWithoutValidation("Authorization", authorizationHeader);
+        //         }
 
-                var response = await client.SendAsync(request);
+        //         var response = await client.SendAsync(request);
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning("Failed to fetch products. Status: {StatusCode}", response.StatusCode);
-                    return result;
-                }
+        //         if (!response.IsSuccessStatusCode)
+        //         {
+        //             _logger.LogWarning("Failed to fetch products. Status: {StatusCode}", response.StatusCode);
+        //             return result;
+        //         }
 
-                var envelope = await response.Content.ReadFromJsonAsync<ProductListEnvelope>();
-                if (envelope?.Data != null)
-                {
-                    result = envelope.Data;
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "Error calling Product service");
-            }
+        //         var envelope = await response.Content.ReadFromJsonAsync<ProductListEnvelope>();
+        //         if (envelope?.Data != null)
+        //         {
+        //             result = envelope.Data;
+        //         }
+        //     }
+        //     catch (HttpRequestException ex)
+        //     {
+        //         _logger.LogError(ex, "Error calling Product service");
+        //     }
 
-            return result;
-        }
+        //     return result;
+        // }
 
-        private async Task<UserSummary?> GetUserFromUserServiceAsync(int? userId)
-
-        {
-            if (userId == null || userId <= 0)
-            {
-                return null;
-            }
-
-            var client = _httpClientFactory.CreateClient("UserService");
-
-            try
-            {
-                var response = await client.GetAsync($"/api/user/{userId.Value}");
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning("Failed to fetch user {UserId} from user service. Status: {StatusCode}",
-                        userId, response.StatusCode);
-                    return null;
-                }
-
-                var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<UserSummary>>();
-                return envelope?.Data;
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "Error calling User service for user {UserId}", userId);
-                return null;
-            }
-        }
 
         
     }

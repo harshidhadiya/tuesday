@@ -54,9 +54,22 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false,  
         ValidateAudience = false,  
         ValidateLifetime = true,  
-        ValidateIssuerSigningKey = false,  
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new System.InvalidOperationException("Jwt:Key configuration is required")))
+        ValidateIssuerSigningKey = true,  
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new System.InvalidOperationException("Jwt:Key configuration is required"))),
+        ClockSkew=TimeSpan.Zero
     };  
+     options.Events=new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if(context.Request.Cookies.TryGetValue("AccessToken",out var token))
+            {
+                Console.WriteLine("token from cookie"+token);
+                context.Token=token;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 builder.Services.AddAuthorization();
 builder.Services.AddControllers().AddJsonOptions((option=>option.JsonSerializerOptions.UnmappedMemberHandling= System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow));

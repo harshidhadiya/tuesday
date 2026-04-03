@@ -63,9 +63,22 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false,  
         ValidateAudience = false,  
         ValidateLifetime = true,  
-        ValidateIssuerSigningKey = false,  
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        ValidateIssuerSigningKey = true,  
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        ClockSkew = TimeSpan.Zero
     };  
+     options.Events=new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if(context.Request.Cookies.TryGetValue("AccessToken",out var token))
+            {
+                Console.WriteLine("token from cookie"+token);
+                context.Token=token;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 builder.Services.AddScoped<IproductService,ProductService>();
 builder.Services.AddExceptionHandler<GlobalErrorHandler>();

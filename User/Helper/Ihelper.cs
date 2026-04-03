@@ -8,7 +8,7 @@ namespace Helper
     public interface Ihelper
     {
         Task<(string? url, string? publicId)> ProfileImageUpdate(IFormFile? file, string? publicId = null);
-
+        
     }
 
     public class Helpers :Ihelper

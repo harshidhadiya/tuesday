@@ -6,13 +6,13 @@
 
   <Include>
     [User]*.Services.*,
+    [User]*.Services.*,
     [User]*.Controllers.*,
     [User]*.Repository.*
   </Include>
 
   <Exclude>
     [User]*.Messaging.*,
-    [User]*.Services.*,
     [User]*.DTOs.*,   
     [*]Program
   </Exclude>

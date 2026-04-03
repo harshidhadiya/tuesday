@@ -41,10 +41,6 @@ namespace Verify.Tests.Controllers
             _httpContext.Items["id"] = id;
         }
 
-        // =========================
-        // VERIFY PRODUCT
-        // =========================
-
         [Fact]
         public async Task VerifyProduct_Should_Return_400_When_No_UserId()
         {
@@ -76,9 +72,7 @@ namespace Verify.Tests.Controllers
             result.Should().BeOfType<ForbidResult>();
         }
 
-        // =========================
-        // UNVERIFY PRODUCT
-        // =========================
+      
 
         [Fact]
         public async Task UnverifyProduct_Should_Return_400_When_No_UserId()
@@ -124,51 +118,51 @@ namespace Verify.Tests.Controllers
             result.Should().BeOfType<NotFoundObjectResult>();
         }
 
-        // =========================
-        // GET PRODUCTS VERIFIED BY ME
-        // =========================
+        // // =========================
+        // // GET PRODUCTS VERIFIED BY ME
+        // // =========================
 
-        [Fact]
-        public async Task GetProductsVerifiedByMe_Should_Return_400_When_No_UserId()
-        {
-            var result = await _sut.GetProductsVerifiedByMe();
-            result.Should().BeOfType<BadRequestObjectResult>();
-        }
+        // [Fact]
+        // public async Task GetProductsVerifiedByMe_Should_Return_400_When_No_UserId()
+        // {
+        //     var result = await _sut.GetProductsVerifiedByMe();
+        //     result.Should().BeOfType<BadRequestObjectResult>();
+        // }
 
-        [Fact]
-        public async Task GetProductsVerifiedByMe_Should_Return_200_When_Successful()
-        {
-            SetUserIdInContext(5);
-            var list = new List<VerifiedProductDetail>();
-            var serviceResult = ServiceResult<List<VerifiedProductDetail>>.Ok(list);
-            _service.Setup(s => s.GetProductsVerifiedByMeAsync(5, null, null, 1, 10)).ReturnsAsync(serviceResult);
+        // [Fact]
+        // public async Task GetProductsVerifiedByMe_Should_Return_200_When_Successful()
+        // {
+        //     SetUserIdInContext(5);
+        //     var list = new List<VerifiedProductDetail>();
+        //     var serviceResult = ServiceResult<List<VerifiedProductDetail>>.Ok(list);
+        //     _service.Setup(s => s.GetProductsVerifiedByMeAsync(5, null, null, 1, 10)).ReturnsAsync(serviceResult);
 
-            var result = await _sut.GetProductsVerifiedByMe();
-            result.Should().BeOfType<OkObjectResult>();
-        }
+        //     var result = await _sut.GetProductsVerifiedByMe();
+        //     result.Should().BeOfType<OkObjectResult>();
+        // }
 
-        // =========================
-        // GET UNVERIFIED PRODUCTS
-        // =========================
+        // // =========================
+        // // GET UNVERIFIED PRODUCTS
+        // // =========================
 
-        [Fact]
-        public async Task GetUnverifiedProducts_Should_Return_400_When_No_UserId()
-        {
-            var result = await _sut.GetUnverifiedProducts();
-            result.Should().BeOfType<BadRequestObjectResult>();
-        }
+        // [Fact]
+        // public async Task GetUnverifiedProducts_Should_Return_400_When_No_UserId()
+        // {
+        //     var result = await _sut.GetUnverifiedProducts();
+        //     result.Should().BeOfType<BadRequestObjectResult>();
+        // }
 
-        [Fact]
-        public async Task GetUnverifiedProducts_Should_Return_200_When_Successful()
-        {
-            SetUserIdInContext(5);
-            var list = new List<object>();
-            var serviceResult = ServiceResult<List<object>>.Ok(list);
-            _service.Setup(s => s.GetUnverifiedProductsAsync(5, null, null, 1, 10)).ReturnsAsync(serviceResult);
+        // [Fact]
+        // public async Task GetUnverifiedProducts_Should_Return_200_When_Successful()
+        // {
+        //     SetUserIdInContext(5);
+        //     var list = new List<object>();
+        //     var serviceResult = ServiceResult<List<object>>.Ok(list);
+        //     _service.Setup(s => s.GetUnverifiedProductsAsync(5, null, null, 1, 10)).ReturnsAsync(serviceResult);
 
-            var result = await _sut.GetUnverifiedProducts();
-            result.Should().BeOfType<OkObjectResult>();
-        }
+        //     var result = await _sut.GetUnverifiedProducts();
+        //     result.Should().BeOfType<OkObjectResult>();
+        // }
 
         // =========================
         // GET PRODUCTS UNIVERSAL

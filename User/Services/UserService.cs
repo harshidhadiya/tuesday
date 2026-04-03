@@ -92,7 +92,7 @@ namespace USER.Services
                 if (result.publicId != null)
                     docs.publicId = result.publicId;
                 if (result.url != null)
-                    docs.ProfilePicture = result.url;
+                    docs.ProfilePicture = result.url;   
             }
 
 
@@ -102,7 +102,7 @@ namespace USER.Services
                 if(docs.publicId!=null)
                 await cloudinary.deleteFile(docs.publicId);
                 return ServiceResult<OwnDetail>.ServerError("User Is Not Found Here");
-}
+            }
 
 
             var response = _mapper.Map<OwnDetail>(currentUser);

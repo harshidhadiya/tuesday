@@ -164,6 +164,7 @@ public class AuctionService : IAuctionService
     {
         var auctions = await _auctionRepo.GetByUserIdAsync(userId);
         var result = new List<AuctionResponse>();
+        var totals=auctions.Count();
         foreach (var a in auctions)
         {
             var highest = await GetHighestBidWithFallbackAsync(a.Id);
@@ -182,7 +183,7 @@ public class AuctionService : IAuctionService
         {
             var highest = await GetHighestBidWithFallbackAsync(a.Id);
             var bidCount = await _bidRepo.GetBidCountAsync(a.Id);
-            responses.Add(MapToResponse(a, highest, bidCount, userId));
+            responses.Add(MapToResponse(a, highest, bidCount, userId,a.WinnerUserId.HasValue && a.WinnerUserId==userId));
         }
 
         return ServiceResult<PagedResponse<AuctionResponse>>.Ok(new PagedResponse<AuctionResponse>
@@ -334,7 +335,7 @@ public class AuctionService : IAuctionService
 
 
     private static AuctionResponse MapToResponse(
-        Auction auction, HighestBidCacheDto? highest, int bidCount,int ownId=0) => new()
+        Auction auction, HighestBidCacheDto? highest, int bidCount,int ownId=0,bool your=false) => new()
         {
             Id = auction.Id,
             ProductId = auction.ProductId,
@@ -352,7 +353,8 @@ public class AuctionService : IAuctionService
                                 : null,
             CreatedAt = auction.CreatedAt,
             productDescription=auction.Description,
-            productName=auction.ProductName
+            productName=auction.ProductName,
+            win=your
         };
 
     private static AuctionDetailResponse MapToDetail(

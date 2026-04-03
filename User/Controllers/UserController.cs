@@ -8,6 +8,8 @@ using USER.Data.Dto;
 using USER.Data.Interfaces;
 using USER.Services;
 using USER.Repository;
+using USER.Helper;
+using AUCTION.Helpers;
 
 namespace USER.Controllers
 {
@@ -21,7 +23,8 @@ namespace USER.Controllers
         private readonly ILogger<UserController> logger;
         private readonly IPublishEndpoint publish;
         private readonly IUserRepository repo;
-        public UserController(IUserService userService, IsellerLogin loginInterface, ILogger<UserController> logger, IClodinaryService clodinary, IPublishEndpoint publish,IUserRepository repo)
+        private readonly IRefreshToken refreshToken;
+        public UserController(IUserService userService, IsellerLogin loginInterface, ILogger<UserController> logger, IClodinaryService clodinary, IPublishEndpoint publish,IUserRepository repo,IRefreshToken refreshToken)
         {
             _userService = userService;
             this.logger = logger;
@@ -29,6 +32,7 @@ namespace USER.Controllers
             this.clodinary = clodinary;
             this.publish = publish;
             this.repo=repo;
+            this.refreshToken=refreshToken;
         }
 
         [NonAction]
@@ -43,9 +47,12 @@ namespace USER.Controllers
 
                 case 404:
                     return new NotFoundObjectResult(ApiResponse<object>.ErrorResponse(message, 404));
-
+                case 403:
+                    return new ObjectResult(ApiResponse<object>.ErrorResponse(message, 403)) { StatusCode = 403 };
+                case 401:
+                    return new ObjectResult(ApiResponse<object>.ErrorResponse(message, 401)) { StatusCode = 401 };
                 default:
-                    return StatusCode(500, ApiResponse<object>.ErrorResponse("Internal Server Error"));
+                    return StatusCode(500, ApiResponse<object>.ErrorResponse("Internal Server Error", 500));
             }
         }
         [NonAction]
@@ -81,7 +88,7 @@ namespace USER.Controllers
         {
             var userId = getMyId(HttpContext);
             if (userId == null)
-                return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 400));
+                return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 401));
 
             logger.LogInformation(docs.Address);
             var responce = await _userService.ChangeProfileAsync((int)userId, docs);
@@ -108,7 +115,7 @@ namespace USER.Controllers
         {
             int? userId = getMyId(HttpContext);
             if (userId == null)
-                return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 400));
+                return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 401));
 
             var responce = await _userService.GetProfileAsync((id != null && id != 0) ? (int)id : (int)userId);
             // I changed this: if (responce.Success) was returning a bad response even on success. Changed to if (!responce.Success)
@@ -116,6 +123,20 @@ namespace USER.Controllers
                 return badResponce(responce.Message, responce.StatusCode, "getProfile");
 
             return Ok(ApiResponse<object>.SuccessResponse(responce.Data!, responce.Message, responce.StatusCode));
+        }
+
+
+
+        [HttpGet("refresh")]
+        public async Task<IActionResult> getToken()
+        {
+           return await refreshToken.getResponse(HttpContext,"/api/user/refresh");   
+        }
+
+        [HttpDelete("refresh/logout")]
+        public async Task<IActionResult> logout()
+        {
+            return await refreshToken.Logout(HttpContext ,"/api/user/refresh");
         }
         // [HttpDelete("profile")]
         // [Authorize]

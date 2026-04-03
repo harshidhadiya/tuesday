@@ -48,6 +48,11 @@ builder.Services.AddHttpClient("UserService", option =>
     option.BaseAddress = new Uri(builder.Configuration["Microservice:User_url"] ?? "http://localhost:8080");
 });
 
+builder.Services.AddHttpClient("AuctionService", option =>
+{
+    option.BaseAddress = new Uri(builder.Configuration["Microservice:Auction_url"] ?? "http://localhost:8080");
+});
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -59,9 +64,22 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false,
         ValidateAudience = false,
         ValidateLifetime = true,
-        ValidateIssuerSigningKey = false,
+        ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            ClockSkew = TimeSpan.Zero
+    };
+     options.Events=new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if(context.Request.Cookies.TryGetValue("AccessToken",out var token))
+            {
+                Console.WriteLine("token from cookie"+token);
+                context.Token=token;
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 

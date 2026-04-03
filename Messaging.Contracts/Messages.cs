@@ -7,7 +7,15 @@ public sealed record AdminRegistrationRequested(
     int RequestUserId,
     string Name,
     string Email);
+    
 
+public sealed record RefreshTokenGenerate(
+    int userId,
+    string name,
+    string role,
+    string refreshToken,
+    DateTime expiryDate
+);
 // ── Product contracts ─────────────────────────────────────────────────────────
 
 /// <summary>Published by ProductService when a new product is created and awaits verification.</summary>

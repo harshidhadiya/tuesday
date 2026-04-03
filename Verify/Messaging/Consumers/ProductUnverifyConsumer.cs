@@ -1,3 +1,4 @@
+using AUCTION.Helpers;
 using MassTransit;
 using Messaging.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,7 @@ public sealed class ProductUnverifyConsumer(
 
         record.isProductVerified = false;
         record.Description = context.Message.Description;
-        record.VerifiedTime = DateTime.UtcNow;
+        record.VerifiedTime = TimeHelper.Now();
 
         await db.SaveChangesAsync();
 

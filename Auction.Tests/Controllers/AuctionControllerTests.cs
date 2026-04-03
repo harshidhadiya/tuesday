@@ -41,6 +41,7 @@ namespace AuctionTests.Controllers
             {
                 HttpContext = new DefaultHttpContext { User = claimsPrincipal }
             };
+            
         }
 
 

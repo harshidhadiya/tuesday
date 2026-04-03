@@ -22,7 +22,7 @@ namespace USER.MAPPER
             CreateMap<UserTable,OwnDetail>().ForMember(x=>x.imageUrl,opt=>opt.MapFrom(x=>x.ProfilePicture)).ForMember(x=>x.token,opt=>opt.MapFrom(data=>token.getToken(data.Name,data.Role.ToUpperInvariant(),data.Id.ToString())));
             CreateMap<UserTable, SignupResponceDto>().ForMember(x => x.token, opt => opt.MapFrom(x => token.getToken(x.Name, x.Role, x.Id.ToString()))).ForMember(x => x.requestobj, opt => opt.Ignore());
             CreateMap<UserTable,AdminDetail>().ForMember(x=>x.imageUrl,opt=>opt.MapFrom(x=>x.ProfilePicture));
-
+        
         }
     }
 }

@@ -25,8 +25,15 @@ public sealed class ProductDeletedConsumer(
             .Where(v => v.ProductId == context.Message.ProductId)
             .FirstOrDefaultAsync();
 
-        if (record == null) return;
-        if (record.SellerId != context.Message.DeletedByUserId) return;
+        if (record == null){
+            
+            logger.LogError("current productId related record Not Found");
+            
+             return;}
+        if (record.SellerId != context.Message.DeletedByUserId){
+            logger.LogError("current productId related seller id is not match with ProductDeletedid");
+             return;
+             }
 
         db.VERIFY_PRODUCTS.Remove(record);
         await db.SaveChangesAsync();

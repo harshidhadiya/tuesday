@@ -53,7 +53,9 @@ namespace USER.Services
                         case 400:
                             return ServiceResult<AdminDetail>.Fail(result.Message,result.StatusCode);
                         case 401:
-                            return ServiceResult<AdminDetail>.Forbidden();
+                            return ServiceResult<AdminDetail>.Fail(result.Message,result.StatusCode);
+                        case 403:
+                            return ServiceResult<AdminDetail>.Fail(result.Message,result.StatusCode);
                         case 404:
                             return ServiceResult<AdminDetail>.NotFound(result.Message);
                         case 500:

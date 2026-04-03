@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using USER.Data.Dto;
 using USER.Data.Dto.Response;
 using USER.Data.Interfaces;
+using USER.Helper;
 using USER.Services;
 
 namespace USER.Controllers
@@ -17,17 +18,19 @@ namespace USER.Controllers
         private readonly HttpClient _httpClient;
         private readonly IUserService _userService;
         private readonly ILogger<AdminController> logger;
+        private readonly IRefreshToken refreshToken;
 
         public AdminController(
             IUserAdminService userAdminService,
             IadminLogin adminLogin,
-            IHttpClientFactory httpClientFactory, IUserService _userService, ILogger<AdminController> logger)
+            IHttpClientFactory httpClientFactory, IUserService _userService, ILogger<AdminController> logger,IRefreshToken refreshToken)
         {
             _userAdminService = userAdminService;
             _adminLogin = adminLogin;
             _httpClient = httpClientFactory.CreateClient("DefaultClient");
             this._userService = _userService;
             this.logger = logger;
+            this.refreshToken=refreshToken;
         }
         [NonAction]
         public ActionResult badResponce(string message, int code, string methodName)
@@ -86,5 +89,16 @@ namespace USER.Controllers
             return Ok(ApiResponse<AdminDetail>.SuccessResponse(response.Data!, response.Message, response.StatusCode));
         }
 
+
+          [HttpGet("refresh")]
+        public async Task<IActionResult> getToken()
+        {
+           return await refreshToken.getResponse(HttpContext,"/api/admin/refresh");   
+        }
+        [HttpDelete("refresh/logout")]
+        public async Task<IActionResult> logout()
+        {
+            return await refreshToken.Logout(HttpContext ,"/api/admin/refresh");
+        }
     }
 }

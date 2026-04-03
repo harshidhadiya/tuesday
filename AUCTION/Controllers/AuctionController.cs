@@ -28,7 +28,7 @@ public class AuctionController : ControllerBase
 
     /// GET /api/auctions?Status=Live&Page=1&PageSize=20
     [HttpGet]
-    [Authorize(Roles ="USER,SELLER")]
+    [Authorize(Roles ="USER,SELLER,ADMIN")]
     public async Task<IActionResult> GetAll([FromQuery] AuctionFilterRequest filter)
     {
         var userId=ClaimsHelper.GetUserId(User);

@@ -53,6 +53,8 @@ public class AuctionHub : Hub
         if (!int.TryParse(auctionId, out var id)) return;
         if (_connectionViewers.TryGetValue(Context.ConnectionId, out var viewed) && viewed.TryRemove(id, out _))
         {
+            var currentCount = await _redis.GetViewerCountAsync(id);
+            if (currentCount > 0)
             await _redis.DecrementViewerCountAsync(id);
             var count = await _redis.GetViewerCountAsync(id);
             await Clients.Group($"auction_{auctionId}").SendAsync("ViewerCountUpdated", count);
@@ -72,6 +74,8 @@ public class AuctionHub : Hub
         // 2. Decrement global count if they were marked as a viewer
         if (_connectionViewers.TryGetValue(Context.ConnectionId, out var viewed) && viewed.TryRemove(id, out _))
         {
+                var currentCount = await _redis.GetViewerCountAsync(id);
+                if (currentCount > 0)
             await _redis.DecrementViewerCountAsync(id);
             var count = await _redis.GetViewerCountAsync(id);
             await Clients.Group($"auction_{auctionId}").SendAsync("ViewerCountUpdated", count);
