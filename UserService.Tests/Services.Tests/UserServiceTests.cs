@@ -13,8 +13,6 @@ using USER.Data.Dto.Response;
 using USER.Model;
 using USER.Repository;
 using USER.Services;
-using Xunit.Sdk;
-
 namespace UserService_Tests.Services.Tests
 {
 
@@ -298,10 +296,5 @@ namespace UserService_Tests.Services.Tests
 
             publish.Verify(x => x.Publish(It.IsAny<AdminRegistrationRequested>(), default), Times.Once);
         }
-
-
-
-
-     
     }
 }

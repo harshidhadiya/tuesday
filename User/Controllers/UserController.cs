@@ -9,8 +9,6 @@ using USER.Data.Interfaces;
 using USER.Services;
 using USER.Repository;
 using USER.Helper;
-using AUCTION.Helpers;
-
 namespace USER.Controllers
 {
     [ApiController]
@@ -88,7 +86,7 @@ namespace USER.Controllers
         {
             var userId = getMyId(HttpContext);
             if (userId == null)
-                return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 401));
+                return Unauthorized(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 401));
 
             logger.LogInformation(docs.Address);
             var responce = await _userService.ChangeProfileAsync((int)userId, docs);
@@ -109,13 +107,13 @@ namespace USER.Controllers
             return Ok(ApiResponse<object>.SuccessResponse(responce?.Data!, responce?.Message!));
         }
 
-        [HttpGet("profile/{id:int}")]
+        [HttpGet("profile")]
         [Authorize]
-        public async Task<ActionResult> getProfile(int? id)
+        public async Task<ActionResult> getProfile([FromQuery]int? id)
         {
             int? userId = getMyId(HttpContext);
             if (userId == null)
-                return BadRequest(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 401));
+                return Unauthorized(ApiResponse<object>.ErrorResponse("Token Not Valid Format", 401));
 
             var responce = await _userService.GetProfileAsync((id != null && id != 0) ? (int)id : (int)userId);
             // I changed this: if (responce.Success) was returning a bad response even on success. Changed to if (!responce.Success)

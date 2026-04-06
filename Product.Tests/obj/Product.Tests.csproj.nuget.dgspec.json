@@ -1,25 +1,26 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Codes_pracitce\\last\\tuesday\\Product.Tests\\Product.Tests.csproj": {}
+    "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product.Tests/Product.Tests.csproj": {}
   },
   "projects": {
-    "D:\\Codes_pracitce\\last\\tuesday\\CloudinaryService\\CloudinaryService.csproj": {
+    "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/CloudinaryService/CloudinaryService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Codes_pracitce\\last\\tuesday\\CloudinaryService\\CloudinaryService.csproj",
+        "projectUniqueName": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/CloudinaryService/CloudinaryService.csproj",
         "projectName": "CloudinaryService",
-        "projectPath": "D:\\Codes_pracitce\\last\\tuesday\\CloudinaryService\\CloudinaryService.csproj",
-        "packagesPath": "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\",
-        "outputPath": "D:\\Codes_pracitce\\last\\tuesday\\CloudinaryService\\obj\\",
+        "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/CloudinaryService/CloudinaryService.csproj",
+        "packagesPath": "/home/harshid/.nuget/packages/",
+        "outputPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/CloudinaryService/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Harshid Hadiya\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/home/harshid/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
+          "/usr/lib/dotnet/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -81,7 +82,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -359,22 +360,23 @@
         }
       }
     },
-    "D:\\Codes_pracitce\\last\\tuesday\\Messaging.Contracts\\Messaging.Contracts.csproj": {
+    "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Messaging.Contracts/Messaging.Contracts.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Codes_pracitce\\last\\tuesday\\Messaging.Contracts\\Messaging.Contracts.csproj",
+        "projectUniqueName": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Messaging.Contracts/Messaging.Contracts.csproj",
         "projectName": "Messaging.Contracts",
-        "projectPath": "D:\\Codes_pracitce\\last\\tuesday\\Messaging.Contracts\\Messaging.Contracts.csproj",
-        "packagesPath": "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\",
-        "outputPath": "D:\\Codes_pracitce\\last\\tuesday\\Messaging.Contracts\\obj\\",
+        "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Messaging.Contracts/Messaging.Contracts.csproj",
+        "packagesPath": "/home/harshid/.nuget/packages/",
+        "outputPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Messaging.Contracts/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Harshid Hadiya\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/home/harshid/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
+          "/usr/lib/dotnet/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -414,7 +416,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -692,30 +694,31 @@
         }
       }
     },
-    "D:\\Codes_pracitce\\last\\tuesday\\Product.Tests\\Product.Tests.csproj": {
+    "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product.Tests/Product.Tests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Codes_pracitce\\last\\tuesday\\Product.Tests\\Product.Tests.csproj",
+        "projectUniqueName": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product.Tests/Product.Tests.csproj",
         "projectName": "Product.Tests",
-        "projectPath": "D:\\Codes_pracitce\\last\\tuesday\\Product.Tests\\Product.Tests.csproj",
-        "packagesPath": "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\",
-        "outputPath": "D:\\Codes_pracitce\\last\\tuesday\\Product.Tests\\obj\\",
+        "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product.Tests/Product.Tests.csproj",
+        "packagesPath": "/home/harshid/.nuget/packages/",
+        "outputPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product.Tests/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Harshid Hadiya\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/home/harshid/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
+          "/usr/lib/dotnet/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "D:\\Codes_pracitce\\last\\tuesday\\Product\\Product.csproj": {
-                "projectPath": "D:\\Codes_pracitce\\last\\tuesday\\Product\\Product.csproj"
+              "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product/Product.csproj": {
+                "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product/Product.csproj"
               }
             }
           }
@@ -781,7 +784,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -1059,33 +1062,34 @@
         }
       }
     },
-    "D:\\Codes_pracitce\\last\\tuesday\\Product\\Product.csproj": {
+    "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product/Product.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Codes_pracitce\\last\\tuesday\\Product\\Product.csproj",
+        "projectUniqueName": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product/Product.csproj",
         "projectName": "Product",
-        "projectPath": "D:\\Codes_pracitce\\last\\tuesday\\Product\\Product.csproj",
-        "packagesPath": "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\",
-        "outputPath": "D:\\Codes_pracitce\\last\\tuesday\\Product\\obj\\",
+        "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product/Product.csproj",
+        "packagesPath": "/home/harshid/.nuget/packages/",
+        "outputPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Product/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Harshid Hadiya\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/home/harshid/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
+          "/usr/lib/dotnet/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "D:\\Codes_pracitce\\last\\tuesday\\CloudinaryService\\CloudinaryService.csproj": {
-                "projectPath": "D:\\Codes_pracitce\\last\\tuesday\\CloudinaryService\\CloudinaryService.csproj"
+              "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/CloudinaryService/CloudinaryService.csproj": {
+                "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/CloudinaryService/CloudinaryService.csproj"
               },
-              "D:\\Codes_pracitce\\last\\tuesday\\Messaging.Contracts\\Messaging.Contracts.csproj": {
-                "projectPath": "D:\\Codes_pracitce\\last\\tuesday\\Messaging.Contracts\\Messaging.Contracts.csproj"
+              "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Messaging.Contracts/Messaging.Contracts.csproj": {
+                "projectPath": "/home/harshid/Project_Practice/_net/Microservice_2/tuesday/Messaging.Contracts/Messaging.Contracts.csproj"
               }
             }
           }
@@ -1204,7 +1208,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

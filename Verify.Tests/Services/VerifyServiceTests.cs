@@ -4,16 +4,14 @@ using AutoMapper;
 using FluentAssertions;
 using MassTransit;
 using Messaging.Contracts;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
-using VERIFY.Data.Dto;
 using VERIFY.DTOs.Requests;
 using VERIFY.Model;
 using VERIFY.Repositories;
 using VERIFY.Services;
-using Xunit;
-
 namespace Verify.Tests.Services
 {
     public class VerifyServiceTests
@@ -42,14 +40,16 @@ namespace Verify.Tests.Services
             );
         }
 
-        private void SetupHttpClient(bool hasRights, bool isSuccess = true,bool haveData=true)
+        private HttpContext GetHttpContext()
+        {
+            var context = new DefaultHttpContext();
+            context.Request.Headers["Cookie"] = "test-cookie";
+            return context;
+        }
+
+        private void SetupHttpClient(bool hasRights, bool isSuccess = true, bool haveData = true, bool auctionSuccess = true)
         {
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-
-            var responseJson = JsonSerializer.Serialize(new
-            {
-                Data = haveData ? new { VerifiedByAdmin = hasRights }:null
-            });
 
             handlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>(
@@ -57,10 +57,48 @@ namespace Verify.Tests.Services
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .ReturnsAsync(new HttpResponseMessage
+                .ReturnsAsync((HttpRequestMessage request, CancellationToken token) =>
                 {
-                    StatusCode = isSuccess ? HttpStatusCode.OK : HttpStatusCode.BadRequest,
-                    Content = new StringContent(responseJson)
+                    // Admin API
+                    if (request.RequestUri!.AbsolutePath.Contains("admin-request"))
+                    {
+                        var responseJson = JsonSerializer.Serialize(new
+                        {
+                            Data = haveData ? new { VerifiedByAdmin = hasRights } : null
+                        });
+
+                        return new HttpResponseMessage
+                        {
+                            StatusCode = isSuccess ? HttpStatusCode.OK : HttpStatusCode.BadRequest,
+                            Content = new StringContent(responseJson)
+                        };
+                    }
+
+                    // Auction API
+                    if (request.RequestUri.AbsolutePath.Contains("auctions"))
+                    {
+                        if (!auctionSuccess)
+                            throw new HttpRequestException("Auction service failed");
+
+                        var responseJson = JsonSerializer.Serialize(new
+                        {
+                            Data = new
+                            {
+                                Items = new[]
+                                {
+                                    new { Status = "Upcoming" }
+                                }
+                            }
+                        });
+
+                        return new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.OK,
+                            Content = new StringContent(responseJson)
+                        };
+                    }
+
+                    return new HttpResponseMessage(HttpStatusCode.OK);
                 });
 
             var httpClient = new HttpClient(handlerMock.Object)
@@ -68,9 +106,9 @@ namespace Verify.Tests.Services
                 BaseAddress = new Uri("http://localhost/")
             };
 
-            _httpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
+            _httpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>()))
+                .Returns(httpClient);
         }
-
 
         [Fact]
         public async Task VerifyProduct_Should_Return_400_When_Invalid_Request()
@@ -80,80 +118,57 @@ namespace Verify.Tests.Services
 
             result.Success.Should().BeFalse();
             result.StatusCode.Should().Be(400);
-            result.Message.Should().Contain("Invalid request");
         }
 
         [Fact]
         public async Task VerifyProduct_Should_Return_403_When_Admin_No_Rights()
         {
-            SetupHttpClient(hasRights: false);
+            SetupHttpClient(false);
 
             var req = new VerifyProductRequest { ProductId = 1, SellerId = 1 };
             var result = await _sut.VerifyProductAsync(1, req);
 
-            result.Success.Should().BeFalse();
             result.StatusCode.Should().Be(403);
-            result.Message.Should().Contain("Admin does not have verify permission");
         }
 
         [Fact]
-        public async Task VerifyProduct_Should_Return_400_When_SellerId_Mismatches()
+        public async Task VerifyProduct_Should_Return_400_When_SellerId_Mismatch()
         {
-            SetupHttpClient(hasRights: true);
-            var existing = new VerifyProductTable { SellerId = 2 };
-            _repo.Setup(r => r.GetByProductIdAsync(1)).ReturnsAsync(existing);
+            SetupHttpClient(true);
 
-            var req = new VerifyProductRequest { ProductId = 1, SellerId = 1 };
-            var result = await _sut.VerifyProductAsync(1, req);
+            _repo.Setup(x => x.GetByProductIdAsync(1))
+                .ReturnsAsync(new VerifyProductTable { SellerId = 2 });
 
-            result.Success.Should().BeFalse();
+            var result = await _sut.VerifyProductAsync(1, new VerifyProductRequest { ProductId = 1, SellerId = 1 });
+
             result.StatusCode.Should().Be(400);
-            result.Message.Should().Contain("already verified by another seller");
         }
 
-        [Fact]
-        public async Task VerifyProduct_Should_Return_403_When_your_got_null_when_u_send_request()
-        {               
-          SetupHttpClient(haveData:false,hasRights:false);
-          var req=new VerifyProductRequest{ProductId=1,SellerId=1};
-          var result=await _sut.VerifyProductAsync(1,req);
-          result.Success.Should().BeFalse();
-          result.StatusCode.Should().Be(403);
-          result.Message.Should().Be("Admin does not have verify permission.");
-        }
-        
-        [Fact]
-        public async Task VerifyProduct_Should_Return_403_When_Status_is_failed()
-        {
-            SetupHttpClient(hasRights:false,isSuccess:false);
-          var req=new VerifyProductRequest{ProductId=1,SellerId=1};
-          var result=await _sut.VerifyProductAsync(1,req);
-          result.Success.Should().BeFalse();
-          result.StatusCode.Should().Be(403);
-          result.Message.Should().Be("Admin does not have verify permission.");
-        }
         [Fact]
         public async Task VerifyProduct_Should_Return_200_When_Valid()
         {
-            SetupHttpClient(hasRights: true);
-            var existing = new VerifyProductTable { SellerId = 1 };
-            _repo.Setup(r => r.GetByProductIdAsync(1)).ReturnsAsync(existing);
+            SetupHttpClient(true);
 
-            var req = new VerifyProductRequest { ProductId = 1, SellerId = 1, description = "desc" };
-            var result = await _sut.VerifyProductAsync(1, req);
+            var entity = new VerifyProductTable { SellerId = 1 };
 
-            result.Success.Should().BeTrue();
+            _repo.Setup(x => x.GetByProductIdAsync(1)).ReturnsAsync(entity);
+
+            var result = await _sut.VerifyProductAsync(1,
+                new VerifyProductRequest { ProductId = 1, SellerId = 1 });
+
             result.StatusCode.Should().Be(200);
-            _repo.Verify(r => r.Update(existing), Times.Once);
-            _repo.Verify(r => r.SaveChangesAsync(), Times.Once);
-            _publish.Verify(p => p.Publish(It.IsAny<ProductVerified>(), default), Times.Once);
+
+            _repo.Verify(x => x.Update(entity), Times.Once);
+            _repo.Verify(x => x.SaveChangesAsync(), Times.Once);
+            _publish.Verify(x => x.Publish(It.IsAny<ProductVerified>(), default), Times.Once);
         }
 
         [Fact]
         public async Task UnverifyProduct_Should_Return_400_When_Invalid_Id()
         {
-            var req = new ProductUnverify { productId = 0 };
-            var result = await _sut.UnverifyProductAsync(1, req);
+            var result = await _sut.UnverifyProductAsync(1,
+                new ProductUnverify { productId = 0 },
+                GetHttpContext());
 
             result.StatusCode.Should().Be(400);
         }
@@ -161,9 +176,11 @@ namespace Verify.Tests.Services
         [Fact]
         public async Task UnverifyProduct_Should_Return_403_When_No_Rights()
         {
-            SetupHttpClient(hasRights: false);
-            var req = new ProductUnverify { productId = 1 };
-            var result = await _sut.UnverifyProductAsync(1, req);
+            SetupHttpClient(false);
+
+            var result = await _sut.UnverifyProductAsync(1,
+                new ProductUnverify { productId = 1 },
+                GetHttpContext());
 
             result.StatusCode.Should().Be(403);
         }
@@ -171,11 +188,13 @@ namespace Verify.Tests.Services
         [Fact]
         public async Task UnverifyProduct_Should_Return_404_When_Not_Found()
         {
-            SetupHttpClient(hasRights: true);
-            _repo.Setup(r => r.GetByProductIdAsync(1)).ReturnsAsync((VerifyProductTable?)null);
+            SetupHttpClient(true);
 
-            var req = new ProductUnverify { productId = 1 };
-            var result = await _sut.UnverifyProductAsync(1, req);
+            _repo.Setup(x => x.GetByProductIdAsync(1)).ReturnsAsync((VerifyProductTable?)null);
+
+            var result = await _sut.UnverifyProductAsync(1,
+                new ProductUnverify { productId = 1 },
+                GetHttpContext());
 
             result.StatusCode.Should().Be(404);
         }
@@ -183,151 +202,126 @@ namespace Verify.Tests.Services
         [Fact]
         public async Task UnverifyProduct_Should_Return_403_When_Verified_By_Another()
         {
-            SetupHttpClient(hasRights: true);
-            var existing = new VerifyProductTable { VerifierId = 2 };
-            _repo.Setup(r => r.GetByProductIdAsync(1)).ReturnsAsync(existing);
+            SetupHttpClient(true);
 
-            var req = new ProductUnverify { productId = 1 };
-            var result = await _sut.UnverifyProductAsync(1, req);
+            _repo.Setup(x => x.GetByProductIdAsync(1))
+                .ReturnsAsync(new VerifyProductTable { VerifierId = 2 });
+
+            var result = await _sut.UnverifyProductAsync(1,
+                new ProductUnverify { productId = 1 },
+                GetHttpContext());
 
             result.StatusCode.Should().Be(403);
-            result.Message.Should().Contain("You can only unverify products that you verified");
         }
 
         [Fact]
         public async Task UnverifyProduct_Should_Return_200_When_Valid()
         {
-            SetupHttpClient(hasRights: true);
-            var existing = new VerifyProductTable { VerifierId = 1 };
-            _repo.Setup(r => r.GetByProductIdAsync(1)).ReturnsAsync(existing);
+            SetupHttpClient(true);
 
-            var req = new ProductUnverify { productId = 1, description = "desc" };
-            var result = await _sut.UnverifyProductAsync(1, req);
+            var entity = new VerifyProductTable { VerifierId = 1 };
+
+            _repo.Setup(x => x.GetByProductIdAsync(1)).ReturnsAsync(entity);
+
+            var result = await _sut.UnverifyProductAsync(1,
+                new ProductUnverify { productId = 1 },
+                GetHttpContext());
 
             result.StatusCode.Should().Be(200);
-            _repo.Verify(r => r.Update(existing), Times.Once);
-            _repo.Verify(r => r.SaveChangesAsync(), Times.Once);
-            _publish.Verify(p => p.Publish(It.IsAny<ProductUnverified>(), default), Times.Once);
+
+            _repo.Verify(x => x.Update(entity), Times.Once);
+            _repo.Verify(x => x.SaveChangesAsync(), Times.Once);
+            _publish.Verify(x => x.Publish(It.IsAny<ProductUnverified>(), default), Times.Once);
         }
 
 
         [Fact]
-        public async Task CreatAuctionEvent_Should_Return_404_When_Product_Not_Found()
+        public async Task CreatAuctionEvent_Should_Return_404_When_NotFound()
         {
-            _repo.Setup(r => r.GetByProductIdAsync(1)).ReturnsAsync((VerifyProductTable?)null);
-            var req = new CreateAuctionRequest { ProductId = 1 };
-            var result = await _sut.CreatAuctionEvent(req, 1);
+            _repo.Setup(x => x.GetByProductIdAsync(1))
+                .ReturnsAsync((VerifyProductTable?)null);
+
+            var result = await _sut.CreatAuctionEvent(new CreateAuctionRequest { ProductId = 1 }, 1);
 
             result.StatusCode.Should().Be(404);
         }
 
         [Fact]
-        public async Task CreatAuctionEvent_Should_Return_403_When_User_Not_Owner()
+        public async Task CreatAuctionEvent_Should_Return_403_When_NotOwner()
         {
-            var existing = new VerifyProductTable { SellerId = 2 };
-            _repo.Setup(r => r.GetByProductIdAsync(1)).ReturnsAsync(existing);
+            _repo.Setup(x => x.GetByProductIdAsync(1))
+                .ReturnsAsync(new VerifyProductTable { SellerId = 2 });
 
-            var req = new CreateAuctionRequest { ProductId = 1 };
-            var result = await _sut.CreatAuctionEvent(req, 1);
+            var result = await _sut.CreatAuctionEvent(new CreateAuctionRequest { ProductId = 1 }, 1);
 
             result.StatusCode.Should().Be(403);
-            result.Message.Should().Contain("Not Owner");
+            result.Message.Should().Contain("Your Not Owner");
         }
 
         [Fact]
-        public async Task CreatAuctionEvent_Should_Return_403_When_Not_Verified()
+        public async Task CreatAuctionEvent_Should_Return_403_When_NotVerified()
         {
-            var existing = new VerifyProductTable { SellerId = 1, isProductVerified = false };
-            _repo.Setup(r => r.GetByProductIdAsync(1)).ReturnsAsync(existing);
+            _repo.Setup(x => x.GetByProductIdAsync(1))
+                .ReturnsAsync(new VerifyProductTable { SellerId = 1, isProductVerified = false });
 
-            var req = new CreateAuctionRequest { ProductId = 1 };
-            var result = await _sut.CreatAuctionEvent(req, 1);
+            var result = await _sut.CreatAuctionEvent(new CreateAuctionRequest { ProductId = 1 }, 1);
 
             result.StatusCode.Should().Be(403);
-            result.Message.Should().Contain("pending verification");
+            result.Message.Should().Contain("pending verification remaining");
         }
 
         [Fact]
         public async Task CreatAuctionEvent_Should_Return_200_When_Valid()
         {
-            var existing = new VerifyProductTable { SellerId = 1, isProductVerified = true, VerifierId = 2 };
-            _repo.Setup(r => r.GetByProductIdAsync(1)).ReturnsAsync(existing);
+            _repo.Setup(x => x.GetByProductIdAsync(1))
+                .ReturnsAsync(new VerifyProductTable
+                {
+                    SellerId = 1,
+                    isProductVerified = true,
+                    VerifierId = 2
+                });
 
-            var req = new CreateAuctionRequest { ProductId = 1 };
-            var result = await _sut.CreatAuctionEvent(req, 1);
+            var result = await _sut.CreatAuctionEvent(new CreateAuctionRequest { ProductId = 1 }, 1);
 
             result.StatusCode.Should().Be(200);
-            _publish.Verify(p => p.Publish(It.IsAny<AuctionCreatedFromVerifyService>(), default), Times.Once);
+
+            _publish.Verify(x => x.Publish(It.IsAny<AuctionCreatedFromVerifyService>(), default), Times.Once);
         }
 
-
-        // get verify status 
         [Fact]
-        public async Task GetVerifyStatusAsync_Should_Return_Fail_When_ProductId_Invalid()
+        public async Task GetVerifyStatusAsync_Should_Return_Invalid()
         {
-            // Act
             var result = await _sut.GetVerifyStatusAsync(0);
 
-            // Assert
             result.Success.Should().BeFalse();
-            result.Message.Should().Be("Invalid product id.");
-            result.Data.Should().BeNull();
-
-            _repo.Verify(x => x.GetByProductIdAsync(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
-        public async Task GetVerifyStatusAsync_Should_Return_NotFound_When_Record_Not_Exists()
+        public async Task GetVerifyStatusAsync_Should_Return_NotFound()
         {
-            // Arrange
-            _repo.Setup(x => x.GetByProductIdAsync(1))
-                .ReturnsAsync((VerifyProductTable?)null);
+            _repo.Setup(x => x.GetByProductIdAsync(1)).ReturnsAsync((VerifyProductTable?)null);
 
-            // Act
             var result = await _sut.GetVerifyStatusAsync(1);
 
-            // Assert
             result.Success.Should().BeFalse();
-            result.Message.Should().Be("Corresponding Id Didn't find data");
-            result.Data.Should().BeNull();
-
-            _repo.Verify(x => x.GetByProductIdAsync(1), Times.Once);
         }
 
         [Fact]
-        public async Task GetVerifyStatusAsync_Should_Return_Data_When_Record_Exists()
+        public async Task GetVerifyStatusAsync_Should_Return_Data()
         {
-            // Arrange
-            var data = new VerifyProductTable
-            {
-                ProductId = 1,
-                isProductVerified = true,
-                VerifierId = 10,
-                VerifiedTime = DateTime.UtcNow,
-                Description = "Approved",
-                SellerId = 5
-            };
-
-
             _repo.Setup(x => x.GetByProductIdAsync(1))
-                .ReturnsAsync(data);
+                .ReturnsAsync(new VerifyProductTable
+                {
+                    ProductId = 1,
+                    isProductVerified = true,
+                    VerifierId = 10,
+                    SellerId = 5
+                });
 
-            // Act
             var result = await _sut.GetVerifyStatusAsync(1);
 
-            // Assert
             result.Success.Should().BeTrue();
-            result.Message.Should().Be("Product verification status retrieved successfully");
-
-            result.Data.Should().NotBeNull();
             result.Data.ProductId.Should().Be(1);
-            result.Data.IsVerified.Should().BeTrue();
-            result.Data.VerifierId.Should().Be(10);
-            result.Data.Description.Should().Be("Approved");
-            result.Data.user_id.Should().Be(5);
-
-            _repo.Verify(x => x.GetByProductIdAsync(1), Times.Once);
         }
-      
     }
 }

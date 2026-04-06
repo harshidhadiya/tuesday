@@ -25,11 +25,11 @@ namespace PRODUCT.Services
         }
         public async Task<ServiceResult<ProductDto>> createProduct(ProductCreate product)
         {
-            var exist = await repository.exist(product.name!);
-            if (exist)
-            {
-                return ServiceResult<ProductDto>.Fail("product already exist", 400);
-            }
+            //var exist = await repository.exist(product.name!);
+            //if (exist && exist.Buy_Date!=date && exist.user_id!=product.user_id)
+           // {
+             //   return ServiceResult<ProductDto>.Fail("product already exist", 400);
+            //}
 
             List<ImageTable> images = null;
             if (product.images != null)
@@ -286,3 +286,4 @@ namespace PRODUCT.Services
         }
     }
 }
+

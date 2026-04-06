@@ -4,20 +4,18 @@
       <DataCollector friendlyName="XPlat Code Coverage">
       <Configuration>
 
-  <Include>
-    [Product]*.Services.*,
-    [Product]*.Controllers.*,
-    [Product]*.Repository.*,
-    [Product]*.Consumers.*,
-
-  </Include>
-
   <Exclude>
-  
-    [Product]*.Services.*,
-    [Product]*.DTOs.*,   
-    [*]Program
-  </Exclude>
+  [Product]*.DTOs.*,   
+  [*]Program
+</Exclude>
+
+<Include>
+  [Product]*.Services.ProductService*,
+  [Product]*.Controllers.*,
+  [Product]*.Repository.*,
+  [Product]*.Consumers.*
+</Include>
+
 
 </Configuration>
       </DataCollector>

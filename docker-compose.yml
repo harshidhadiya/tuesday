@@ -38,7 +38,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5087
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AdminDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AdminDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
       RabbitMq__HostName: rabbitmq
       RabbitMq__VirtualHost: /
       RabbitMq__UserName: guest
@@ -61,7 +61,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=UserDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=UserDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
       RabbitMq__HostName: rabbitmq
       RabbitMq__VirtualHost: /
       RabbitMq__UserName: guest
@@ -86,7 +86,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5088
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=ProductDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=ProductDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
       RabbitMq__HostName: rabbitmq
       RabbitMq__VirtualHost: /
       RabbitMq__UserName: guest
@@ -114,7 +114,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5089
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=UserDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=UserDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
       RabbitMq__HostName: rabbitmq
       RabbitMq__VirtualHost: /
       RabbitMq__UserName: guest
@@ -122,6 +122,7 @@ services:
       Microservice__Request_admin_url: "http://admin:5087"
       Microservice__Product_url: "http://product:5088"
       Microservice__User_url: "http://user:8080"
+      Microservice__Auction_url: "http://auction:5001"
       Jwt__Key: "harshidHADIYAHOWAREYOUDFSDFSDSDFGS"
     depends_on:
       - rabbitmq
@@ -143,7 +144,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5001
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AuctionDb;User Id=sa;Password=Harshid@123;TrustServerCertificate=True;"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AuctionDb;User Id=sa;Password=BATMAN@2024;TrustServerCertificate=True;"
       Redis__ConnectionString: "redis:6379"
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__VHost: "/"

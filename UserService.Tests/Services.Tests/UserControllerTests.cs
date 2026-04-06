@@ -11,7 +11,6 @@ using USER.Repository;
 using MassTransit;
 using USER.Data.Interfaces;
 using ADMIN.Data.Dto;
-using Microsoft.AspNetCore.Identity;
 using Messaging.Contracts;
 using USER.Helper;
 namespace UserService_Tests.Services.Tests
@@ -152,7 +151,7 @@ namespace UserService_Tests.Services.Tests
             }
             var result = await controller.getProfile(null);
 
-            var badResult = result as BadRequestObjectResult;
+            var badResult = result as UnauthorizedObjectResult;
             var notFoundResult = result as NotFoundObjectResult;
 
 
@@ -287,9 +286,9 @@ namespace UserService_Tests.Services.Tests
             };
             var data=new changeProfileDto{Address="nothing"};
             var result=await controller.ChangeProfile(data);
-            result.Should().BeOfType<BadRequestObjectResult>();
-            var badresult=result as BadRequestObjectResult;
-            badresult!.StatusCode.Should().Be(400);
+            result.Should().BeOfType<UnauthorizedObjectResult>();
+            var badresult=result as UnauthorizedObjectResult;
+            badresult!.StatusCode.Should().Be(401);
             badresult.Value.Should().BeEquivalentTo(ApiResponse<object>.ErrorResponse("Token Not Valid Format",401));
         }
         

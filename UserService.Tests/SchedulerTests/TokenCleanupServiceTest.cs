@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,9 +46,9 @@ namespace UserService_Tests.SchedulerTests
             var db = scope.ServiceProvider.GetRequiredService<MACUTIONDB>();
 
             db.refreshTables.AddRange(
-                new RefreshTable { expiryDate = DateTime.UtcNow.AddMinutes(-10) },
-                new RefreshTable { expiryDate = DateTime.UtcNow.AddMinutes(-5) },
-                new RefreshTable { expiryDate = DateTime.UtcNow.AddMinutes(10) } // valid
+                new RefreshTable { expiryDate = DateTime.UtcNow.AddMinutes(-10), name="harshid",userId=1,refreshToken="nothing",role="admin"},
+                new RefreshTable { expiryDate = DateTime.UtcNow.AddMinutes(-5), name="harshid1",userId=12,refreshToken="nothing1",role="user" },
+                new RefreshTable { expiryDate = DateTime.UtcNow.AddMinutes(10), name="harshid2",userId=13,refreshToken="nothing2",role="admin" } // valid
             );
 
             await db.SaveChangesAsync();
@@ -82,8 +81,8 @@ namespace UserService_Tests.SchedulerTests
             var db = scope.ServiceProvider.GetRequiredService<MACUTIONDB>();
 
             db.refreshTables.AddRange(
-                new RefreshTable { expiryDate = DateTime.UtcNow.AddMinutes(10) },
-                new RefreshTable { expiryDate = DateTime.UtcNow.AddMinutes(20) }
+                new RefreshTable { expiryDate = DateTime.UtcNow.AddMinutes(10) , name="harshid",userId=1,refreshToken="nothing",role="admin"},
+                new RefreshTable { expiryDate = DateTime.UtcNow.AddMinutes(20) , name="harshid1",userId=12,refreshToken="nothing1",role="user" }
             );
 
             await db.SaveChangesAsync();
@@ -120,6 +119,7 @@ namespace UserService_Tests.SchedulerTests
                 db.refreshTables.Add(new RefreshTable
                 {
                     expiryDate = DateTime.UtcNow.AddMinutes(-1)
+                    , name="harshid1",userId=12,refreshToken="nothing1",role="user" 
                 });
             }
 
@@ -154,6 +154,7 @@ namespace UserService_Tests.SchedulerTests
             db.refreshTables.Add(new RefreshTable
             {
                 expiryDate = DateTime.UtcNow.AddMinutes(-1)
+                , name="harshid1",userId=12,refreshToken="nothing1",role="user" 
             });
 
             await db.SaveChangesAsync();

@@ -148,7 +148,7 @@ public class BidRepository : IBidRepository
             q = q.Where(x => x.StartDate >= filter.FilterStartDate.Value);
 
         if (filter.FilterEndDate.HasValue)
-            q = q.Where(x => x.EndDate <= filter.FilterEndDate.Value);
+            q = q.Where(x => x.StartDate <= filter.FilterEndDate.Value);
 
         var total = await q.CountAsync();
         var items = await q
@@ -223,3 +223,4 @@ public class WatchlistRepository : IWatchlistRepository
 
     public Task SaveChangesAsync() => _ctx.SaveChangesAsync();
 }
+

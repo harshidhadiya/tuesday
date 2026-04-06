@@ -4,18 +4,24 @@
       <DataCollector friendlyName="XPlat Code Coverage">
       <Configuration>
 
-  <Include>
-    [User]*.Services.*,
-    [User]*.Services.*,
-    [User]*.Controllers.*,
-    [User]*.Repository.*
-  </Include>
-
   <Exclude>
-    [User]*.Messaging.*,
     [User]*.DTOs.*,   
+    [User]*.Services.ServiceResult*,   
+    [User]*.Data.Interfaces.HttpRequestCommon,   
     [*]Program
   </Exclude>
+  <Include>
+    [User]*.Services.*,
+    [User]*.Controllers.*,
+    [User]*.Repository.*,
+    [User]*.Messaging.Consumer.*,
+    [User]*.Interfaces.*,
+    
+    [User]*.Helper.*
+
+
+  </Include>
+
 
 </Configuration>
       </DataCollector>

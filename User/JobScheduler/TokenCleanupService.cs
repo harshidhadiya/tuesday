@@ -22,7 +22,7 @@ namespace USER.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Refresh Token Cleanup Service is starting at {Time}", TimeHelper.Now());
+            _logger.LogInformation("Refresh Token Cleanup Service is starting at {Time}", DateTime.UtcNow);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -56,7 +56,7 @@ namespace USER.Services
                     // 1. Fetch only the data needed for deletion. 
                     // Using AsNoTracking() saves massive amounts of memory.
                     var expiredBatch = await db.refreshTables
-                        .Where(t => t.expiryDate < TimeHelper.Now())
+                        .Where(t => t.expiryDate < DateTime.UtcNow)
                         .Take(BatchSize)
                         .AsNoTracking() 
                         .ToListAsync(stoppingToken);

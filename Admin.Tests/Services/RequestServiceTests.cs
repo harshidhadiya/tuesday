@@ -10,13 +10,8 @@ using Moq;
 
 namespace Admin.Tests.Services
 {
-    /// <summary>
-    /// Unit tests for <see cref="RequestService"/>.
-    /// Covers all public scenarios with xUnit + Moq + FluentAssertions.
-    /// </summary>
     public class RequestServiceTests
     {
-        // ---- shared mocks ----
         private readonly Mock<IRequestRepository>     _repo;
         private readonly Mock<IMapper>                _mapper;
         private readonly Mock<ILogger<RequestService>> _logger;

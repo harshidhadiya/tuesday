@@ -16,7 +16,7 @@ namespace USER.Messaging.Consumer
         {
             using var scope=serviceScope.CreateScope();
             var repository=scope.ServiceProvider.GetRequiredService<IUserRepository>();
-            var cloudinary=scope.ServiceProvider.GetRequiredService<ClodinaryService>();
+            var cloudinary=scope.ServiceProvider.GetRequiredService<IClodinaryService>();
             var data=context.Message.PublicId;
             if(string.IsNullOrEmpty(data))
             return;

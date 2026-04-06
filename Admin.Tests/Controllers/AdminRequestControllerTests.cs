@@ -31,10 +31,6 @@ namespace Admin.Tests.Controllers
             _httpContext.Items["id"] = id;
         }
 
-        // =========================
-        // VERIFY REQUEST
-        // =========================
-
         [Fact]
         public async Task VerifyRequest_Should_Return_400_When_No_UserId()
         {
@@ -108,9 +104,6 @@ namespace Admin.Tests.Controllers
             result.Should().BeOfType<ForbidResult>();
         }
 
-        // =========================
-        // GRANT USER RIGHTS
-        // =========================
 
         [Fact]
         public async Task GrantUserRights_Should_Return_400_When_No_UserId()
@@ -180,9 +173,6 @@ namespace Admin.Tests.Controllers
             result.Should().BeOfType<ForbidResult>();
         }
 
-        // =========================
-        // REVOKE USER RIGHTS
-        // =========================
 
         [Fact]
         public async Task RevokeUserRights_Should_Return_400_When_No_UserId()
@@ -213,10 +203,6 @@ namespace Admin.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        // =========================
-        // REVOKE VERIFICATION
-        // =========================
-
         [Fact]
         public async Task RevokeVerification_Should_Return_400_When_No_UserId()
         {
@@ -245,10 +231,6 @@ namespace Admin.Tests.Controllers
 
             result.Should().BeOfType<OkObjectResult>();
         }
-
-        // =========================
-        // GET REQUEST DETAILS
-        // =========================
 
         [Fact]
         public async Task GetRequestDetails_Should_Return_404_When_NotFound()
@@ -286,9 +268,6 @@ namespace Admin.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        // =========================
-        // FILTER
-        // =========================
 
         [Fact]
         public async Task GetFilterdData_Should_Return_400_With_401_In_Body_When_No_UserId()
